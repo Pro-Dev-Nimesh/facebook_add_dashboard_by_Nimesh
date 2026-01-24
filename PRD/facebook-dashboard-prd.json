@@ -1,0 +1,1111 @@
+{
+  "prd": {
+    "version": "1.0",
+    "created": "2026-01-24",
+    "status": "Approved",
+    "productName": "Facebook Ads Dashboard",
+    "tagline": "Unified Analytics Platform for Facebook Advertising"
+  },
+  "executiveSummary": {
+    "problemStatement": {
+      "description": "Team manages two separate dashboards causing inefficiency",
+      "currentDashboards": [
+        "Facebook Ads Manager - Campaign/ad set/ad performance, pixel tracking, country-wise spending",
+        "Pabbly Subscription Billing Dashboard - Actual sales and revenue tracking"
+      ],
+      "painPoints": [
+        "Facebook Pixel doesn't capture all sales (e.g., 10 actual sales but pixel shows only 6)",
+        "Manual effort to calculate true ROAS by combining data from both platforms",
+        "No automated alerts for overspending campaigns/ad sets",
+        "Inefficient workflow switching between dashboards"
+      ]
+    },
+    "solution": {
+      "description": "Build a unified dashboard",
+      "features": [
+        "Pulls Facebook Ads data via API",
+        "Receives actual sales data from Pabbly via integration",
+        "Calculates true ROAS based on real revenue",
+        "Provides configurable alerts with Google Chat notifications",
+        "Monitors pixel health status"
+      ]
+    }
+  },
+  "businessStructure": {
+    "accountHierarchy": {
+      "businessAccount": "Facebook Business Account",
+      "adAccounts": [
+        {
+          "id": 1,
+          "name": "Pabbly Connect",
+          "product": "Pabbly Connect"
+        },
+        {
+          "id": 2,
+          "name": "Pabbly Chatflow",
+          "product": "Pabbly Chatflow"
+        },
+        {
+          "id": 3,
+          "name": "PSB",
+          "product": "Pabbly Subscription Billing"
+        }
+      ]
+    },
+    "keyPrinciple": "Each ad account = One product with separate APIs, webhooks, alerts, and pixel monitoring"
+  },
+  "functionalRequirements": {
+    "dashboardViews": {
+      "facebookAdsData": {
+        "source": "Facebook API",
+        "metrics": [
+          "Campaigns",
+          "Ad Sets",
+          "Ads",
+          "Frequency",
+          "Ad Spend",
+          "Impressions",
+          "Clicks",
+          "CTR"
+        ],
+        "displayLogic": "Exact replication from Facebook"
+      },
+      "salesRevenueData": {
+        "source": "Pabbly API/Webhook",
+        "metrics": [
+          {
+            "name": "Total Sales Count",
+            "source": "Pabbly",
+            "notes": "Actual sales"
+          },
+          {
+            "name": "Revenue",
+            "source": "Pabbly",
+            "notes": "Actual revenue"
+          },
+          {
+            "name": "Country-wise Sales",
+            "source": "Pabbly",
+            "notes": "Overrides Facebook country data"
+          }
+        ]
+      },
+      "leadsData": {
+        "source": "API Endpoint",
+        "metrics": ["Lead Count", "Lead Source"]
+      },
+      "calculatedMetrics": [
+        {
+          "name": "ROAS",
+          "formula": "Pabbly Revenue / Facebook Ad Spend"
+        },
+        {
+          "name": "Cost per Lead (CPL)",
+          "formula": "Facebook Ad Spend / Total Leads"
+        },
+        {
+          "name": "Cost per Acquisition (CPA)",
+          "formula": "Facebook Ad Spend / Total Sales"
+        }
+      ]
+    },
+    "dataEntrySections": {
+      "salesData": {
+        "view": "Table",
+        "fields": ["Date", "Amount", "Country", "Product", "Notes"],
+        "actions": ["Add", "Edit", "Delete"],
+        "apiEndpoint": "POST /api/{ad_account}/sales",
+        "webhookSupport": "Pabbly Connect"
+      },
+      "leadsData": {
+        "view": "Table",
+        "fields": ["Date", "Count", "Source", "Notes"],
+        "actions": ["Add", "Edit", "Delete"],
+        "apiEndpoint": "POST /api/{ad_account}/leads",
+        "webhookSupport": "CRM"
+      }
+    },
+    "alertSystem": {
+      "alertLevels": [
+        "Campaign Level",
+        "Ad Set Level",
+        "Ad Level",
+        "Country Level",
+        "Frequency Level"
+      ],
+      "alertConditions": [
+        {
+          "type": "Spend Threshold + ROAS",
+          "description": "Alert when spend >= threshold AND ROAS < target"
+        },
+        {
+          "type": "ROAS Threshold",
+          "description": "Alert when ROAS < X (e.g., below 1.0) after threshold reached"
+        },
+        {
+          "type": "Frequency Threshold",
+          "description": "Alert when frequency > X"
+        },
+        {
+          "type": "Pixel Inactive",
+          "description": "Alert when pixel is not active on landing page"
+        }
+      ],
+      "alertTriggerLogic": {
+        "phases": [
+          {
+            "phase": 1,
+            "name": "PRE-THRESHOLD",
+            "description": "No alerts until spend reaches threshold",
+            "example": "Spend = $700, ROAS = 0 → NO ALERT"
+          },
+          {
+            "phase": 2,
+            "name": "AT THRESHOLD",
+            "description": "First evaluation when threshold is reached",
+            "condition": "Spend >= $1,400 AND ROAS < 1.0 → ALERT"
+          },
+          {
+            "phase": 3,
+            "name": "POST-THRESHOLD",
+            "description": "Continuous monitoring after threshold",
+            "condition": "Any time ROAS drops below target → ALERT"
+          }
+        ],
+        "timeWindow": "Lifetime Cumulative (total since ad started)"
+      },
+      "alertLifecycle": {
+        "states": ["ACTIVE", "RESOLVED", "AUTO-RESOLVED"],
+        "flow": [
+          {
+            "step": 1,
+            "action": "TRIGGER",
+            "description": "Spend >= Threshold AND ROAS < Target"
+          },
+          {
+            "step": 2,
+            "action": "ALERT #1 SENT",
+            "channels": ["Google Chat", "In-App"]
+          },
+          {
+            "step": 3,
+            "action": "USER RESOLVES",
+            "requires": ["Action taken (dropdown)", "Comment (text)"]
+          },
+          {
+            "step": 4,
+            "action": "SYSTEM RE-CHECK",
+            "timing": "After 24 hours",
+            "outcomes": [
+              {
+                "condition": "Ad PAUSED or ROAS >= Target",
+                "result": "Issue truly resolved, no further alerts"
+              },
+              {
+                "condition": "Ad STILL RUNNING and ROAS < Target",
+                "result": "ALERT #2 sent (Issue persists)"
+              }
+            ]
+          },
+          {
+            "step": 5,
+            "action": "CYCLE REPEATS",
+            "description": "Alert #3, #4... every 24 hours until truly resolved"
+          }
+        ]
+      },
+      "alertResolution": {
+        "actionOptions": [
+          "Paused the ad/campaign",
+          "Reduced budget",
+          "Changed targeting",
+          "Changed creative",
+          "No action needed (monitoring)",
+          "Other"
+        ],
+        "requiresComment": true
+      },
+      "autoResolutionConditions": [
+        {
+          "condition": "Ad/Campaign paused",
+          "message": "Auto-resolved: Ad paused"
+        },
+        {
+          "condition": "ROAS improves above threshold",
+          "message": "Auto-resolved: ROAS improved to X.XX"
+        }
+      ],
+      "alertHistory": {
+        "tracked": [
+          "Alert number (#1, #2, #3...)",
+          "When triggered",
+          "Who resolved",
+          "Action taken",
+          "Resolution comment",
+          "Time to resolution"
+        ],
+        "dashboardView": ["Active alerts", "Resolved today", "Recurring alerts"]
+      },
+      "notificationChannel": {
+        "type": "Google Chat Webhook",
+        "configurable": "Per ad account",
+        "messageContent": [
+          "Alert number (e.g., Alert #2)",
+          "Campaign/Ad Set/Ad name",
+          "Current spend (lifetime)",
+          "Current revenue (lifetime)",
+          "Current ROAS",
+          "Threshold values",
+          "Previous resolution action (if recurring)"
+        ]
+      },
+      "reminderFrequency": "Every 24 hours until truly resolved",
+      "defaultThresholds": {
+        "spendThreshold": "2x product price (e.g., $1,400 for $700 product)",
+        "roasThreshold": 1.0,
+        "frequencyThreshold": 2.0,
+        "budgetIncreaseRoas": 2.0
+      }
+    },
+    "positiveAlerts": {
+      "purpose": "Notify when campaigns perform well, recommend budget increases",
+      "triggerConditions": [
+        {
+          "condition": "High ROAS",
+          "description": "Campaign ROAS exceeds configurable target (default: > 2.0)"
+        },
+        {
+          "condition": "Best Performer",
+          "description": "Identify highest ROAS campaign among all active"
+        },
+        {
+          "condition": "Spend Threshold Met",
+          "description": "Only recommend after minimum spend (e.g., $500)"
+        }
+      ],
+      "configuration": {
+        "roasTarget": "Configurable (default: 2.0)",
+        "minimumSpend": 500,
+        "minimumDuration": "3 days running",
+        "notification": ["Google Chat", "In-App"]
+      },
+      "recommendationLogic": {
+        "steps": [
+          "Calculate ROAS for all active campaigns",
+          "Identify BEST PERFORMER (highest ROAS)",
+          "Compare to other campaigns",
+          "If Best Performer ROAS > Target → Send recommendation"
+        ]
+      },
+      "budgetReallocation": {
+        "method": "Best performer only",
+        "suggestion": "Shift budget FROM low ROAS TO high ROAS campaigns",
+        "example": "Shift $500 from Campaign B (ROAS 0.8) to Campaign A (ROAS 2.5)"
+      }
+    },
+    "knowledgeBase": {
+      "purpose": "Guidance for new team members, maintain best practices",
+      "components": {
+        "infoTooltips": {
+          "description": "Small 'i' icons next to every configurable parameter",
+          "interaction": "Hover/click to see explanation",
+          "examples": [
+            {
+              "parameter": "Spend Threshold",
+              "tooltip": "Set this to 2x your product price. For $700 product, set $1,400"
+            },
+            {
+              "parameter": "ROAS Threshold",
+              "tooltip": "ROAS below 1.0 means you're losing money. Target at least 1.5+"
+            },
+            {
+              "parameter": "Frequency",
+              "tooltip": "Keep below 2.0. Higher frequency = ad fatigue"
+            }
+          ]
+        },
+        "helpPage": {
+          "sections": [
+            {
+              "name": "Getting Started",
+              "topics": ["How to connect Facebook account", "Understanding the dashboard", "Setting up your first alert"]
+            },
+            {
+              "name": "Best Practices (SOP)",
+              "topics": ["Recommended threshold settings", "When to pause an ad", "When to increase budget", "Frequency management", "Country targeting tips"]
+            },
+            {
+              "name": "Alert Guidelines",
+              "topics": ["What each alert means", "Recommended actions per alert type", "Resolution best practices"]
+            },
+            {
+              "name": "Glossary",
+              "topics": ["ROAS, CPL, CPA definitions", "Frequency explained", "Attribution explained"]
+            }
+          ]
+        }
+      },
+      "sopContent": {
+        "whenToPause": {
+          "conditions": [
+            "Spend > 2x product price with ZERO sales",
+            "ROAS < 0.5 after significant spend ($500+)",
+            "Frequency > 3.0",
+            "Multiple alerts triggered for same ad (Alert #3+)"
+          ]
+        },
+        "whenToIncreaseBudget": {
+          "conditions": [
+            "ROAS > 2.0 consistently for 3+ days",
+            "Campaign is best performer among all active",
+            "Frequency < 2.0"
+          ],
+          "howMuch": {
+            "safe": "20% increase every 3-5 days",
+            "aggressive": "30-50% if ROAS > 3.0"
+          }
+        },
+        "frequencyGuidelines": {
+          "1.0-1.5": "Excellent (fresh audience)",
+          "1.5-2.0": "Good (healthy reach)",
+          "2.0-2.5": "Warning (consider new creative)",
+          "2.5-3.0": "High (audience fatigue starting)",
+          "3.0+": "Critical (pause or refresh creative)"
+        }
+      },
+      "contextualHelp": {
+        "description": "When alert triggers, show relevant SOP section",
+        "examples": [
+          "Frequency alert → Link to Frequency Guidelines",
+          "Low ROAS alert → Link to When to Pause an Ad"
+        ]
+      },
+      "onboarding": {
+        "firstTimeLogin": "Welcome modal with quick tour option",
+        "checklist": ["Set up your first threshold", "Connect ad account", "Configure webhook"]
+      }
+    },
+    "realTimeSaleNotifications": {
+      "purpose": "Notify team when sale is captured, motivate designers",
+      "channels": [
+        {
+          "type": "In-App Notifications",
+          "location": "Bell icon in header"
+        },
+        {
+          "type": "Google Chat Webhook",
+          "delivery": "Real-time"
+        }
+      ],
+      "notificationContent": {
+        "fields": ["Ad Account", "Campaign", "Ad Set", "Ad Name", "Sale Amount", "Country"],
+        "designerCredit": true
+      },
+      "inAppPanel": {
+        "features": [
+          "Real-time updates (WebSocket/SSE)",
+          "Unread count badge",
+          "Click to view sale details",
+          "Mark as read/Mark all as read",
+          "Filter by ad account"
+        ],
+        "retention": "Last 100 notifications or 30 days"
+      }
+    },
+    "adCreativePreview": {
+      "functionality": "Show ad creative (image/video thumbnail) on hover",
+      "display": "Tooltip/popover format",
+      "content": ["Image", "Ad Name", "Ad ID", "Creation Date"],
+      "rateLimitingStrategy": {
+        "priority": "Account Safety First",
+        "strategies": [
+          {
+            "name": "Pre-fetch on Sync",
+            "implementation": "Fetch during regular 30 min sync, NOT on hover"
+          },
+          {
+            "name": "Local Cache",
+            "implementation": "Store images in database/CDN, never fetch on-demand"
+          },
+          {
+            "name": "Rate Limit Buffer",
+            "implementation": "Use only 50% of allowed API quota"
+          },
+          {
+            "name": "Batch Requests",
+            "implementation": "Combine up to 50 ads per request"
+          },
+          {
+            "name": "Stale Data Acceptable",
+            "implementation": "Creatives update only every 6-12 hours"
+          }
+        ],
+        "apiLimits": {
+          "facebookLimit": "~200 calls per hour per ad account",
+          "ourUsage": "MAX 100 calls per hour (50% safety buffer)",
+          "syncFrequency": "Every 30 minutes",
+          "creativesSync": "Every 6 hours",
+          "batchSize": "Max 50 ads per request",
+          "retryStrategy": "Exponential backoff (1min, 5min, 15min, 1hr)",
+          "circuitBreaker": "Stop all calls if rate limit warning received"
+        }
+      },
+      "creativeStorage": {
+        "method": "Download and store locally (database BLOB or S3)",
+        "serve": "From local storage, NOT from Facebook CDN"
+      },
+      "fallbackBehavior": {
+        "notCached": "Show placeholder with 'Image loading...'",
+        "fetchFails": "Show generic ad icon",
+        "uiBlocking": "Never block UI waiting for Facebook API"
+      }
+    },
+    "pixelHealthMonitoring": {
+      "checkFrequency": "Every 1 hour",
+      "verification": "Pixel is active on designated landing pages",
+      "configuration": "Each ad account has its own pixel config",
+      "alerts": {
+        "trigger": "Pixel becomes inactive",
+        "indicator": "Dashboard shows Active/Inactive status",
+        "timestamp": "Last checked timestamp shown"
+      }
+    },
+    "filtersAndTimeRange": {
+      "adStatusFilter": {
+        "options": [
+          {
+            "value": "active",
+            "label": "Active",
+            "default": true,
+            "description": "Show only active campaigns/ad sets/ads"
+          },
+          {
+            "value": "paused",
+            "label": "Paused",
+            "description": "Show only paused items"
+          },
+          {
+            "value": "all",
+            "label": "All",
+            "description": "Show both active and paused"
+          }
+        ],
+        "availability": ["Campaign", "Ad Set", "Ad"],
+        "persistence": "Session"
+      },
+      "timeRange": {
+        "default": "Last 30 Days",
+        "options": [
+          {"value": 7, "label": "Last 7 Days", "description": "Quick recent performance check"},
+          {"value": 14, "label": "Last 14 Days", "description": "Two-week trend analysis"},
+          {"value": 30, "label": "Last 30 Days", "default": true, "description": "Primary decision-making window"},
+          {"value": 60, "label": "Last 60 Days", "description": "Extended trend analysis"},
+          {"value": 90, "label": "Last 90 Days", "description": "Quarterly view"},
+          {"value": "custom", "label": "Custom Range", "description": "User-defined date range"}
+        ],
+        "rationale": [
+          "Avoid knee-jerk reactions to daily fluctuations",
+          "Get statistically meaningful data for decisions",
+          "Alerts and thresholds evaluated on 30-day spend/ROAS"
+        ]
+      }
+    },
+    "sortingAndTableControls": {
+      "sortingFeature": {
+        "interaction": "Click column header",
+        "sortOptions": [
+          {"clicks": 1, "direction": "Descending", "label": "Highest to Lowest"},
+          {"clicks": 2, "direction": "Ascending", "label": "Lowest to Highest"}
+        ],
+        "visualIndicator": "Arrow (↑↓) shows current sort direction"
+      },
+      "sortableColumns": {
+        "campaigns": ["Spend", "Sales", "Revenue", "ROAS", "Frequency", "Impressions", "Clicks"],
+        "adSets": ["Spend", "Sales", "Revenue", "ROAS", "Frequency", "Impressions", "Clicks"],
+        "ads": ["Spend", "Sales", "Revenue", "ROAS", "Frequency", "Impressions", "Clicks"],
+        "countries": ["Spend", "Sales", "Revenue", "ROAS"],
+        "frequency": ["Frequency value", "Impressions", "Reach"]
+      }
+    },
+    "roasCalculationLogic": {
+      "critical": true,
+      "contexts": [
+        {
+          "section": "Overview Cards",
+          "formula": "Total Pabbly Revenue / Total Facebook Ad Spend",
+          "revenueSource": "Pabbly (actual sales)",
+          "spendSource": "Facebook",
+          "useCase": "True business ROAS",
+          "example": {
+            "pabblyRevenue": 7000,
+            "facebookSpend": 5000,
+            "roas": 1.4
+          }
+        },
+        {
+          "section": "Campaign/Ad Set/Ad Tables",
+          "formula": "Facebook Attributed Revenue / Facebook Ad Spend",
+          "revenueSource": "Facebook Pixel (exactly as FB reports)",
+          "spendSource": "Facebook",
+          "useCase": "Campaign/Ad optimization",
+          "important": "Do NOT modify Facebook data with Pabbly data",
+          "example": {
+            "facebookRevenue": 3000,
+            "facebookSpend": 2000,
+            "roas": 1.5
+          }
+        },
+        {
+          "section": "Country Section",
+          "formula": "Pabbly Revenue (by country) / Facebook Spend (by country)",
+          "revenueSource": "Pabbly (actual sales by country)",
+          "spendSource": "Facebook (spend by country)",
+          "useCase": "Geographic performance",
+          "example": {
+            "country": "USA",
+            "pabblyRevenue": 1500,
+            "facebookSpend": 1000,
+            "roas": 1.5
+          }
+        }
+      ]
+    },
+    "dataDisplayLogic": {
+      "facebookData": {
+        "rule": "Exact replication in Campaign/Ad Set/Ad tables",
+        "includes": [
+          "Campaign performance metrics",
+          "Ad Set performance metrics",
+          "Ad performance metrics",
+          "Frequency data",
+          "Ad spend data",
+          "Revenue and Sales attribution (do not modify with Pabbly data)"
+        ]
+      },
+      "countryData": {
+        "rule": "Override Facebook's country attribution in Country section only",
+        "source": "Pabbly sales data",
+        "example": "If Pabbly shows 4 USA sales but Facebook shows 2, display 4 USA sales"
+      }
+    }
+  },
+  "userManagement": {
+    "roles": [
+      {
+        "name": "Admin",
+        "permissions": {
+          "viewDashboard": "All",
+          "editData": "All",
+          "configureAlerts": "All",
+          "manageUsers": true,
+          "accessSettings": true
+        }
+      },
+      {
+        "name": "Manager",
+        "permissions": {
+          "viewDashboard": "Assigned",
+          "editData": "Assigned",
+          "configureAlerts": "Assigned",
+          "manageUsers": false,
+          "accessSettings": false
+        }
+      },
+      {
+        "name": "Viewer",
+        "permissions": {
+          "viewDashboard": "Assigned",
+          "editData": false,
+          "configureAlerts": false,
+          "manageUsers": false,
+          "accessSettings": false
+        }
+      }
+    ],
+    "adAccountAccessControl": {
+      "description": "Users can be restricted to specific ad accounts",
+      "examples": [
+        "User A → Only Pabbly Connect dashboard",
+        "User B → Pabbly Connect + Pabbly Chatflow"
+      ]
+    }
+  },
+  "technicalRequirements": {
+    "technologyStack": {
+      "frontend": {
+        "technology": "Next.js 14 (React)",
+        "reason": "Modern, fast, SSR support"
+      },
+      "backend": {
+        "technology": "Next.js API Routes",
+        "reason": "Unified codebase"
+      },
+      "database": {
+        "technology": "PostgreSQL",
+        "reason": "Robust, relational data"
+      },
+      "orm": {
+        "technology": "Prisma",
+        "reason": "Type-safe database access"
+      },
+      "authentication": {
+        "technology": "NextAuth.js",
+        "reason": "Flexible auth solution"
+      },
+      "charts": {
+        "technology": "Recharts / Chart.js",
+        "reason": "Data visualization"
+      },
+      "hosting": {
+        "technology": "Vercel / AWS",
+        "reason": "Auto-scaling, reliable"
+      }
+    },
+    "externalIntegrations": {
+      "facebookMarketingAPI": {
+        "purpose": "Fetch campaigns, ad sets, ads, metrics",
+        "authentication": "OAuth 2.0 with Facebook Login",
+        "syncFrequency": "Every 30 minutes"
+      },
+      "pabblySubscriptionBilling": {
+        "webhook": "Receive real-time sale notifications",
+        "api": "Fetch historical sales data",
+        "data": ["Amount", "Country", "Date", "Product"]
+      },
+      "googleChatWebhook": {
+        "purpose": "Send alert and sale notifications",
+        "format": "Incoming webhook URL per ad account"
+      }
+    },
+    "apiEndpoints": {
+      "public": [
+        {
+          "method": "POST",
+          "path": "/api/v1/{ad_account_id}/sales",
+          "description": "Add sale entry"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/{ad_account_id}/leads",
+          "description": "Add lead entry"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/webhook/pabbly",
+          "description": "Pabbly webhook receiver"
+        }
+      ],
+      "internal": [
+        {
+          "method": "GET",
+          "path": "/api/v1/dashboard/{ad_account_id}",
+          "description": "Get dashboard data"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/campaigns/{ad_account_id}",
+          "description": "Get campaigns list"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/alerts/{ad_account_id}",
+          "description": "Get alert configurations"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/alerts/{ad_account_id}",
+          "description": "Create/Update alert"
+        }
+      ]
+    },
+    "dataSyncSchedule": [
+      {
+        "dataType": "Facebook Ads Data",
+        "frequency": "Every 30 min",
+        "method": "Cron job + Facebook API"
+      },
+      {
+        "dataType": "Ad Creatives/Images",
+        "frequency": "Every 6 hours",
+        "method": "Batch fetch + Local storage"
+      },
+      {
+        "dataType": "Sales Data",
+        "frequency": "Real-time",
+        "method": "Webhook + API"
+      },
+      {
+        "dataType": "Leads Data",
+        "frequency": "Real-time",
+        "method": "Webhook + API"
+      },
+      {
+        "dataType": "Pixel Health",
+        "frequency": "Every 1 hour",
+        "method": "Cron job + Page check"
+      }
+    ],
+    "facebookAPIRateLimiting": {
+      "priority": "Account Safety is Priority #1",
+      "protectionLayers": [
+        {
+          "name": "50% Quota Buffer",
+          "implementation": "Never exceed 50% of allowed API calls"
+        },
+        {
+          "name": "Exponential Backoff",
+          "implementation": "On rate limit warning: wait 1min → 5min → 15min → 1hr"
+        },
+        {
+          "name": "Circuit Breaker",
+          "implementation": "If rate limit error received, pause ALL calls for 1 hour"
+        },
+        {
+          "name": "Request Batching",
+          "implementation": "Combine up to 50 items per batch request"
+        },
+        {
+          "name": "Local Caching",
+          "implementation": "Store all data locally, never fetch on-demand"
+        },
+        {
+          "name": "Stale Data OK",
+          "implementation": "Accept 30-min old data rather than risk rate limit"
+        }
+      ],
+      "safeUsagePattern": {
+        "metricsSync": "Every 30 min",
+        "creativesSync": "Every 6 hours only",
+        "maxCalls": "100/hour per ad account (50% of ~200 limit)",
+        "batchSize": "50 ads max per request",
+        "onRateLimitWarning": "STOP immediately, wait 1 hour"
+      }
+    }
+  },
+  "dashboardUI": {
+    "mainNavigation": [
+      {
+        "name": "Dashboard",
+        "type": "menu",
+        "children": ["Pabbly Connect", "Pabbly Chatflow", "PSB"]
+      },
+      {
+        "name": "Notifications",
+        "type": "icon",
+        "location": "Top Right",
+        "description": "Real-time sale alerts with ad attribution"
+      },
+      {
+        "name": "Alerts",
+        "type": "page"
+      },
+      {
+        "name": "Settings",
+        "type": "menu",
+        "children": ["Facebook Connection", "Webhook Configuration", "Alert Thresholds", "User Management"]
+      },
+      {
+        "name": "Data Management",
+        "type": "menu",
+        "children": ["Sales Data", "Leads Data"]
+      }
+    ],
+    "dashboardPageLayout": {
+      "filterBar": {
+        "statusFilter": {
+          "default": "Active",
+          "options": ["Active", "Paused", "All"]
+        },
+        "timeRange": {
+          "default": "Last 30 Days",
+          "options": ["7", "14", "30", "60", "90", "Custom"]
+        },
+        "refreshButton": true
+      },
+      "topSection": {
+        "name": "Key Metrics Cards",
+        "dataWindow": "30-Day",
+        "cards": [
+          "Total Ad Spend",
+          "Total Revenue (From Pabbly)",
+          "ROAS",
+          "Total Leads",
+          "Cost per Lead",
+          "Pixel Status"
+        ]
+      },
+      "middleSection": {
+        "name": "Performance Tables",
+        "dataSource": "Facebook",
+        "sortable": true,
+        "tables": [
+          {
+            "name": "Campaigns Table",
+            "columns": ["Name", "Spend", "Sales", "Revenue", "ROAS", "Frequency", "Status"]
+          },
+          {
+            "name": "Ad Sets Table",
+            "columns": ["Name", "Campaign", "Spend", "Sales", "Revenue", "ROAS", "Actions"]
+          },
+          {
+            "name": "Ads Table",
+            "columns": ["Name", "Ad Set", "Spend", "Sales", "Revenue", "ROAS", "Actions"],
+            "features": ["Hover for image preview"]
+          }
+        ]
+      },
+      "bottomSection": {
+        "name": "Country Performance",
+        "dataSource": "Pabbly",
+        "sortable": true,
+        "columns": ["Country", "Sales Count", "Revenue", "Ad Spend", "ROAS"],
+        "roasCalculation": "Pabbly Revenue / Facebook Spend per country"
+      },
+      "chartsSection": {
+        "charts": [
+          "Spend vs Revenue over time",
+          "ROAS trend graph",
+          "Leads trend graph",
+          "Country distribution pie chart"
+        ]
+      }
+    }
+  },
+  "securityRequirements": {
+    "authentication": {
+      "methods": ["Email/Password", "Google OAuth (optional)"],
+      "sessionType": "Session-based"
+    },
+    "authorization": {
+      "type": "Role-based access control (RBAC)",
+      "granularity": "Ad account level permissions"
+    },
+    "apiSecurity": {
+      "features": [
+        "API keys for external integrations",
+        "Rate limiting on public endpoints",
+        "HTTPS only"
+      ]
+    },
+    "dataProtection": {
+      "features": [
+        "Encrypted database connections",
+        "No storage of Facebook access tokens (use refresh flow)",
+        "Audit logs for data modifications"
+      ]
+    }
+  },
+  "successMetrics": {
+    "primaryGoals": [
+      "Single Dashboard: All data accessible in one place",
+      "Accurate ROAS: Based on actual Pabbly sales",
+      "Proactive Alerts: Notify before significant overspend",
+      "Time Saved: Reduce manual data correlation effort"
+    ],
+    "kpis": [
+      {
+        "metric": "Dashboard load time",
+        "target": "< 3 seconds"
+      },
+      {
+        "metric": "Data sync accuracy",
+        "target": "99.9%"
+      },
+      {
+        "metric": "Alert delivery latency",
+        "target": "< 1 minute"
+      },
+      {
+        "metric": "System uptime",
+        "target": "99.5%"
+      }
+    ]
+  },
+  "implementationPhases": [
+    {
+      "phase": 1,
+      "name": "Foundation",
+      "duration": "Week 1-2",
+      "tasks": [
+        "Project setup (Next.js, PostgreSQL, Prisma)",
+        "User authentication system",
+        "Database schema design",
+        "Basic UI layout and navigation"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Facebook Integration",
+      "duration": "Week 3-4",
+      "tasks": [
+        "Facebook OAuth integration",
+        "Facebook Marketing API connection",
+        "Campaign/Ad Set/Ad data fetching",
+        "Data sync scheduler (30 min)"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Data Management",
+      "duration": "Week 5-6",
+      "tasks": [
+        "Sales data section (CRUD + API)",
+        "Leads data section (CRUD + API)",
+        "Pabbly webhook receiver",
+        "Historical data import"
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Dashboard & Analytics",
+      "duration": "Week 7-8",
+      "tasks": [
+        "Dashboard UI with key metrics",
+        "ROAS & CPL calculations",
+        "Performance tables",
+        "Charts and visualizations",
+        "Country-wise breakdown (Pabbly data)",
+        "Ad creative preview on hover (with local caching)"
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Alert & Notification System",
+      "duration": "Week 9-10",
+      "tasks": [
+        "Alert configuration UI",
+        "Threshold monitoring engine",
+        "Google Chat webhook integration (alerts)",
+        "Pixel health monitoring",
+        "Real-time sale notifications (in-app + webhook)",
+        "Notification panel UI (bell icon)",
+        "WebSocket/SSE for real-time updates"
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "Polish & Launch",
+      "duration": "Week 11-12",
+      "tasks": [
+        "User management & roles",
+        "Facebook API rate limiting safeguards",
+        "Testing & bug fixes",
+        "Documentation",
+        "Deployment to production"
+      ]
+    }
+  ],
+  "projectStructure": {
+    "rootDirectory": "facebook-dashboard",
+    "structure": {
+      "src": {
+        "app": {
+          "description": "Next.js App Router",
+          "subdirectories": ["(auth)", "(dashboard)", "api"],
+          "files": ["layout.tsx"]
+        },
+        "components": {
+          "description": "React components",
+          "subdirectories": ["dashboard", "alerts", "data", "ui"]
+        },
+        "lib": {
+          "description": "Utilities",
+          "files": ["facebook.ts", "pabbly.ts", "alerts.ts", "db.ts"]
+        },
+        "types": {
+          "description": "TypeScript types"
+        }
+      },
+      "prisma": {
+        "files": ["schema.prisma"]
+      },
+      "public": {},
+      "rootFiles": ["package.json"]
+    }
+  },
+  "testingPlan": {
+    "checklist": [
+      "Facebook OAuth flow works correctly",
+      "Campaign data syncs every 30 minutes",
+      "Sales API endpoint receives data correctly",
+      "Leads API endpoint receives data correctly",
+      "Overview ROAS calculates correctly (Pabbly Revenue / FB Spend)",
+      "Campaign/Ad Set/Ad ROAS shows Facebook's exact data (not modified)",
+      "Country ROAS calculates correctly (Pabbly Revenue / FB Spend per country)",
+      "Country sales count shows from Pabbly (not Facebook)",
+      "Alerts trigger when thresholds exceeded",
+      "Google Chat receives webhook notifications",
+      "Pixel health check runs hourly",
+      "Role-based access works correctly",
+      "Data can be edited/deleted manually",
+      "Ad creative images display on hover",
+      "Real-time sale notifications appear in notification panel",
+      "Sale notifications sent to Google Chat with ad attribution",
+      "API rate limiting stays within safe limits (50% of quota)",
+      "Sorting works on all tables",
+      "Sort toggles between ascending and descending on column click"
+    ],
+    "integrationTests": [
+      "End-to-end: Add sale via API → See in dashboard → ROAS updates",
+      "End-to-end: Add sale via API → Notification appears → Google Chat receives sale message with ad info",
+      "End-to-end: Spend exceeds threshold → Alert triggers → Google Chat receives message",
+      "End-to-end: Pixel goes inactive → Alert triggers within 1 hour",
+      "Rate limit test: Verify API calls never exceed 100/hour per ad account"
+    ]
+  },
+  "openQuestions": [
+    {
+      "id": 1,
+      "question": "What domain will host this application?",
+      "category": "Infrastructure"
+    },
+    {
+      "id": 2,
+      "question": "Do you have a Facebook Developer App created, or should we create one?",
+      "category": "Integration"
+    },
+    {
+      "id": 3,
+      "question": "Do you have Pabbly API credentials ready?",
+      "category": "Integration"
+    },
+    {
+      "id": 4,
+      "question": "Is the Google Chat webhook URL already configured?",
+      "category": "Integration"
+    },
+    {
+      "id": 5,
+      "question": "Any constraints on hosting costs?",
+      "category": "Budget"
+    }
+  ],
+  "sampleMessages": {
+    "alertOverspending": {
+      "title": "ALERT: Overspending Detected",
+      "adAccount": "Pabbly Connect",
+      "level": "Campaign",
+      "name": "USA - Lifetime Deal",
+      "currentStatus": {
+        "spend": 1523.45,
+        "sales": 0,
+        "roas": 0.00
+      },
+      "thresholdExceeded": {
+        "spendThreshold": 1400,
+        "roasThreshold": 1.0
+      },
+      "action": "Review and pause/optimize campaign"
+    },
+    "saleNotification": {
+      "title": "NEW SALE GENERATED!",
+      "adAccount": "Pabbly Connect",
+      "campaign": "USA - Lifetime Deal",
+      "adSet": "Interests - Tech Entrepreneurs",
+      "adName": "Video Ad v3 - Feature Demo",
+      "saleAmount": 700,
+      "country": "United States",
+      "designerMessage": "Great job team! This ad creative is performing well!"
+    }
+  }
+}

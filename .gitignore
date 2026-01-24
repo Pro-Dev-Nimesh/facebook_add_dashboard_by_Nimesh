@@ -1,0 +1,27 @@
+# System files
+.DS_Store
+Thumbs.db
+nul
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node modules (if added later)
+node_modules/
+
+# Build output
+dist/
+build/
