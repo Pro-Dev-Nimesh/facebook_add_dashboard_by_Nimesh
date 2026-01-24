@@ -901,6 +901,11 @@
             color: var(--warning-color);
         }
 
+        .metric-card .metric-icon.purple {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
         .metric-card .metric-icon.red {
             background: #fde8e8;
             color: var(--danger-color);
@@ -1951,16 +1956,16 @@
                             Total Leads
                             <span class="tooltip">
                                 <i class="fas fa-info-circle info-icon"></i>
-                                <span class="tooltip-text">Total leads captured via CRM integration. Includes all sources.</span>
+                                <span class="tooltip-text">Total leads captured via CRM integration. Avg CPL = Total Ad Spend ÷ Total Leads.</span>
                             </span>
                         </span>
                         <div class="metric-icon orange">
                             <i class="fas fa-user-plus"></i>
                         </div>
                     </div>
-                    <div class="metric-value">342</div>
-                    <div class="metric-change positive">
-                        <i class="fas fa-arrow-up"></i> 15.7% vs last period
+                    <div class="metric-value" id="total-leads-value">234</div>
+                    <div class="metric-sub" style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                        Avg. CPL: <span id="cpl-value" style="font-weight: 600; color: var(--text-primary);">$52.76</span>
                     </div>
                 </div>
 
@@ -2667,9 +2672,9 @@
                     <thead>
                         <tr>
                             <th>Country</th>
+                            <th>Ad Spend <i class="fas fa-sort sort-icon"></i></th>
                             <th>Sales <i class="fas fa-sort sort-icon"></i></th>
                             <th>Revenue <i class="fas fa-sort sort-icon"></i></th>
-                            <th>Ad Spend <i class="fas fa-sort sort-icon"></i></th>
                             <th>ROAS <i class="fas fa-sort sort-icon"></i></th>
                         </tr>
                     </thead>
@@ -2681,9 +2686,9 @@
                                     <span>United States</span>
                                 </div>
                             </td>
+                            <td>$4,250.00</td>
                             <td>10</td>
                             <td>$7,000.00</td>
-                            <td>$4,250.00</td>
                             <td><span class="roas-value good">1.65</span></td>
                         </tr>
                         <tr>
@@ -2693,9 +2698,9 @@
                                     <span>India</span>
                                 </div>
                             </td>
+                            <td>$2,890.00</td>
                             <td>6</td>
                             <td>$4,200.00</td>
-                            <td>$2,890.00</td>
                             <td><span class="roas-value good">1.45</span></td>
                         </tr>
                         <tr>
@@ -2705,9 +2710,9 @@
                                     <span>Canada</span>
                                 </div>
                             </td>
+                            <td>$1,563.00</td>
                             <td>4</td>
                             <td>$2,800.00</td>
-                            <td>$1,563.00</td>
                             <td><span class="roas-value good">1.79</span></td>
                         </tr>
                         <tr>
@@ -2717,9 +2722,9 @@
                                     <span>Australia</span>
                                 </div>
                             </td>
+                            <td>$1,900.00</td>
                             <td>3</td>
                             <td>$2,100.00</td>
-                            <td>$1,900.00</td>
                             <td><span class="roas-value warning">1.10</span></td>
                         </tr>
                         <tr>
@@ -2729,9 +2734,9 @@
                                     <span>United Kingdom</span>
                                 </div>
                             </td>
+                            <td>$1,847.00</td>
                             <td>2</td>
                             <td>$1,400.00</td>
-                            <td>$1,847.00</td>
                             <td><span class="roas-value bad">0.76</span></td>
                         </tr>
                     </tbody>
@@ -4118,13 +4123,17 @@
                 cards[0].querySelector('.metric-value').textContent = metrics.totalSpend;
                 cards[1].querySelector('.metric-value').textContent = metrics.totalRevenue;
                 cards[2].querySelector('.metric-value').textContent = metrics.roas;
-                cards[3].querySelector('.metric-value').textContent = metrics.totalLeads;
-                cards[4].querySelector('.metric-value').textContent = metrics.costPerLead;
-                // Pixel status
+                // cards[3] is Total Sales - we'll skip for now as it's static
+                // cards[4] is Total Leads with CPL
+                const totalLeadsEl = document.getElementById('total-leads-value');
+                const cplEl = document.getElementById('cpl-value');
+                if (totalLeadsEl) totalLeadsEl.textContent = metrics.totalLeads;
+                if (cplEl) cplEl.textContent = metrics.costPerLead;
+                // Pixel status is cards[5]
                 const pixelCard = cards[5];
                 if (pixelCard) {
-                    const statusSpan = pixelCard.querySelector('.metric-value');
-                    if (statusSpan) statusSpan.textContent = metrics.pixelStatus;
+                    const pixelStatus = pixelCard.querySelector('.pixel-status span:last-child');
+                    if (pixelStatus) pixelStatus.textContent = metrics.pixelStatus;
                 }
             }
         }
@@ -4216,9 +4225,9 @@
                             <strong>${country.name}</strong>
                         </div>
                     </td>
+                    <td>${country.spend}</td>
                     <td><strong>${country.sales}</strong></td>
                     <td><strong>${country.revenue}</strong></td>
-                    <td>${country.spend}</td>
                     <td><span class="roas-badge ${parseFloat(country.roas) >= 1.5 ? 'good' : parseFloat(country.roas) >= 1.0 ? 'warning' : 'bad'}">${country.roas}</span></td>
                 </tr>
             `).join('');
