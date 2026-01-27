@@ -7459,8 +7459,8 @@
 
         function showDashboard(user) {
             document.getElementById('auth-screen').style.display = 'none';
-            document.querySelector('.sidebar').style.display = 'flex';
-            document.querySelector('.main-content').style.display = 'flex';
+            document.querySelector('.sidebar').style.display = '';
+            document.querySelector('.main-content').style.display = '';
 
             // Update avatar initials
             const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
