@@ -5849,7 +5849,7 @@
 
             const sorted = [...campaigns].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
             tbody.innerHTML = sorted.map(campaign => `
-                <tr style="${parseFloat(campaign.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
+                <tr style="${parseFloat(campaign.roas) < 0.5 ? 'background-color: #ffe0e0;' : parseFloat(campaign.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${campaign.status.toLowerCase()}">${campaign.status}</span></td>
                     <td><strong>${campaign.name}</strong></td>
                     <td>${campaign.budget || '$0.00'}</td>
@@ -5872,7 +5872,7 @@
 
             const sorted = [...adSets].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
             tbody.innerHTML = sorted.map(adSet => `
-                <tr style="${parseFloat(adSet.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
+                <tr style="${parseFloat(adSet.roas) < 0.5 ? 'background-color: #ffe0e0;' : parseFloat(adSet.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${adSet.status.toLowerCase()}">${adSet.status}</span></td>
                     <td>
                         <span class="name-with-tooltip" data-tooltip="Campaign: ${adSet.campaignName}">
@@ -5899,7 +5899,7 @@
 
             const sorted = [...ads].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
             tbody.innerHTML = sorted.map(ad => `
-                <tr style="${parseFloat(ad.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
+                <tr style="${parseFloat(ad.roas) < 0.5 ? 'background-color: #ffe0e0;' : parseFloat(ad.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${ad.status.toLowerCase()}">${ad.status}</span></td>
                     <td>
                         <span class="name-with-tooltip" data-tooltip="Campaign: ${ad.campaignName} | Ad Set: ${ad.adSetName}">
