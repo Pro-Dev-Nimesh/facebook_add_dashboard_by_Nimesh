@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1003,6 +1003,41 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .table-search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .table-search-icon {
+            position: absolute;
+            left: 10px;
+            color: #9ca3af;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .table-search-input {
+            padding: 7px 12px 7px 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 13px;
+            min-width: 180px;
+            transition: all 0.2s ease;
+        }
+
+        .table-search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+
+        .table-search-input::placeholder {
+            color: #9ca3af;
         }
 
         .table-status-filter {
@@ -2337,7 +2372,6 @@
             <a href="javascript:void(0)" class="nav-item" onclick="showSection('alerts-section', this)">
                 <i class="fas fa-bell"></i>
                 <span>Alerts</span>
-                <span class="badge">3</span>
             </a>
 
             <!-- Data Management with Submenu -->
@@ -2352,7 +2386,7 @@
                 <div class="submenu">
                     <a href="javascript:void(0)" class="submenu-item" onclick="showSection('pabbly-revenue-section', this)">
                         <i class="fas fa-dollar-sign"></i>
-                        <span>Pabbly Revenue Data</span>
+                        <span>Sales Data</span>
                     </a>
                     <a href="javascript:void(0)" class="submenu-item" onclick="showSection('leads-data-section', this)">
                         <i class="fas fa-user-plus"></i>
@@ -2381,7 +2415,7 @@
                     </a>
                     <a href="javascript:void(0)" class="submenu-item" onclick="showSection('webhooks-section', this)">
                         <i class="fas fa-plug"></i>
-                        <span>Webhooks</span>
+                        <span>Webhook and API</span>
                     </a>
                     <a href="javascript:void(0)" class="submenu-item" onclick="showSection('alert-thresholds-section', this)">
                         <i class="fas fa-bell"></i>
@@ -2433,7 +2467,7 @@
                                 <div class="option-name">Pabbly Connect</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active • 5 Campaigns
+                                    Active â€¢ 5 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2446,7 +2480,7 @@
                                 <div class="option-name">Pabbly Chatflow</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active • 3 Campaigns
+                                    Active â€¢ 3 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2459,7 +2493,7 @@
                                 <div class="option-name">Pabbly Email Marketing</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active • 2 Campaigns
+                                    Active â€¢ 2 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2472,7 +2506,7 @@
                                 <div class="option-name">Pabbly PSB</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active • 4 Campaigns
+                                    Active â€¢ 4 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2534,28 +2568,36 @@
             </div>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="filter-bar">
-            <div class="filter-group">
-                <label>Time Range:</label>
-                <select class="filter-select">
-                    <option value="7">Last 7 Days</option>
-                    <option value="14">Last 14 Days</option>
-                    <option value="30" selected>Last 30 Days</option>
-                    <option value="60">Last 60 Days</option>
-                    <option value="90">Last 90 Days</option>
-                    <option value="custom">Custom Range</option>
-                </select>
-            </div>
-            <button class="refresh-btn">
-                <i class="fas fa-sync-alt"></i>
-                Refresh Data
-            </button>
-            <span class="last-sync">Last synced: 5 minutes ago</span>
-        </div>
-
         <!-- Dashboard Content -->
         <div class="dashboard-content">
+            <!-- Section: Custom Date Range Report -->
+            <div id="custom-range-header" class="dashboard-section active" style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 6px 0;">
+                            <i class="fas fa-chart-bar" style="color: var(--primary-color); margin-right: 6px;"></i>Custom Date Range Report
+                        </h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                            View your ad performance for any custom date range. Use the dropdown to switch between different time periods.
+                        </p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                        <select id="time-range-selector" onchange="handleTimeRangeChange()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-background); color: var(--text-primary); font-size: 13px; cursor: pointer;">
+                            <option value="today">Today</option>
+                            <option value="last7days">Last 7 Days</option>
+                            <option value="last30days" selected>Last 30 Days</option>
+                            <option value="last90days">Last 90 Days</option>
+                            <option value="thismonth">This Month</option>
+                            <option value="lastmonth">Last Month</option>
+                        </select>
+                        <button onclick="refreshDashboardData()" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <span id="last-synced-time" style="font-size: 12px; color: var(--text-secondary); white-space: nowrap;">Last synced: 5 min ago</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Metrics Cards -->
             <div id="metrics-section" class="metrics-grid dashboard-section active">
                 <div class="metric-card">
@@ -2590,47 +2632,28 @@
                             <i class="fas fa-coins"></i>
                         </div>
                     </div>
-                    <div class="metric-value">$18,900</div>
-                    <div class="metric-change positive">
-                        <i class="fas fa-arrow-up"></i> 23.4% vs last period
+                    <div class="metric-value" id="total-revenue-value">$18,900</div>
+                    <div class="metric-sub" style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                        Total Sales: <span id="total-sales-count" style="font-weight: 600; color: var(--text-primary);">27</span>
                     </div>
                 </div>
 
                 <div class="metric-card">
                     <div class="metric-header">
                         <span class="metric-label">
-                            True ROAS
+                            ROAS
                             <span class="tooltip">
                                 <i class="fas fa-info-circle info-icon"></i>
-                                <span class="tooltip-text">Pabbly Revenue ÷ Facebook Ad Spend. This shows your TRUE business ROAS based on actual sales. Target: Above 1.5</span>
+                                <span class="tooltip-text">Pabbly Revenue Ã· Facebook Ad Spend. This shows your TRUE business ROAS based on actual sales. Target: Above 1.5</span>
                             </span>
                         </span>
                         <div class="metric-icon green">
                             <i class="fas fa-chart-line"></i>
                         </div>
                     </div>
-                    <div class="metric-value" style="color: var(--success-color);">1.52</div>
+                    <div class="metric-value" id="roas-value" style="color: var(--success-color);">1.52</div>
                     <div class="metric-change positive">
                         <i class="fas fa-arrow-up"></i> 8.2% vs last period
-                    </div>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span class="metric-label">
-                            Total Sales
-                            <span class="tooltip">
-                                <i class="fas fa-info-circle info-icon"></i>
-                                <span class="tooltip-text">Actual sales count from Pabbly. This is the real number of purchases, not Facebook pixel data.</span>
-                            </span>
-                        </span>
-                        <div class="metric-icon blue">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                    </div>
-                    <div class="metric-value">27</div>
-                    <div class="metric-change positive">
-                        <i class="fas fa-arrow-up"></i> 5 more than last period
                     </div>
                 </div>
 
@@ -2640,7 +2663,7 @@
                             Total Leads
                             <span class="tooltip">
                                 <i class="fas fa-info-circle info-icon"></i>
-                                <span class="tooltip-text">Total leads captured via CRM integration. Avg CPL = Total Ad Spend ÷ Total Leads.</span>
+                                <span class="tooltip-text">Total leads captured via CRM integration. Avg CPL = Total Ad Spend Ã· Total Leads.</span>
                             </span>
                         </span>
                         <div class="metric-icon orange">
@@ -2672,6 +2695,123 @@
                     </div>
                     <div class="metric-change" style="color: var(--text-secondary);">
                         Last checked: 15 min ago
+                    </div>
+                </div>
+            </div>
+
+            <!-- Separator -->
+            <div id="snapshot-header" class="dashboard-section active" style="margin: 28px 0 16px 0; border-top: 1px solid var(--border-color); padding-top: 24px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 6px 0;">
+                    <i class="fas fa-calendar-alt" style="color: var(--primary-color); margin-right: 6px;"></i>Quick Performance Snapshot
+                </h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                    A fixed overview of your ad performance across three time periods â€” Today, Last 7 Days, and Last 30 Days. This data updates automatically and always reflects the most recent rolling periods.
+                </p>
+            </div>
+
+            <!-- Time-based Performance Tables -->
+            <div id="time-based-tables" class="dashboard-section active" style="margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                    <!-- Daily Table -->
+                    <div class="table-section" style="margin-bottom: 0;">
+                        <div class="table-header">
+                            <h3>
+                                <i class="fas fa-calendar-day"></i> Today
+                                <span style="display: block; font-size: 11px; font-weight: 400; color: var(--text-secondary); margin-top: 4px;" id="daily-date-range">Jan 27, 2026</span>
+                            </h3>
+                        </div>
+                        <table class="data-table">
+                            <tbody id="daily-metrics-tbody">
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Ad Spend</td>
+                                    <td style="text-align: right;"><strong id="daily-spend">$336.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Revenue</td>
+                                    <td style="text-align: right;"><strong style="color: var(--success-color);" id="daily-revenue">$1,999.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">ROAS</td>
+                                    <td style="text-align: right;"><strong style="color: var(--success-color);" id="daily-roas">5.94</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Leads</td>
+                                    <td style="text-align: right;"><strong id="daily-leads">39</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Cost Per Lead</td>
+                                    <td style="text-align: right;"><strong id="daily-cpl">$8.61</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Weekly Table -->
+                    <div class="table-section" style="margin-bottom: 0;">
+                        <div class="table-header">
+                            <h3>
+                                <i class="fas fa-calendar-week"></i> This Week
+                                <span style="display: block; font-size: 11px; font-weight: 400; color: var(--text-secondary); margin-top: 4px;" id="weekly-date-range">Jan 20 - Jan 26, 2026</span>
+                            </h3>
+                        </div>
+                        <table class="data-table">
+                            <tbody id="weekly-metrics-tbody">
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Ad Spend</td>
+                                    <td style="text-align: right;"><strong id="weekly-spend">$2,100.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Revenue</td>
+                                    <td style="text-align: right;"><strong style="color: var(--success-color);" id="weekly-revenue">$8,400.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">ROAS</td>
+                                    <td style="text-align: right;"><strong style="color: var(--success-color);" id="weekly-roas">4.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Leads</td>
+                                    <td style="text-align: right;"><strong id="weekly-leads">156</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Cost Per Lead</td>
+                                    <td style="text-align: right;"><strong id="weekly-cpl">$13.46</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Monthly Table -->
+                    <div class="table-section" style="margin-bottom: 0;">
+                        <div class="table-header">
+                            <h3>
+                                <i class="fas fa-calendar-alt"></i> This Month
+                                <span style="display: block; font-size: 11px; font-weight: 400; color: var(--text-secondary); margin-top: 4px;" id="monthly-date-range">Jan 1 - Jan 31, 2026</span>
+                            </h3>
+                        </div>
+                        <table class="data-table">
+                            <tbody id="monthly-metrics-tbody">
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Ad Spend</td>
+                                    <td style="text-align: right;"><strong id="monthly-spend">$12,345.67</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Revenue</td>
+                                    <td style="text-align: right;"><strong style="color: var(--success-color);" id="monthly-revenue">$16,100.00</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">ROAS</td>
+                                    <td style="text-align: right;"><strong style="color: var(--success-color);" id="monthly-roas">1.31</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Leads</td>
+                                    <td style="text-align: right;"><strong id="monthly-leads">234</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 13px; color: var(--text-secondary);">Cost Per Lead</td>
+                                    <td style="text-align: right;"><strong id="monthly-cpl">$52.76</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -3316,9 +3456,9 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
@@ -3344,6 +3484,10 @@
                             <option value="paused">Paused</option>
                             <option value="all">All</option>
                         </select>
+                        <div class="table-search-wrapper">
+                            <i class="fas fa-search table-search-icon"></i>
+                            <input type="text" id="campaigns-search" class="table-search-input" placeholder="Search campaigns...">
+                        </div>
                     </div>
                 </div>
                 <table class="data-table">
@@ -3363,71 +3507,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td><strong>USA - Lifetime Deal</strong></td>
-                            <td>$1,200.00</td>
-                            <td>$4,250.00</td>
-                            <td>8</td>
-                            <td>$5,600.00</td>
-                            <td><span class="roas-value good">2.50</span></td>
-                            <td>1.8</td>
-                            <td>3,245</td>
-                            <td>125,400</td>
-                            <td>225,720</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td><strong>India - Tech Entrepreneurs</strong></td>
-                            <td>$800.00</td>
-                            <td>$2,890.00</td>
-                            <td>6</td>
-                            <td>$4,200.00</td>
-                            <td><span class="roas-value good">1.45</span></td>
-                            <td>1.5</td>
-                            <td>2,890</td>
-                            <td>98,500</td>
-                            <td>147,750</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td><strong>UK - Retargeting</strong></td>
-                            <td>$500.00</td>
-                            <td>$1,847.00</td>
-                            <td>2</td>
-                            <td>$1,400.00</td>
-                            <td><span class="roas-value bad">0.60</span></td>
-                            <td>2.1</td>
-                            <td>1,456</td>
-                            <td>45,200</td>
-                            <td>94,920</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td><strong>Canada - Lookalike</strong></td>
-                            <td>$450.00</td>
-                            <td>$1,563.00</td>
-                            <td>4</td>
-                            <td>$2,800.00</td>
-                            <td><span class="roas-value good">1.79</span></td>
-                            <td>1.3</td>
-                            <td>1,823</td>
-                            <td>67,800</td>
-                            <td>88,140</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td><strong>Australia - Broad</strong></td>
-                            <td>$600.00</td>
-                            <td>$1,900.00</td>
-                            <td>3</td>
-                            <td>$2,100.00</td>
-                            <td><span class="roas-value warning">1.10</span></td>
-                            <td>1.9</td>
-                            <td>1,678</td>
-                            <td>52,300</td>
-                            <td>99,370</td>
-                        </tr>
+                        <!-- Populated by JavaScript -->
                     </tbody>
                 </table>
                 <!-- Pagination -->
@@ -3436,13 +3516,13 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
-                        <span>1-5 of 5</span>
+                        <span></span>
                     </div>
                     <div class="pagination-right">
                         <span>Page:</span>
@@ -3464,6 +3544,13 @@
                             <option value="paused">Paused</option>
                             <option value="all">All</option>
                         </select>
+                        <select id="adsets-campaign-filter" class="table-status-filter" style="min-width: 170px;">
+                            <option value="all">All Campaigns</option>
+                        </select>
+                        <div class="table-search-wrapper">
+                            <i class="fas fa-search table-search-icon"></i>
+                            <input type="text" id="adsets-search" class="table-search-input" placeholder="Search ad sets...">
+                        </div>
                     </div>
                 </div>
                 <table class="data-table">
@@ -3483,57 +3570,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <span class="name-with-tooltip" data-tooltip="Campaign: USA - Lifetime Deal">
-                                    <strong>Interests - Tech Entrepreneurs</strong>
-                                </span>
-                            </td>
-                            <td>$600.00</td>
-                            <td>$2,100.00</td>
-                            <td>5</td>
-                            <td>$3,500.00</td>
-                            <td><span class="roas-value good">1.67</span></td>
-                            <td>1.6</td>
-                            <td>1,890</td>
-                            <td>72,500</td>
-                            <td>116,000</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <span class="name-with-tooltip" data-tooltip="Campaign: USA - Lifetime Deal">
-                                    <strong>Lookalike - Purchasers 1%</strong>
-                                </span>
-                            </td>
-                            <td>$400.00</td>
-                            <td>$1,450.00</td>
-                            <td>3</td>
-                            <td>$2,100.00</td>
-                            <td><span class="roas-value good">1.45</span></td>
-                            <td>1.8</td>
-                            <td>1,355</td>
-                            <td>52,900</td>
-                            <td>95,220</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <span class="name-with-tooltip" data-tooltip="Campaign: India - Tech Entrepreneurs">
-                                    <strong>Interests - Business Owners</strong>
-                                </span>
-                            </td>
-                            <td>$250.00</td>
-                            <td>$890.00</td>
-                            <td>2</td>
-                            <td>$1,400.00</td>
-                            <td><span class="roas-value good">1.57</span></td>
-                            <td>1.4</td>
-                            <td>978</td>
-                            <td>38,200</td>
-                            <td>53,480</td>
-                        </tr>
+                        <!-- Populated by JavaScript -->
                     </tbody>
                 </table>
                 <!-- Pagination -->
@@ -3542,13 +3579,13 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
-                        <span>1-12 of 12</span>
+                        <span></span>
                     </div>
                     <div class="pagination-right">
                         <span>Page:</span>
@@ -3570,6 +3607,16 @@
                             <option value="paused">Paused</option>
                             <option value="all">All</option>
                         </select>
+                        <select id="ads-campaign-filter" class="table-status-filter" style="min-width: 170px;">
+                            <option value="all">All Campaigns</option>
+                        </select>
+                        <select id="ads-adset-filter" class="table-status-filter" style="min-width: 170px;">
+                            <option value="all">All Ad Sets</option>
+                        </select>
+                        <div class="table-search-wrapper">
+                            <i class="fas fa-search table-search-icon"></i>
+                            <input type="text" id="ads-search" class="table-search-input" placeholder="Search ads...">
+                        </div>
                     </div>
                 </div>
                 <table class="data-table">
@@ -3589,48 +3636,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <span class="name-with-tooltip" data-tooltip="Campaign: USA - Lifetime Deal | Ad Set: Interests - Tech Entrepreneurs">
-                                    <strong>Video Ad v3 - Feature Demo</strong>
-                                </span>
-                            </td>
-                            <td>$1,200.00</td>
-                            <td>4</td>
-                            <td>$2,800.00</td>
-                            <td><span class="roas-value good">2.33</span></td>
-                            <td>1.5</td>
-                            <td>1,124</td>
-                            <td>42,300</td>
-                            <td>63,450</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <span class="name-with-tooltip" data-tooltip="Campaign: USA - Lifetime Deal | Ad Set: Lookalike - Purchasers 1%">
-                                    <strong>Image Ad - Testimonial</strong>
-                                </span>
-                            </td>
-                            <td>$850.00</td>
-                            <td>2</td>
-                            <td>$1,400.00</td>
-                            <td><span class="roas-value good">1.65</span></td>
-                            <td>1.7</td>
-                        </tr>
-                        <tr>
-                            <td><span class="status-badge active">Active</span></td>
-                            <td>
-                                <span class="name-with-tooltip" data-tooltip="Campaign: India - Tech Entrepreneurs | Ad Set: Interests - Business Owners">
-                                    <strong>Carousel Ad - Features</strong>
-                                </span>
-                            </td>
-                            <td>$650.00</td>
-                            <td>1</td>
-                            <td>$700.00</td>
-                            <td><span class="roas-value warning">1.08</span></td>
-                            <td>1.3</td>
-                        </tr>
+                        <!-- Populated by JavaScript -->
                     </tbody>
                 </table>
                 <!-- Pagination -->
@@ -3639,18 +3645,18 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
-                        <span>1-20 of 24</span>
+                        <span></span>
                     </div>
                     <div class="pagination-right">
                         <span>Page:</span>
-                        <input type="number" class="pagination-input" value="1" min="1" max="2">
-                        <span>of 2</span>
+                        <input type="number" class="pagination-input" value="1" min="1">
+                        <span>of 1</span>
                         <button class="pagination-arrow" disabled><i class="fas fa-chevron-left"></i></button>
                         <button class="pagination-arrow"><i class="fas fa-chevron-right"></i></button>
                     </div>
@@ -3668,6 +3674,12 @@
                             <span class="tooltip-text">Country data is from Pabbly Subscription Billing (actual sales), NOT Facebook pixel. This gives you accurate geographic performance.</span>
                         </span>
                     </h3>
+                    <div class="table-filter">
+                        <div class="table-search-wrapper">
+                            <i class="fas fa-search table-search-icon"></i>
+                            <input type="text" id="country-search" class="table-search-input" placeholder="Search country...">
+                        </div>
+                    </div>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -3748,9 +3760,9 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
@@ -3777,6 +3789,10 @@
                             <option value="week">This Week</option>
                             <option value="month">This Month</option>
                         </select>
+                        <div class="table-search-wrapper">
+                            <i class="fas fa-search table-search-icon"></i>
+                            <input type="text" id="sales-creative-search" class="table-search-input" placeholder="Search by ad, campaign, ad set...">
+                        </div>
                     </div>
                 </div>
                 <table class="data-table">
@@ -3792,216 +3808,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/4F46E5/FFFFFF?text=Video+Ad+v3">
-                                    <img src="https://placehold.co/40x40/4F46E5/FFFFFF?text=V" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Video Ad v3 - Feature Demo</strong></td>
-                            <td>USA - Lifetime Deal</td>
-                            <td>Interests - Tech</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/us.png" class="country-flag" alt="US">
-                                    <span>United States</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 24, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">3:45 PM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/F59E0B/FFFFFF?text=Carousel+Ad">
-                                    <img src="https://placehold.co/40x40/F59E0B/FFFFFF?text=C" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Carousel Ad - Benefits</strong></td>
-                            <td>USA - Lifetime Deal</td>
-                            <td>Lookalike - Customers</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/us.png" class="country-flag" alt="US">
-                                    <span>United States</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 24, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">1:23 PM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/6366F1/FFFFFF?text=Static+Image">
-                                    <img src="https://placehold.co/40x40/6366F1/FFFFFF?text=S" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Static Image - Pricing</strong></td>
-                            <td>UK - Retargeting</td>
-                            <td>Website Visitors 30 Days</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/gb.png" class="country-flag" alt="GB">
-                                    <span>United Kingdom</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 24, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">10:15 AM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/4F46E5/FFFFFF?text=Video+Ad+v3">
-                                    <img src="https://placehold.co/40x40/4F46E5/FFFFFF?text=V" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Video Ad v3 - Feature Demo</strong></td>
-                            <td>USA - Lifetime Deal</td>
-                            <td>Interests - Tech</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/ca.png" class="country-flag" alt="CA">
-                                    <span>Canada</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 23, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">8:30 PM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/EC4899/FFFFFF?text=GIF+Ad">
-                                    <img src="https://placehold.co/40x40/EC4899/FFFFFF?text=G" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>GIF Ad - Quick Demo</strong></td>
-                            <td>Global - Awareness</td>
-                            <td>Broad - SaaS Interests</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/de.png" class="country-flag" alt="DE">
-                                    <span>Germany</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 23, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">4:12 PM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/F59E0B/FFFFFF?text=Carousel+Ad">
-                                    <img src="https://placehold.co/40x40/F59E0B/FFFFFF?text=C" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Carousel Ad - Features</strong></td>
-                            <td>India - Growth</td>
-                            <td>Interests - Startups</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/in.png" class="country-flag" alt="IN">
-                                    <span>India</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 22, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">2:00 PM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/10B981/FFFFFF?text=Image+Ad">
-                                    <img src="https://placehold.co/40x40/10B981/FFFFFF?text=I" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Image Ad - Testimonial</strong></td>
-                            <td>EU - Subscription Q1</td>
-                            <td>Retargeting - Cart</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/fr.png" class="country-flag" alt="FR">
-                                    <span>France</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 22, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">6:30 PM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/4F46E5/FFFFFF?text=Video+Ad">
-                                    <img src="https://placehold.co/40x40/4F46E5/FFFFFF?text=V" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Video Ad - Product Tour</strong></td>
-                            <td>USA - Lifetime Deal</td>
-                            <td>Lookalike - Customers</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/us.png" class="country-flag" alt="US">
-                                    <span>United States</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 21, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">11:45 AM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/F59E0B/FFFFFF?text=Carousel">
-                                    <img src="https://placehold.co/40x40/F59E0B/FFFFFF?text=C" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Carousel Ad - Use Cases</strong></td>
-                            <td>Global - Awareness</td>
-                            <td>Broad - Business</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/au.png" class="country-flag" alt="AU">
-                                    <span>Australia</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 21, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">9:15 AM</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="creative-thumbnail" data-preview="https://placehold.co/400x400/6366F1/FFFFFF?text=Static">
-                                    <img src="https://placehold.co/40x40/6366F1/FFFFFF?text=S" alt="Creative">
-                                </div>
-                            </td>
-                            <td><strong>Static Image - Discount</strong></td>
-                            <td>India - Growth</td>
-                            <td>Interests - Startups</td>
-                            <td>
-                                <div class="name-cell">
-                                    <img src="https://flagcdn.com/24x18/in.png" class="country-flag" alt="IN">
-                                    <span>India</span>
-                                </div>
-                            </td>
-                            <td><strong style="color: var(--success-color);">$700</strong></td>
-                            <td>
-                                <div>Jan 20, 2026</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">3:00 PM</div>
-                            </td>
-                        </tr>
+                        <!-- Populated by JavaScript -->
                     </tbody>
                 </table>
 
@@ -4010,14 +3817,14 @@
                     <div class="pagination-left">
                         <span>Rows per page:</span>
                         <select class="pagination-select">
-                            <option value="10" selected>10</option>
-                            <option value="25">25</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
-                        <span>1-10 of 23</span>
+                        <span></span>
                     </div>
                     <div class="pagination-right">
                         <span>Page:</span>
@@ -4128,79 +3935,232 @@
                 </div>
             </div>
 
-            <!-- Webhooks Section -->
+            <!-- Webhooks and API Section -->
             <div id="webhooks-section" class="table-section dashboard-section">
                 <div class="table-header">
-                    <h3><i class="fas fa-plug" style="color: var(--primary-color);"></i> Webhooks Configuration</h3>
+                    <h3><i class="fas fa-plug" style="color: var(--primary-color);"></i> Webhook and API</h3>
                 </div>
-                <div style="padding: 24px;">
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Configure webhooks to receive real-time data from Pabbly and send alerts to Google Chat.</p>
 
-                    <!-- Incoming Webhooks -->
-                    <div class="config-section">
-                        <h4><i class="fas fa-download"></i> Incoming Webhooks (Receive Data)</h4>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Webhook Name</th>
-                                    <th>URL</th>
-                                    <th>Purpose</th>
-                                    <th>Last Received</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Pabbly Sales Webhook</strong></td>
-                                    <td><code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-size: 12px;">https://api.dashboard.com/webhook/sales/abc123</code></td>
-                                    <td>Receives sale notifications</td>
-                                    <td>2 min ago</td>
-                                    <td><button class="action-btn view">Copy URL</button></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Leads Webhook</strong></td>
-                                    <td><code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-size: 12px;">https://api.dashboard.com/webhook/leads/def456</code></td>
-                                    <td>Receives lead data from CRM</td>
-                                    <td>15 min ago</td>
-                                    <td><button class="action-btn view">Copy URL</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Tabs -->
+                <div class="tabs-container" style="border-bottom: 2px solid var(--border-color); margin: 0;">
+                    <button class="tab-btn active" onclick="switchWebhookTab('webhooks')">
+                        <i class="fas fa-plug"></i> Webhook
+                    </button>
+                    <button class="tab-btn" onclick="switchWebhookTab('api')">
+                        <i class="fas fa-code"></i> API
+                    </button>
+                </div>
+
+                <!-- Webhook Tab -->
+                <div id="webhooks-tab" class="tab-content active" style="padding: 24px;">
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+                        Add a webhook to receive real-time notifications when specific events happen in your dashboard. Choose which triggers should fire the webhook.
+                    </p>
+
+                    <!-- Saved Webhooks List -->
+                    <div id="webhooks-list"></div>
+
+                    <!-- Add Webhook Button -->
+                    <div id="add-webhook-area" style="margin-top: 16px;">
+                        <button onclick="showWebhookForm()" id="add-webhook-btn" class="btn-primary" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                            <i class="fas fa-plus"></i> Add Webhook
+                        </button>
                     </div>
 
-                    <!-- Outgoing Webhooks -->
-                    <div class="config-section">
-                        <h4><i class="fas fa-upload"></i> Outgoing Webhooks (Send Alerts)</h4>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Destination</th>
-                                    <th>Triggers</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Google Chat - Alerts</strong></td>
-                                    <td>Google Chat Space: #ads-alerts</td>
-                                    <td>Overspending, Low ROAS, High Frequency</td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><button class="action-btn view">Edit</button></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Google Chat - Sales</strong></td>
-                                    <td>Google Chat Space: #sales-wins</td>
-                                    <td>New Sale Notifications</td>
-                                    <td><span class="status-badge active">Active</span></td>
-                                    <td><button class="action-btn view">Edit</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div style="margin-top: 16px;">
-                            <button class="btn-primary"><i class="fas fa-plus"></i> Add Webhook</button>
+                    <!-- Webhook Form (hidden by default) -->
+                    <div id="webhook-form-area" style="display: none; background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px;">
+                        <h4 style="margin: 0 0 20px 0; font-size: 15px; color: var(--text-primary);">
+                            <i class="fas fa-plug" style="color: var(--primary-color); margin-right: 6px;"></i>
+                            <span id="webhook-form-title">Add Webhook</span>
+                        </h4>
+
+                        <div style="display: grid; gap: 16px;">
+                            <!-- Webhook Name -->
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary);">
+                                    Webhook Name <span style="color: #dc2626;">*</span>
+                                </label>
+                                <input type="text" id="webhook-name" placeholder="e.g., Google Chat Notifications"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            </div>
+
+                            <!-- Webhook URL -->
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary);">
+                                    Webhook URL <span style="color: #dc2626;">*</span>
+                                </label>
+                                <input type="url" id="webhook-url" placeholder="https://example.com/webhook/endpoint"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block;">The endpoint URL where data will be sent when a trigger fires.</span>
+                            </div>
+
+                            <!-- Triggers -->
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary);">
+                                    Select Triggers <span style="color: #dc2626;">*</span>
+                                </label>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px 0;">
+                                    Choose when this webhook should be triggered. The webhook will fire automatically when any selected event occurs.
+                                </p>
+                                <div style="display: grid; gap: 10px; background: #f8f9fa; padding: 16px; border-radius: 8px;">
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="new_sale" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">New Sale</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a new sale/revenue is recorded from Pabbly Subscription Billing.</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="new_lead" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">New Lead Captured</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a new lead is captured via CRM integration.</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="overspend_alert" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">Overspend Alert</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a campaign, ad set, or ad exceeds the spend threshold with low ROAS.</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="low_roas_alert" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">Low ROAS Alert</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when ROAS drops below the target threshold you have set.</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="high_frequency" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">High Ad Frequency</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when ad frequency gets too high, indicating audience fatigue.</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="daily_report" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">Daily Summary Report</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Sends a daily summary of ad spend, revenue, ROAS, leads, and sales at end of day.</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="pixel_status" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">Pixel Status Change</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when the Facebook Pixel status changes (e.g., goes inactive).</span>
+                                        </div>
+                                    </label>
+                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                        <input type="checkbox" class="webhook-trigger" value="campaign_status" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
+                                        <div>
+                                            <span style="font-size: 14px; font-weight: 500; display: block;">Campaign Status Change</span>
+                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a campaign is paused, activated, or budget is changed.</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Form Actions -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                            <button type="button" onclick="cancelWebhookForm()" style="padding: 10px 20px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                                Cancel
+                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="button" onclick="saveAndTestWebhook()" style="padding: 10px 20px; border: 1px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-paper-plane"></i> Save & Send Test
+                                </button>
+                                <button type="button" onclick="saveWebhookSimple()" style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                                    Save Webhook
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Tab -->
+                <div id="api-tab" class="tab-content" style="padding: 24px;">
+                    <div style="margin-bottom: 24px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 15px;"><i class="fas fa-code" style="color: var(--primary-color); margin-right: 6px;"></i> Connect via API</h4>
+                        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">
+                            Use the API to connect this dashboard with your automation tools like Pabbly Connect, Zapier, or any custom integration. Fetch your ad data programmatically and build custom workflows.
+                        </p>
+                    </div>
+
+                    <!-- API Key Section -->
+                    <div style="background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                        <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Your API Key</div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="api-key-display" value="your_api_key_here_xxxxxxxxxxxxxxxxxxxx" readonly
+                                style="flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; font-family: monospace; background: #f8f9fa; box-sizing: border-box;">
+                            <button onclick="copyApiKey()" style="padding: 10px 14px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap;">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin: 8px 0 0 0;">
+                            Include this key in the <code>Authorization: Bearer YOUR_API_KEY</code> header for all requests.
+                        </p>
+                    </div>
+
+                    <!-- Base URL -->
+                    <div style="background: #f0f7ff; border-left: 4px solid var(--primary-color); padding: 14px 16px; border-radius: 4px; margin-bottom: 20px;">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Base URL</div>
+                        <code style="font-size: 14px; color: var(--text-primary);">https://api.dashboard.pabbly.com/v1</code>
+                    </div>
+
+                    <!-- Available Endpoints -->
+                    <h4 style="font-size: 14px; margin: 0 0 12px 0;">Available Endpoints</h4>
+                    <div style="display: grid; gap: 12px;">
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
+                                <code style="font-size: 13px;">/metrics</code>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Get ad spend, revenue, ROAS, leads, and CPL for the selected account.</p>
+                        </div>
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
+                                <code style="font-size: 13px;">/campaigns</code>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">List all campaigns with spend, revenue, ROAS, and status.</p>
+                        </div>
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
+                                <code style="font-size: 13px;">/leads</code>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Fetch all captured leads with source, date, and status.</p>
+                        </div>
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
+                                <code style="font-size: 13px;">/revenue</code>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Get revenue transactions from Pabbly Subscription Billing.</p>
+                        </div>
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
+                                <code style="font-size: 13px;">/alerts</code>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Retrieve active alerts for overspending, low ROAS, etc.</p>
+                        </div>
+                    </div>
+
+                    <!-- Usage Example -->
+                    <h4 style="font-size: 14px; margin: 24px 0 12px 0;">Quick Example</h4>
+                    <div style="background: #1e293b; border-radius: 8px; padding: 16px; overflow-x: auto;">
+                        <pre style="margin: 0; color: #e2e8f0; font-size: 13px; line-height: 1.5;"><code><span style="color: #94a3b8;">// Fetch metrics using API</span>
+<span style="color: #7dd3fc;">fetch</span>(<span style="color: #86efac;">'https://api.dashboard.pabbly.com/v1/metrics'</span>, {
+  <span style="color: #fbbf24;">headers</span>: {
+    <span style="color: #86efac;">'Authorization'</span>: <span style="color: #86efac;">'Bearer sk_live_a1b2c3...'</span>
+  }
+})
+.<span style="color: #7dd3fc;">then</span>(res => res.<span style="color: #7dd3fc;">json</span>())
+.<span style="color: #7dd3fc;">then</span>(data => <span style="color: #7dd3fc;">console</span>.<span style="color: #7dd3fc;">log</span>(data));</code></pre>
                     </div>
                 </div>
             </div>
@@ -4250,7 +4210,7 @@
                                     <span class="status-badge status-active">Lifetime</span>
                                 </td>
                                 <td style="color: var(--text-secondary); font-size: 13px;">
-                                    After spend > $1,400, if ROAS < 1.0 → Alert
+                                    After spend > $1,400, if ROAS < 1.0 â†’ Alert
                                 </td>
                             </tr>
                             <tr>
@@ -4274,7 +4234,7 @@
                                     <span class="status-badge status-active">Lifetime</span>
                                 </td>
                                 <td style="color: var(--text-secondary); font-size: 13px;">
-                                    After spend > $700, if ROAS < 1.0 → Alert
+                                    After spend > $700, if ROAS < 1.0 â†’ Alert
                                 </td>
                             </tr>
                             <tr>
@@ -4298,7 +4258,7 @@
                                     <span class="status-badge status-active">Lifetime</span>
                                 </td>
                                 <td style="color: var(--text-secondary); font-size: 13px;">
-                                    After spend > $350, if ROAS < 1.0 → Alert
+                                    After spend > $350, if ROAS < 1.0 â†’ Alert
                                 </td>
                             </tr>
                             <tr>
@@ -4322,7 +4282,7 @@
                                     <span class="status-badge status-active">Lifetime</span>
                                 </td>
                                 <td style="color: var(--text-secondary); font-size: 13px;">
-                                    After spend > $500, if ROAS < 1.0 → Alert
+                                    After spend > $500, if ROAS < 1.0 â†’ Alert
                                 </td>
                             </tr>
                         </tbody>
@@ -4490,83 +4450,12 @@
                 </div>
             </div>
 
-            <!-- Pabbly Revenue Data Section -->
+            <!-- Sales Data Section -->
             <div id="pabbly-revenue-section" class="dashboard-section">
-                <!-- Top 10 Revenue by Country Card -->
-                <div class="table-section" style="margin-bottom: 20px;">
-                    <div class="table-header">
-                        <h3><i class="fas fa-globe"></i> Top 10 Revenue by Country <span class="count">This Month</span></h3>
-                    </div>
-                    <div style="padding: 16px 20px;">
-                        <div style="display: flex; justify-content: space-between; gap: 10px;">
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/us.png" alt="US" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">USA</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$7,000</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">10 sales</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/in.png" alt="IN" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">India</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$4,200</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">6 sales</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/ca.png" alt="CA" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">Canada</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$2,800</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">4 sales</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/gb.png" alt="UK" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">UK</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$2,100</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">3 sales</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/de.png" alt="DE" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">Germany</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$1,400</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">2 sales</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/au.png" alt="AU" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">Australia</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$1,400</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">2 sales</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/fr.png" alt="FR" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">France</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$700</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">1 sale</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/nl.png" alt="NL" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">Netherlands</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$700</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">1 sale</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/br.png" alt="BR" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">Brazil</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$700</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">1 sale</div>
-                            </div>
-                            <div style="flex: 1; text-align: center; padding: 12px 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                                <img src="https://flagcdn.com/24x18/sg.png" alt="SG" style="border-radius: 2px; margin-bottom: 6px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--text-color);">Singapore</div>
-                                <div style="font-size: 12px; font-weight: 600; color: #166534;">$700</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">1 sale</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Revenue Data Table Card -->
+                <!-- Sales Data Table Card -->
                 <div class="table-section">
                     <div class="table-header">
-                        <h3><i class="fas fa-file-invoice-dollar"></i> Revenue Data <span class="count">23 Entries</span></h3>
+                        <h3><i class="fas fa-file-invoice-dollar"></i> Sales Data <span class="count">23 Entries</span></h3>
                         <button class="btn-primary" onclick="openAddRevenueModal()"><i class="fas fa-plus"></i> Add Entry</button>
                     </div>
 
@@ -4608,177 +4497,16 @@
                     <thead>
                         <tr>
                             <th>Date & Time</th>
+                            <th>Email</th>
                             <th>Transaction ID</th>
                             <th>Plan</th>
                             <th>Country</th>
                             <th>Amount</th>
-                            <th>Source</th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div>Jan 24, 2026</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">3:45 PM</div>
-                            </td>
-                            <td><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">TXN_2026012445</code></td>
-                            <td><strong>Lifetime Deal</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://flagcdn.com/20x15/us.png" alt="US">
-                                    United States
-                                </div>
-                            </td>
-                            <td><strong style="color: #166534;">$700.00</strong></td>
-                            <td><span class="status-badge active">Razorpay</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu-dropdown">
-                                        <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div>Jan 24, 2026</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">1:23 PM</div>
-                            </td>
-                            <td><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">TXN_2026012444</code></td>
-                            <td><strong>Annual Plan</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://flagcdn.com/20x15/us.png" alt="US">
-                                    United States
-                                </div>
-                            </td>
-                            <td><strong style="color: #166534;">$700.00</strong></td>
-                            <td><span class="status-badge" style="background: #e7f3ff; color: var(--primary-color);">PayPal</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu-dropdown">
-                                        <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div>Jan 24, 2026</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">10:15 AM</div>
-                            </td>
-                            <td><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">TXN_2026012443</code></td>
-                            <td><strong>Lifetime Deal</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://flagcdn.com/20x15/gb.png" alt="UK">
-                                    United Kingdom
-                                </div>
-                            </td>
-                            <td><strong style="color: #166534;">$700.00</strong></td>
-                            <td><span class="status-badge active">Razorpay</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu-dropdown">
-                                        <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div>Jan 23, 2026</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">8:30 PM</div>
-                            </td>
-                            <td><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">TXN_2026012342</code></td>
-                            <td><strong>Pro Plan</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://flagcdn.com/20x15/ca.png" alt="CA">
-                                    Canada
-                                </div>
-                            </td>
-                            <td><strong style="color: #166534;">$700.00</strong></td>
-                            <td><span class="status-badge" style="background: #fef3c7; color: #92400e;">Manual</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu-dropdown">
-                                        <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div>Jan 23, 2026</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">4:12 PM</div>
-                            </td>
-                            <td><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">TXN_2026012341</code></td>
-                            <td><strong>Standard Plan</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://flagcdn.com/20x15/de.png" alt="DE">
-                                    Germany
-                                </div>
-                            </td>
-                            <td><strong style="color: #166534;">$700.00</strong></td>
-                            <td><span class="status-badge active">Razorpay</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu-dropdown">
-                                        <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div>Jan 22, 2026</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">2:45 PM</div>
-                            </td>
-                            <td><code style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px;">TXN_2026012240</code></td>
-                            <td><strong>Monthly Plan</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://flagcdn.com/20x15/in.png" alt="IN">
-                                    India
-                                </div>
-                            </td>
-                            <td><strong style="color: #166534;">$700.00</strong></td>
-                            <td><span class="status-badge" style="background: #e7f3ff; color: var(--primary-color);">PayPal</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu-dropdown">
-                                        <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="revenue-transactions-tbody">
+                        <!-- Populated by JavaScript -->
                     </tbody>
                 </table>
 
@@ -4788,9 +4516,9 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
@@ -5148,9 +4876,9 @@
                         <span>Rows per page:</span>
                         <select class="pagination-select">
                             <option value="10">10</option>
-                            <option value="20" selected>20</option>
+                            <option value="20">20</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
+                            <option value="100" selected>100</option>
                         </select>
                     </div>
                     <div class="pagination-center">
@@ -5263,6 +4991,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Add/Edit Webhook Modal -->
+            <!-- (Webhook modals removed - using inline form instead) -->
         </div>
     </main>
 
@@ -5281,28 +5012,75 @@
                     roas: '1.31',
                     totalLeads: '234',
                     costPerLead: '$52.76',
-                    pixelStatus: 'Active'
+                    pixelStatus: 'Active',
+                    totalSales: 27
+                },
+                timeBasedMetrics: {
+                    daily: {
+                        spend: 336.00,
+                        revenue: 1999.00,
+                        roas: 5.94,
+                        leads: 39,
+                        cpl: 8.61
+                    },
+                    weekly: {
+                        spend: 2100.00,
+                        revenue: 8400.00,
+                        roas: 4.00,
+                        leads: 156,
+                        cpl: 13.46
+                    },
+                    monthly: {
+                        spend: 12345.67,
+                        revenue: 16100.00,
+                        roas: 1.31,
+                        leads: 234,
+                        cpl: 52.76
+                    }
+                },
+                timeRangeMetrics: {
+                    today: { spend: 336.00, revenue: 1999.00, leads: 39, sales: 3 },
+                    last7days: { spend: 2100.00, revenue: 8400.00, leads: 156, sales: 12 },
+                    last30days: { spend: 12345.67, revenue: 16100.00, leads: 234, sales: 27 },
+                    last90days: { spend: 35678.90, revenue: 42350.00, leads: 678, sales: 78 },
+                    thismonth: { spend: 8956.45, revenue: 12500.00, leads: 189, sales: 21 },
+                    lastmonth: { spend: 11234.56, revenue: 14800.00, leads: 245, sales: 25 }
                 },
                 campaigns: [
                     { name: 'USA - Lifetime Deal', status: 'Active', budget: '$1,200.00', spend: '$4,523.45', sales: 8, revenue: '$5,600', roas: '1.24', frequency: '1.8', outboundClicks: '3,245', reach: '125,400', impressions: '225,720' },
                     { name: 'EU - Subscription Q1', status: 'Active', budget: '$850.00', spend: '$3,212.89', sales: 5, revenue: '$3,500', roas: '1.09', frequency: '2.1', outboundClicks: '2,456', reach: '78,900', impressions: '165,690' },
                     { name: 'India - Growth', status: 'Active', budget: '$600.00', spend: '$2,156.78', sales: 6, revenue: '$4,200', roas: '1.95', frequency: '1.5', outboundClicks: '2,890', reach: '98,500', impressions: '147,750' },
                     { name: 'APAC - Awareness', status: 'Paused', budget: '$500.00', spend: '$1,890.00', sales: 3, revenue: '$2,100', roas: '1.11', frequency: '2.4', outboundClicks: '1,234', reach: '45,600', impressions: '109,440' },
-                    { name: 'Global - Retargeting', status: 'Active', budget: '$200.00', spend: '$562.55', sales: 1, revenue: '$700', roas: '1.24', frequency: '1.2', outboundClicks: '567', reach: '23,400', impressions: '28,080' }
+                    { name: 'Global - Retargeting', status: 'Active', budget: '$200.00', spend: '$562.55', sales: 1, revenue: '$700', roas: '1.24', frequency: '1.2', outboundClicks: '567', reach: '23,400', impressions: '28,080' },
+                    { name: 'LATAM - Cold Outreach', status: 'Active', budget: '$750.00', spend: '$2,890.00', sales: 2, revenue: '$1,400', roas: '0.48', frequency: '2.7', outboundClicks: '1,456', reach: '52,300', impressions: '141,210' },
+                    { name: 'UK - Brand Awareness', status: 'Active', budget: '$500.00', spend: '$1,650.00', sales: 1, revenue: '$700', roas: '0.42', frequency: '2.3', outboundClicks: '890', reach: '34,700', impressions: '79,810' }
                 ],
                 adSets: [
                     { name: 'Interests - Tech Entrepreneurs', campaignName: 'USA - Lifetime Deal', status: 'Active', budget: '$600.00', spend: '$2,100.00', sales: 5, revenue: '$3,500', roas: '1.67', frequency: '1.6', outboundClicks: '1,890', reach: '72,500', impressions: '116,000' },
                     { name: 'Lookalike - Purchasers 1%', campaignName: 'USA - Lifetime Deal', status: 'Active', budget: '$400.00', spend: '$1,450.00', sales: 3, revenue: '$2,100', roas: '1.45', frequency: '1.8', outboundClicks: '1,355', reach: '52,900', impressions: '95,220' },
                     { name: 'Interests - Business Owners', campaignName: 'India - Growth', status: 'Active', budget: '$250.00', spend: '$890.00', sales: 2, revenue: '$1,400', roas: '1.57', frequency: '1.4', outboundClicks: '978', reach: '38,200', impressions: '53,480' },
+                    { name: 'Cold Audience - LATAM', campaignName: 'LATAM - Cold Outreach', status: 'Active', budget: '$400.00', spend: '$1,560.00', sales: 1, revenue: '$700', roas: '0.45', frequency: '2.9', outboundClicks: '812', reach: '28,900', impressions: '83,810' },
+                    { name: 'UK Interests - SMBs', campaignName: 'UK - Brand Awareness', status: 'Active', budget: '$250.00', spend: '$890.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '2.5', outboundClicks: '534', reach: '19,800', impressions: '49,500' },
                     { name: 'Broad - General Audience', campaignName: 'EU - Subscription Q1', status: 'Paused', budget: '$350.00', spend: '$1,200.00', sales: 1, revenue: '$700', roas: '0.58', frequency: '2.8', outboundClicks: '756', reach: '28,500', impressions: '79,800' },
                     { name: 'Retargeting - Website Visitors', campaignName: 'APAC - Awareness', status: 'Paused', budget: '$200.00', spend: '$650.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '3.2', outboundClicks: '423', reach: '15,200', impressions: '48,640' }
                 ],
                 ads: [
-                    { name: 'Video Ad v3 - Feature Demo', campaignName: 'USA - Lifetime Deal', adSetName: 'Interests - Tech Entrepreneurs', status: 'Active', budget: '$350.00', spend: '$1,200.00', sales: 4, revenue: '$2,800', roas: '2.33', frequency: '1.5', outboundClicks: '1,124', reach: '42,300', impressions: '63,450' },
-                    { name: 'Image Ad - Testimonial', campaignName: 'USA - Lifetime Deal', adSetName: 'Lookalike - Purchasers 1%', status: 'Active', budget: '$250.00', spend: '$850.00', sales: 2, revenue: '$1,400', roas: '1.65', frequency: '1.7', outboundClicks: '823', reach: '31,200', impressions: '53,040' },
-                    { name: 'Carousel Ad - Features', campaignName: 'India - Growth', adSetName: 'Interests - Business Owners', status: 'Active', budget: '$200.00', spend: '$650.00', sales: 1, revenue: '$700', roas: '1.08', frequency: '1.3', outboundClicks: '612', reach: '24,500', impressions: '31,850' },
-                    { name: 'Static Image - Old Creative', campaignName: 'EU - Subscription Q1', adSetName: 'Broad - General Audience', status: 'Paused', budget: '$150.00', spend: '$450.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '2.9', outboundClicks: '345', reach: '12,300', impressions: '35,670' },
-                    { name: 'Video Ad v1 - Outdated', campaignName: 'APAC - Awareness', adSetName: 'Retargeting - Website Visitors', status: 'Paused', budget: '$120.00', spend: '$380.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '3.5', outboundClicks: '234', reach: '8,900', impressions: '31,150' }
+                    { name: 'Video Ad v3 - Feature Demo', campaignName: 'USA - Lifetime Deal', adSetName: 'Interests - Tech Entrepreneurs', status: 'Active', budget: '$350.00', spend: '$1,200.00', sales: 4, revenue: '$2,800.00', roas: '2.33', frequency: '1.5', outboundClicks: '1,124', reach: '42,300', impressions: '63,450' },
+                    { name: 'Image Ad - Testimonial', campaignName: 'USA - Lifetime Deal', adSetName: 'Lookalike - Purchasers 1%', status: 'Active', budget: '$250.00', spend: '$850.00', sales: 2, revenue: '$1,400.00', roas: '1.65', frequency: '1.7', outboundClicks: '823', reach: '31,200', impressions: '53,040' },
+                    { name: 'Carousel Ad - Features', campaignName: 'India - Growth', adSetName: 'Interests - Business Owners', status: 'Active', budget: '$200.00', spend: '$650.00', sales: 1, revenue: '$700.00', roas: '1.08', frequency: '1.3', outboundClicks: '612', reach: '24,500', impressions: '31,850' },
+                    { name: 'UGC Video - Customer Story', campaignName: 'USA - Lifetime Deal', adSetName: 'Interests - Tech Entrepreneurs', status: 'Active', budget: '$300.00', spend: '$1,050.00', sales: 3, revenue: '$2,100.00', roas: '2.00', frequency: '1.4', outboundClicks: '978', reach: '38,600', impressions: '54,040' },
+                    { name: 'Reel Ad - Quick Tutorial', campaignName: 'India - Growth', adSetName: 'Interests - Business Owners', status: 'Active', budget: '$180.00', spend: '$520.00', sales: 2, revenue: '$1,400.00', roas: '2.69', frequency: '1.1', outboundClicks: '734', reach: '28,900', impressions: '31,790' },
+                    { name: 'Image Ad - Pricing Page', campaignName: 'EU - Subscription Q1', adSetName: 'Broad - General Audience', status: 'Active', budget: '$220.00', spend: '$780.00', sales: 2, revenue: '$1,400.00', roas: '1.79', frequency: '1.6', outboundClicks: '654', reach: '25,100', impressions: '40,160' },
+                    { name: 'Story Ad - Limited Offer', campaignName: 'Global - Retargeting', adSetName: 'Retargeting - Website Visitors', status: 'Active', budget: '$150.00', spend: '$420.00', sales: 1, revenue: '$700.00', roas: '1.67', frequency: '1.2', outboundClicks: '389', reach: '15,600', impressions: '18,720' },
+                    { name: 'Video Ad v2 - Walkthrough', campaignName: 'USA - Lifetime Deal', adSetName: 'Lookalike - Purchasers 1%', status: 'Active', budget: '$280.00', spend: '$960.00', sales: 3, revenue: '$2,100.00', roas: '2.19', frequency: '1.8', outboundClicks: '1,045', reach: '35,400', impressions: '63,720' },
+                    { name: 'Carousel Ad - Use Cases', campaignName: 'EU - Subscription Q1', adSetName: 'Broad - General Audience', status: 'Active', budget: '$190.00', spend: '$590.00', sales: 1, revenue: '$700.00', roas: '1.19', frequency: '1.9', outboundClicks: '478', reach: '18,200', impressions: '34,580' },
+                    { name: 'Image Ad - Before/After', campaignName: 'India - Growth', adSetName: 'Interests - Business Owners', status: 'Active', budget: '$160.00', spend: '$480.00', sales: 2, revenue: '$1,400.00', roas: '2.92', frequency: '1.2', outboundClicks: '567', reach: '22,800', impressions: '27,360' },
+                    { name: 'LATAM Video - Product Intro', campaignName: 'LATAM - Cold Outreach', adSetName: 'Cold Audience - LATAM', status: 'Active', budget: '$220.00', spend: '$870.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '3.0', outboundClicks: '423', reach: '15,200', impressions: '45,600' },
+                    { name: 'LATAM Carousel - Pricing', campaignName: 'LATAM - Cold Outreach', adSetName: 'Cold Audience - LATAM', status: 'Active', budget: '$180.00', spend: '$690.00', sales: 1, revenue: '$700.00', roas: '0.72', frequency: '2.8', outboundClicks: '389', reach: '13,700', impressions: '38,360' },
+                    { name: 'UK Image - Free Trial', campaignName: 'UK - Brand Awareness', adSetName: 'UK Interests - SMBs', status: 'Active', budget: '$130.00', spend: '$520.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '2.5', outboundClicks: '312', reach: '11,400', impressions: '28,500' },
+                    { name: 'Static Image - Old Creative', campaignName: 'EU - Subscription Q1', adSetName: 'Broad - General Audience', status: 'Paused', budget: '$150.00', spend: '$450.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '2.9', outboundClicks: '345', reach: '12,300', impressions: '35,670' },
+                    { name: 'Video Ad v1 - Outdated', campaignName: 'APAC - Awareness', adSetName: 'Retargeting - Website Visitors', status: 'Paused', budget: '$120.00', spend: '$380.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '3.5', outboundClicks: '234', reach: '8,900', impressions: '31,150' },
+                    { name: 'GIF Ad - Old Promo', campaignName: 'APAC - Awareness', adSetName: 'Retargeting - Website Visitors', status: 'Paused', budget: '$100.00', spend: '$310.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '3.1', outboundClicks: '198', reach: '7,200', impressions: '22,320' }
                 ],
                 countries: [
                     { name: 'United States', flag: 'us', sales: 10, revenue: '$7,000', spend: '$5,234.56', roas: '1.34' },
@@ -5317,9 +5095,21 @@
                     { type: 'warning', level: 'Country', name: 'Canada', spend: '$897.44', roas: '0.78', threshold: '$700' }
                 ],
                 recentSales: [
-                    { time: '10 min ago', campaign: 'USA - Lifetime Deal', adSet: 'Interests - Tech', adName: 'Video Ad v3', country: 'United States', amount: '$700' },
-                    { time: '2 hours ago', campaign: 'USA - Lifetime Deal', adSet: 'Lookalike - Customers', adName: 'Image Ad - Features', country: 'United States', amount: '$700' },
-                    { time: '5 hours ago', campaign: 'India - Growth', adSet: 'Interests - Startups', adName: 'Carousel Ad', country: 'India', amount: '$700' }
+                    { time: '10 min ago', campaign: 'USA - Lifetime Deal', adSet: 'Interests - Tech Entrepreneurs', adName: 'Video Ad v3 - Feature Demo', country: 'United States', amount: '$700' },
+                    { time: '2 hours ago', campaign: 'USA - Lifetime Deal', adSet: 'Lookalike - Purchasers 1%', adName: 'Image Ad - Testimonial', country: 'United States', amount: '$700' },
+                    { time: '5 hours ago', campaign: 'India - Growth', adSet: 'Interests - Business Owners', adName: 'Carousel Ad - Features', country: 'India', amount: '$700' },
+                    { time: '8 hours ago', campaign: 'EU - Subscription Q1', adSet: 'Broad - General Audience', adName: 'Image Ad - Pricing Page', country: 'Germany', amount: '$700' },
+                    { time: '12 hours ago', campaign: 'USA - Lifetime Deal', adSet: 'Interests - Tech Entrepreneurs', adName: 'UGC Video - Customer Story', country: 'United States', amount: '$700' },
+                    { time: '1 day ago', campaign: 'India - Growth', adSet: 'Interests - Business Owners', adName: 'Reel Ad - Quick Tutorial', country: 'India', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Global - Retargeting', adSet: 'Retargeting - Website Visitors', adName: 'Story Ad - Limited Offer', country: 'Canada', amount: '$700' },
+                    { time: '2 days ago', campaign: 'USA - Lifetime Deal', adSet: 'Lookalike - Purchasers 1%', adName: 'Video Ad v2 - Walkthrough', country: 'United States', amount: '$700' },
+                    { time: '2 days ago', campaign: 'EU - Subscription Q1', adSet: 'Broad - General Audience', adName: 'Carousel Ad - Use Cases', country: 'United Kingdom', amount: '$700' },
+                    { time: '3 days ago', campaign: 'India - Growth', adSet: 'Interests - Business Owners', adName: 'Image Ad - Before/After', country: 'India', amount: '$700' },
+                    { time: '3 days ago', campaign: 'USA - Lifetime Deal', adSet: 'Interests - Tech Entrepreneurs', adName: 'Video Ad v3 - Feature Demo', country: 'United States', amount: '$700' },
+                    { time: '4 days ago', campaign: 'LATAM - Cold Outreach', adSet: 'Cold Audience - LATAM', adName: 'LATAM Carousel - Pricing', country: 'Brazil', amount: '$700' },
+                    { time: '5 days ago', campaign: 'USA - Lifetime Deal', adSet: 'Lookalike - Purchasers 1%', adName: 'Image Ad - Testimonial', country: 'United States', amount: '$700' },
+                    { time: '5 days ago', campaign: 'India - Growth', adSet: 'Interests - Business Owners', adName: 'Carousel Ad - Features', country: 'India', amount: '$700' },
+                    { time: '6 days ago', campaign: 'EU - Subscription Q1', adSet: 'Broad - General Audience', adName: 'Image Ad - Pricing Page', country: 'Germany', amount: '$700' }
                 ],
                 webhookUrl: 'https://chat.googleapis.com/v1/spaces/ABC123/messages?key=xyz_connect',
                 todayRevenue: '$2,100',
@@ -5355,7 +5145,39 @@
                     roas: '1.36',
                     totalLeads: '189',
                     costPerLead: '$46.33',
-                    pixelStatus: 'Active'
+                    pixelStatus: 'Active',
+                    totalSales: 18
+                },
+                timeBasedMetrics: {
+                    daily: {
+                        spend: 280.00,
+                        revenue: 1400.00,
+                        roas: 5.00,
+                        leads: 32,
+                        cpl: 8.75
+                    },
+                    weekly: {
+                        spend: 1750.00,
+                        revenue: 5600.00,
+                        roas: 3.20,
+                        leads: 128,
+                        cpl: 13.67
+                    },
+                    monthly: {
+                        spend: 8756.23,
+                        revenue: 11900.00,
+                        roas: 1.36,
+                        leads: 189,
+                        cpl: 46.33
+                    }
+                },
+                timeRangeMetrics: {
+                    today: { spend: 280.00, revenue: 1400.00, leads: 32, sales: 2 },
+                    last7days: { spend: 1750.00, revenue: 5600.00, leads: 128, sales: 8 },
+                    last30days: { spend: 8756.23, revenue: 11900.00, leads: 189, sales: 18 },
+                    last90days: { spend: 24567.89, revenue: 31200.00, leads: 543, sales: 52 },
+                    thismonth: { spend: 6234.78, revenue: 8900.00, leads: 145, sales: 14 },
+                    lastmonth: { spend: 7890.45, revenue: 10300.00, leads: 178, sales: 16 }
                 },
                 campaigns: [
                     { name: 'WhatsApp Marketing - USA', status: 'Active', budget: '$900.00', spend: '$3,245.67', sales: 7, revenue: '$4,900', roas: '1.51', frequency: '1.6', outboundClicks: '2,876', reach: '95,400', impressions: '152,640' },
@@ -5370,10 +5192,16 @@
                     { name: 'Spanish Speakers', campaignName: 'LATAM - Chatbot Trial', status: 'Paused', budget: '$150.00', spend: '$450.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '2.8', outboundClicks: '312', reach: '11,500', impressions: '32,200' }
                 ],
                 ads: [
-                    { name: 'Demo Video', campaignName: 'WhatsApp Marketing - USA', adSetName: 'SMB Owners', status: 'Active', budget: '$280.00', spend: '$950.00', sales: 3, revenue: '$2,100', roas: '2.21', frequency: '1.4', outboundClicks: '923', reach: '32,400', impressions: '45,360' },
-                    { name: 'Chatbot Preview', campaignName: 'Chat Automation - Global', adSetName: 'E-commerce', status: 'Active', budget: '$220.00', spend: '$780.00', sales: 2, revenue: '$1,400', roas: '1.79', frequency: '1.7', outboundClicks: '756', reach: '24,500', impressions: '41,650' },
-                    { name: 'Feature Highlight', campaignName: 'Bot Builder - EU', adSetName: 'Tech Startups', status: 'Active', budget: '$180.00', spend: '$620.00', sales: 1, revenue: '$700', roas: '1.13', frequency: '1.5', outboundClicks: '589', reach: '21,300', impressions: '31,950' },
-                    { name: 'Spanish Ad - Low Performance', campaignName: 'LATAM - Chatbot Trial', adSetName: 'Spanish Speakers', status: 'Paused', budget: '$100.00', spend: '$320.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '3.1', outboundClicks: '187', reach: '6,800', impressions: '21,080' }
+                    { name: 'Demo Video - WhatsApp API', campaignName: 'WhatsApp Marketing - USA', adSetName: 'SMB Owners', status: 'Active', budget: '$280.00', spend: '$950.00', sales: 3, revenue: '$2,100.00', roas: '2.21', frequency: '1.4', outboundClicks: '923', reach: '32,400', impressions: '45,360' },
+                    { name: 'Chatbot Preview - Ecommerce', campaignName: 'Chat Automation - Global', adSetName: 'E-commerce', status: 'Active', budget: '$220.00', spend: '$780.00', sales: 2, revenue: '$1,400.00', roas: '1.79', frequency: '1.7', outboundClicks: '756', reach: '24,500', impressions: '41,650' },
+                    { name: 'Feature Highlight Reel', campaignName: 'Bot Builder - EU', adSetName: 'Tech Startups', status: 'Active', budget: '$180.00', spend: '$620.00', sales: 1, revenue: '$700.00', roas: '1.13', frequency: '1.5', outboundClicks: '589', reach: '21,300', impressions: '31,950' },
+                    { name: 'UGC - Customer Success Story', campaignName: 'WhatsApp Marketing - USA', adSetName: 'SMB Owners', status: 'Active', budget: '$250.00', spend: '$870.00', sales: 2, revenue: '$1,400.00', roas: '1.61', frequency: '1.3', outboundClicks: '812', reach: '29,800', impressions: '38,740' },
+                    { name: 'Carousel - Bot Templates', campaignName: 'Bot Builder - EU', adSetName: 'Tech Startups', status: 'Active', budget: '$200.00', spend: '$690.00', sales: 2, revenue: '$1,400.00', roas: '2.03', frequency: '1.6', outboundClicks: '634', reach: '23,400', impressions: '37,440' },
+                    { name: 'Image Ad - ROI Calculator', campaignName: 'Chat Automation - Global', adSetName: 'E-commerce', status: 'Active', budget: '$190.00', spend: '$640.00', sales: 1, revenue: '$700.00', roas: '1.09', frequency: '1.8', outboundClicks: '523', reach: '19,600', impressions: '35,280' },
+                    { name: 'Video - Live Demo Recording', campaignName: 'WhatsApp Marketing - USA', adSetName: 'SMB Owners', status: 'Active', budget: '$240.00', spend: '$810.00', sales: 2, revenue: '$1,400.00', roas: '1.73', frequency: '1.5', outboundClicks: '745', reach: '27,100', impressions: '40,650' },
+                    { name: 'Story Ad - Quick Setup', campaignName: 'Chat Automation - Global', adSetName: 'E-commerce', status: 'Active', budget: '$150.00', spend: '$480.00', sales: 1, revenue: '$700.00', roas: '1.46', frequency: '1.2', outboundClicks: '412', reach: '17,800', impressions: '21,360' },
+                    { name: 'Spanish Ad - Chatbot Intro', campaignName: 'LATAM - Chatbot Trial', adSetName: 'Spanish Speakers', status: 'Paused', budget: '$100.00', spend: '$320.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '3.1', outboundClicks: '187', reach: '6,800', impressions: '21,080' },
+                    { name: 'Image Ad - Old Branding', campaignName: 'LATAM - Chatbot Trial', adSetName: 'Spanish Speakers', status: 'Paused', budget: '$80.00', spend: '$245.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '2.8', outboundClicks: '156', reach: '5,400', impressions: '15,120' }
                 ],
                 countries: [
                     { name: 'United States', flag: 'us', sales: 7, revenue: '$4,900', spend: '$3,456.78', roas: '1.42' },
@@ -5389,7 +5217,14 @@
                 recentSales: [
                     { time: '25 min ago', campaign: 'WhatsApp Marketing - USA', adSet: 'SMB Owners', adName: 'Demo Video', country: 'United States', amount: '$700' },
                     { time: '3 hours ago', campaign: 'Chat Automation - Global', adSet: 'E-commerce', adName: 'Chatbot Preview', country: 'Brazil', amount: '$700' },
-                    { time: '6 hours ago', campaign: 'Bot Builder - EU', adSet: 'Tech Startups', adName: 'Feature Highlight', country: 'United Kingdom', amount: '$700' }
+                    { time: '6 hours ago', campaign: 'Bot Builder - EU', adSet: 'Tech Startups', adName: 'Feature Highlight', country: 'United Kingdom', amount: '$700' },
+                    { time: '10 hours ago', campaign: 'WhatsApp Marketing - USA', adSet: 'SMB Owners', adName: 'Chatflow Walkthrough', country: 'United States', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Chat Automation - Global', adSet: 'E-commerce', adName: 'Auto-Reply Demo', country: 'India', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Bot Builder - EU', adSet: 'Tech Startups', adName: 'Drag & Drop Builder', country: 'Germany', amount: '$700' },
+                    { time: '2 days ago', campaign: 'WhatsApp Marketing - USA', adSet: 'SMB Owners', adName: 'ROI Calculator Video', country: 'United States', amount: '$700' },
+                    { time: '3 days ago', campaign: 'Chat Automation - Global', adSet: 'E-commerce', adName: 'Chatbot Preview', country: 'Australia', amount: '$700' },
+                    { time: '4 days ago', campaign: 'WhatsApp Marketing - USA', adSet: 'SMB Owners', adName: 'Demo Video', country: 'Canada', amount: '$700' },
+                    { time: '5 days ago', campaign: 'Bot Builder - EU', adSet: 'Tech Startups', adName: 'Feature Highlight', country: 'United Kingdom', amount: '$700' }
                 ],
                 webhookUrl: 'https://chat.googleapis.com/v1/spaces/DEF456/messages?key=xyz_chatflow',
                 todayRevenue: '$1,400',
@@ -5424,7 +5259,39 @@
                     roas: '1.42',
                     totalLeads: '312',
                     costPerLead: '$17.41',
-                    pixelStatus: 'Active'
+                    pixelStatus: 'Active',
+                    totalSales: 12
+                },
+                timeBasedMetrics: {
+                    daily: {
+                        spend: 220.00,
+                        revenue: 1400.00,
+                        roas: 6.36,
+                        leads: 58,
+                        cpl: 3.79
+                    },
+                    weekly: {
+                        spend: 1050.00,
+                        revenue: 4200.00,
+                        roas: 4.00,
+                        leads: 189,
+                        cpl: 5.56
+                    },
+                    monthly: {
+                        spend: 5432.10,
+                        revenue: 7700.00,
+                        roas: 1.42,
+                        leads: 312,
+                        cpl: 17.41
+                    }
+                },
+                timeRangeMetrics: {
+                    today: { spend: 220.00, revenue: 1400.00, leads: 58, sales: 2 },
+                    last7days: { spend: 1050.00, revenue: 4200.00, leads: 189, sales: 6 },
+                    last30days: { spend: 5432.10, revenue: 7700.00, leads: 312, sales: 12 },
+                    last90days: { spend: 15678.45, revenue: 21500.00, leads: 876, sales: 34 },
+                    thismonth: { spend: 3890.67, revenue: 5600.00, leads: 223, sales: 9 },
+                    lastmonth: { spend: 4567.89, revenue: 6400.00, leads: 267, sales: 10 }
                 },
                 campaigns: [
                     { name: 'Email Automation - SMB', status: 'Active', budget: '$800.00', spend: '$2,876.54', sales: 6, revenue: '$4,200', roas: '1.46', frequency: '1.4', outboundClicks: '2,456', reach: '89,200', impressions: '124,880' },
@@ -5437,9 +5304,16 @@
                     { name: 'Enterprise IT', campaignName: 'Cold Email - Enterprise', status: 'Paused', budget: '$200.00', spend: '$600.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '3.0', outboundClicks: '389', reach: '12,800', impressions: '38,400' }
                 ],
                 ads: [
-                    { name: 'Email Builder Demo', campaignName: 'Email Automation - SMB', adSetName: 'Marketers', status: 'Active', budget: '$250.00', spend: '$800.00', sales: 3, revenue: '$2,100', roas: '2.63', frequency: '1.2', outboundClicks: '834', reach: '31,200', impressions: '37,440' },
-                    { name: 'Template Gallery', campaignName: 'Newsletter Tools - Creators', adSetName: 'Content Creators', status: 'Active', budget: '$200.00', spend: '$700.00', sales: 2, revenue: '$1,400', roas: '2.00', frequency: '1.5', outboundClicks: '712', reach: '24,500', impressions: '36,750' },
-                    { name: 'Enterprise Features Ad', campaignName: 'Cold Email - Enterprise', adSetName: 'Enterprise IT', status: 'Paused', budget: '$130.00', spend: '$420.00', sales: 0, revenue: '$0', roas: '0.00', frequency: '3.2', outboundClicks: '245', reach: '7,800', impressions: '24,960' }
+                    { name: 'Email Builder Demo Video', campaignName: 'Email Automation - SMB', adSetName: 'Marketers', status: 'Active', budget: '$250.00', spend: '$800.00', sales: 3, revenue: '$2,100.00', roas: '2.63', frequency: '1.2', outboundClicks: '834', reach: '31,200', impressions: '37,440' },
+                    { name: 'Template Gallery Carousel', campaignName: 'Newsletter Tools - Creators', adSetName: 'Content Creators', status: 'Active', budget: '$200.00', spend: '$700.00', sales: 2, revenue: '$1,400.00', roas: '2.00', frequency: '1.5', outboundClicks: '712', reach: '24,500', impressions: '36,750' },
+                    { name: 'Drag & Drop Editor Ad', campaignName: 'Email Automation - SMB', adSetName: 'Marketers', status: 'Active', budget: '$210.00', spend: '$680.00', sales: 2, revenue: '$1,400.00', roas: '2.06', frequency: '1.3', outboundClicks: '623', reach: '24,100', impressions: '31,330' },
+                    { name: 'Newsletter ROI Calculator', campaignName: 'Newsletter Tools - Creators', adSetName: 'Content Creators', status: 'Active', budget: '$180.00', spend: '$590.00', sales: 1, revenue: '$700.00', roas: '1.19', frequency: '1.6', outboundClicks: '534', reach: '19,800', impressions: '31,680' },
+                    { name: 'Image Ad - Email Analytics', campaignName: 'Email Automation - SMB', adSetName: 'Marketers', status: 'Active', budget: '$170.00', spend: '$520.00', sales: 1, revenue: '$700.00', roas: '1.35', frequency: '1.4', outboundClicks: '478', reach: '17,600', impressions: '24,640' },
+                    { name: 'Video - Deliverability Tips', campaignName: 'Newsletter Tools - Creators', adSetName: 'Content Creators', status: 'Active', budget: '$160.00', spend: '$490.00', sales: 1, revenue: '$700.00', roas: '1.43', frequency: '1.5', outboundClicks: '423', reach: '16,200', impressions: '24,300' },
+                    { name: 'Reel - Email vs Social Media', campaignName: 'Email Automation - SMB', adSetName: 'Marketers', status: 'Active', budget: '$140.00', spend: '$410.00', sales: 1, revenue: '$700.00', roas: '1.71', frequency: '1.1', outboundClicks: '389', reach: '15,400', impressions: '16,940' },
+                    { name: 'Story Ad - Free Trial CTA', campaignName: 'Newsletter Tools - Creators', adSetName: 'Content Creators', status: 'Active', budget: '$130.00', spend: '$370.00', sales: 1, revenue: '$700.00', roas: '1.89', frequency: '1.2', outboundClicks: '345', reach: '14,100', impressions: '16,920' },
+                    { name: 'Enterprise Features Ad', campaignName: 'Cold Email - Enterprise', adSetName: 'Enterprise IT', status: 'Paused', budget: '$130.00', spend: '$420.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '3.2', outboundClicks: '245', reach: '7,800', impressions: '24,960' },
+                    { name: 'Cold Email Outreach Video', campaignName: 'Cold Email - Enterprise', adSetName: 'Enterprise IT', status: 'Paused', budget: '$110.00', spend: '$350.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '2.9', outboundClicks: '198', reach: '6,500', impressions: '18,850' }
                 ],
                 countries: [
                     { name: 'United States', flag: 'us', sales: 5, revenue: '$3,500', spend: '$2,345.67', roas: '1.49' },
@@ -5451,7 +5325,14 @@
                 ],
                 recentSales: [
                     { time: '45 min ago', campaign: 'Email Automation - SMB', adSet: 'Marketers', adName: 'Email Builder Demo', country: 'United States', amount: '$700' },
-                    { time: '4 hours ago', campaign: 'Newsletter Tools - Creators', adSet: 'Content Creators', adName: 'Template Gallery', country: 'India', amount: '$700' }
+                    { time: '4 hours ago', campaign: 'Newsletter Tools - Creators', adSet: 'Content Creators', adName: 'Template Gallery', country: 'India', amount: '$700' },
+                    { time: '9 hours ago', campaign: 'Email Automation - SMB', adSet: 'Marketers', adName: 'Drag & Drop Editor', country: 'United States', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Newsletter Tools - Creators', adSet: 'Content Creators', adName: 'Subscriber Growth Ad', country: 'United Kingdom', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Email Automation - SMB', adSet: 'Marketers', adName: 'Automation Flow Video', country: 'Germany', amount: '$700' },
+                    { time: '2 days ago', campaign: 'Newsletter Tools - Creators', adSet: 'Content Creators', adName: 'Template Gallery', country: 'India', amount: '$700' },
+                    { time: '3 days ago', campaign: 'Email Automation - SMB', adSet: 'Marketers', adName: 'Email Builder Demo', country: 'Canada', amount: '$700' },
+                    { time: '4 days ago', campaign: 'Newsletter Tools - Creators', adSet: 'Content Creators', adName: 'Open Rate Boost Ad', country: 'Australia', amount: '$700' },
+                    { time: '5 days ago', campaign: 'Email Automation - SMB', adSet: 'Marketers', adName: 'Drag & Drop Editor', country: 'United States', amount: '$700' }
                 ],
                 webhookUrl: 'https://chat.googleapis.com/v1/spaces/GHI789/messages?key=xyz_email',
                 todayRevenue: '$1,400',
@@ -5486,7 +5367,39 @@
                     roas: '1.42',
                     totalLeads: '156',
                     costPerLead: '$63.31',
-                    pixelStatus: 'Active'
+                    pixelStatus: 'Active',
+                    totalSales: 20
+                },
+                timeBasedMetrics: {
+                    daily: {
+                        spend: 410.00,
+                        revenue: 2100.00,
+                        roas: 5.12,
+                        leads: 28,
+                        cpl: 14.64
+                    },
+                    weekly: {
+                        spend: 1950.00,
+                        revenue: 7000.00,
+                        roas: 3.59,
+                        leads: 95,
+                        cpl: 20.53
+                    },
+                    monthly: {
+                        spend: 9876.54,
+                        revenue: 14000.00,
+                        roas: 1.42,
+                        leads: 156,
+                        cpl: 63.31
+                    }
+                },
+                timeRangeMetrics: {
+                    today: { spend: 410.00, revenue: 2100.00, leads: 28, sales: 3 },
+                    last7days: { spend: 1950.00, revenue: 7000.00, leads: 95, sales: 10 },
+                    last30days: { spend: 9876.54, revenue: 14000.00, leads: 156, sales: 20 },
+                    last90days: { spend: 28765.43, revenue: 39200.00, leads: 445, sales: 56 },
+                    thismonth: { spend: 7123.45, revenue: 10500.00, leads: 112, sales: 15 },
+                    lastmonth: { spend: 8901.23, revenue: 12600.00, leads: 134, sales: 18 }
                 },
                 campaigns: [
                     { name: 'Subscription Billing - SaaS', status: 'Active', budget: '$1,100.00', spend: '$4,123.45', sales: 9, revenue: '$6,300', roas: '1.53', frequency: '1.5', outboundClicks: '3,567', reach: '112,500', impressions: '168,750' },
@@ -5501,10 +5414,17 @@
                     { name: 'European Businesses', campaignName: 'Recurring Payments - EU', status: 'Paused', budget: '$150.00', spend: '$406.00', sales: 1, revenue: '$700', roas: '1.72', frequency: '1.1', outboundClicks: '456', reach: '18,900', impressions: '20,790' }
                 ],
                 ads: [
-                    { name: 'Billing Demo Video', campaignName: 'Subscription Billing - SaaS', adSetName: 'SaaS Companies', status: 'Active', budget: '$320.00', spend: '$1,100.00', sales: 4, revenue: '$2,800', roas: '2.55', frequency: '1.3', outboundClicks: '1,234', reach: '38,500', impressions: '50,050' },
-                    { name: 'Payment Flow Image', campaignName: 'Payment Gateway - Global', adSetName: 'E-commerce Stores', status: 'Active', budget: '$260.00', spend: '$900.00', sales: 2, revenue: '$1,400', roas: '1.56', frequency: '1.8', outboundClicks: '923', reach: '24,600', impressions: '44,280' },
-                    { name: 'Invoice Carousel', campaignName: 'Invoice Management - SMB', adSetName: 'Small Business', status: 'Active', budget: '$150.00', spend: '$500.00', sales: 1, revenue: '$700', roas: '1.40', frequency: '1.1', outboundClicks: '534', reach: '19,200', impressions: '21,120' },
-                    { name: 'EU Recurring Video', campaignName: 'Recurring Payments - EU', adSetName: 'European Businesses', status: 'Paused', budget: '$100.00', spend: '$280.00', sales: 1, revenue: '$700', roas: '2.50', frequency: '1.0', outboundClicks: '312', reach: '12,400', impressions: '12,400' }
+                    { name: 'Billing Demo Video', campaignName: 'Subscription Billing - SaaS', adSetName: 'SaaS Companies', status: 'Active', budget: '$320.00', spend: '$1,100.00', sales: 4, revenue: '$2,800.00', roas: '2.55', frequency: '1.3', outboundClicks: '1,234', reach: '38,500', impressions: '50,050' },
+                    { name: 'Payment Flow Image Ad', campaignName: 'Payment Gateway - Global', adSetName: 'E-commerce Stores', status: 'Active', budget: '$260.00', spend: '$900.00', sales: 2, revenue: '$1,400.00', roas: '1.56', frequency: '1.8', outboundClicks: '923', reach: '24,600', impressions: '44,280' },
+                    { name: 'Invoice Carousel Ad', campaignName: 'Invoice Management - SMB', adSetName: 'Small Business', status: 'Active', budget: '$150.00', spend: '$500.00', sales: 1, revenue: '$700.00', roas: '1.40', frequency: '1.1', outboundClicks: '534', reach: '19,200', impressions: '21,120' },
+                    { name: 'UGC - SaaS Founder Review', campaignName: 'Subscription Billing - SaaS', adSetName: 'SaaS Companies', status: 'Active', budget: '$290.00', spend: '$980.00', sales: 3, revenue: '$2,100.00', roas: '2.14', frequency: '1.4', outboundClicks: '1,089', reach: '34,200', impressions: '47,880' },
+                    { name: 'Reel - Checkout in 60 Sec', campaignName: 'Payment Gateway - Global', adSetName: 'E-commerce Stores', status: 'Active', budget: '$220.00', spend: '$740.00', sales: 2, revenue: '$1,400.00', roas: '1.89', frequency: '1.5', outboundClicks: '812', reach: '26,300', impressions: '39,450' },
+                    { name: 'Image - Invoice Templates', campaignName: 'Invoice Management - SMB', adSetName: 'Small Business', status: 'Active', budget: '$170.00', spend: '$540.00', sales: 1, revenue: '$700.00', roas: '1.30', frequency: '1.2', outboundClicks: '467', reach: '18,100', impressions: '21,720' },
+                    { name: 'Video - Auto Recurring Setup', campaignName: 'Subscription Billing - SaaS', adSetName: 'SaaS Companies', status: 'Active', budget: '$250.00', spend: '$850.00', sales: 2, revenue: '$1,400.00', roas: '1.65', frequency: '1.6', outboundClicks: '934', reach: '30,100', impressions: '48,160' },
+                    { name: 'Carousel - Payment Methods', campaignName: 'Payment Gateway - Global', adSetName: 'E-commerce Stores', status: 'Active', budget: '$200.00', spend: '$670.00', sales: 1, revenue: '$700.00', roas: '1.04', frequency: '1.7', outboundClicks: '578', reach: '20,800', impressions: '35,360' },
+                    { name: 'Story Ad - Free Trial', campaignName: 'Invoice Management - SMB', adSetName: 'Small Business', status: 'Active', budget: '$130.00', spend: '$390.00', sales: 1, revenue: '$700.00', roas: '1.79', frequency: '1.0', outboundClicks: '356', reach: '14,800', impressions: '14,800' },
+                    { name: 'EU Recurring Video', campaignName: 'Recurring Payments - EU', adSetName: 'European Businesses', status: 'Paused', budget: '$100.00', spend: '$280.00', sales: 1, revenue: '$700.00', roas: '2.50', frequency: '1.0', outboundClicks: '312', reach: '12,400', impressions: '12,400' },
+                    { name: 'SEPA Payment Ad - Old', campaignName: 'Recurring Payments - EU', adSetName: 'European Businesses', status: 'Paused', budget: '$80.00', spend: '$210.00', sales: 0, revenue: '$0.00', roas: '0.00', frequency: '2.6', outboundClicks: '178', reach: '5,900', impressions: '15,340' }
                 ],
                 countries: [
                     { name: 'United States', flag: 'us', sales: 8, revenue: '$5,600', spend: '$4,234.56', roas: '1.32' },
@@ -5520,7 +5440,16 @@
                 recentSales: [
                     { time: '15 min ago', campaign: 'Subscription Billing - SaaS', adSet: 'SaaS Founders', adName: 'Billing Dashboard Demo', country: 'United States', amount: '$700' },
                     { time: '1 hour ago', campaign: 'Payment Gateway - Global', adSet: 'E-commerce', adName: 'Payment Flow Video', country: 'Australia', amount: '$700' },
-                    { time: '3 hours ago', campaign: 'Invoice Management - SMB', adSet: 'Small Business', adName: 'Invoice Generator', country: 'United Kingdom', amount: '$700' }
+                    { time: '3 hours ago', campaign: 'Invoice Management - SMB', adSet: 'Small Business', adName: 'Invoice Generator', country: 'United Kingdom', amount: '$700' },
+                    { time: '7 hours ago', campaign: 'Subscription Billing - SaaS', adSet: 'SaaS Founders', adName: 'Recurring Revenue Ad', country: 'United States', amount: '$700' },
+                    { time: '12 hours ago', campaign: 'Payment Gateway - Global', adSet: 'E-commerce', adName: 'Checkout Integration', country: 'India', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Invoice Management - SMB', adSet: 'Small Business', adName: 'Auto Invoice Video', country: 'Germany', amount: '$700' },
+                    { time: '1 day ago', campaign: 'Subscription Billing - SaaS', adSet: 'SaaS Founders', adName: 'Billing Dashboard Demo', country: 'Canada', amount: '$700' },
+                    { time: '2 days ago', campaign: 'Payment Gateway - Global', adSet: 'E-commerce', adName: 'Multi-Currency Ad', country: 'Brazil', amount: '$700' },
+                    { time: '3 days ago', campaign: 'Invoice Management - SMB', adSet: 'Small Business', adName: 'Invoice Generator', country: 'United States', amount: '$700' },
+                    { time: '4 days ago', campaign: 'Subscription Billing - SaaS', adSet: 'SaaS Founders', adName: 'Recurring Revenue Ad', country: 'Australia', amount: '$700' },
+                    { time: '5 days ago', campaign: 'Payment Gateway - Global', adSet: 'E-commerce', adName: 'Payment Flow Video', country: 'United Kingdom', amount: '$700' },
+                    { time: '6 days ago', campaign: 'Invoice Management - SMB', adSet: 'Small Business', adName: 'Tax Compliance Ad', country: 'India', amount: '$700' }
                 ],
                 webhookUrl: 'https://chat.googleapis.com/v1/spaces/JKL012/messages?key=xyz_psb',
                 todayRevenue: '$2,100',
@@ -5553,6 +5482,50 @@
         let campaignsStatusFilter = 'active';
         let adSetsStatusFilter = 'active';
         let adsStatusFilter = 'active';
+        let adSetsCampaignFilter = 'all';
+        let adsCampaignFilter = 'all';
+        let adsAdSetFilter = 'all';
+        let campaignsSearchQuery = '';
+        let adSetsSearchQuery = '';
+        let adsSearchQuery = '';
+        let countrySearchQuery = '';
+        let salesCreativeSearchQuery = '';
+
+        // ==================== WEBHOOK DATA STORE ====================
+        // Saved webhooks list
+        let savedWebhooks = [
+            {
+                id: 'wh_001',
+                name: 'Google Chat - Sales Alerts',
+                url: 'https://chat.googleapis.com/v1/spaces/AAAA1234/messages?key=AIzaSyBxxx',
+                triggers: ['new_sale', 'overspend_alert', 'low_roas_alert']
+            },
+            {
+                id: 'wh_002',
+                name: 'Slack - Lead Notifications',
+                url: 'https://hooks.slack.com/services/T00000/B00000/XXXXXXXXXXXXXXX',
+                triggers: ['new_lead', 'daily_report']
+            },
+            {
+                id: 'wh_003',
+                name: 'Pabbly Connect - Automation',
+                url: 'https://connect.pabbly.com/workflow/sendwebhookdata/abcdef123456',
+                triggers: ['new_sale', 'new_lead', 'campaign_status', 'pixel_status']
+            }
+        ];
+        let editingWebhookId = null;
+
+        // Trigger labels map
+        const triggerLabels = {
+            'new_sale': 'New Sale',
+            'new_lead': 'New Lead Captured',
+            'overspend_alert': 'Overspend Alert',
+            'low_roas_alert': 'Low ROAS Alert',
+            'high_frequency': 'High Ad Frequency',
+            'daily_report': 'Daily Summary Report',
+            'pixel_status': 'Pixel Status Change',
+            'campaign_status': 'Campaign Status Change'
+        };
 
         // Update table count display
         function updateTableCount(sectionSelector, count, filter) {
@@ -5606,39 +5579,138 @@
             document.getElementById('accountDropdown').classList.remove('show');
             document.querySelector('.account-switcher-btn').classList.remove('open');
 
-            // Show loading indicator
-            const refreshBtn = document.querySelector('.refresh-btn');
+            // Update all dashboard data
+            updateDashboardData(data);
+        }
+
+        // Handle Time Range Change
+        function handleTimeRangeChange() {
+            const timeRange = document.getElementById('time-range-selector').value;
+            const data = accountData[currentAccount];
+
+            // Get metrics based on time range
+            let metricsToShow;
+            switch(timeRange) {
+                case 'today':
+                    metricsToShow = data.timeRangeMetrics?.today || data.timeBasedMetrics?.daily;
+                    break;
+                case 'last7days':
+                    metricsToShow = data.timeRangeMetrics?.last7days || data.timeBasedMetrics?.weekly;
+                    break;
+                case 'last30days':
+                    metricsToShow = data.timeRangeMetrics?.last30days || data.timeBasedMetrics?.monthly;
+                    break;
+                case 'last90days':
+                    metricsToShow = data.timeRangeMetrics?.last90days || data.timeBasedMetrics?.monthly;
+                    break;
+                case 'thismonth':
+                    metricsToShow = data.timeRangeMetrics?.thismonth || data.timeBasedMetrics?.monthly;
+                    break;
+                case 'lastmonth':
+                    metricsToShow = data.timeRangeMetrics?.lastmonth || data.timeBasedMetrics?.monthly;
+                    break;
+                default:
+                    metricsToShow = data.timeBasedMetrics?.monthly;
+            }
+
+            // Update only the metrics cards, not the bottom tables
+            if (metricsToShow) {
+                updateMetricsCardsFromTimeRange(metricsToShow);
+            }
+
+            // Update last synced time
+            updateLastSyncedTime();
+        }
+
+        // Refresh Dashboard Data
+        function refreshDashboardData() {
+            const data = accountData[currentAccount];
+            const timeRange = document.getElementById('time-range-selector').value;
+
+            // Show loading state
+            const refreshBtn = event.currentTarget;
             const icon = refreshBtn.querySelector('i');
             icon.classList.add('fa-spin');
-            document.querySelector('.last-sync').textContent = 'Switching account...';
+            document.getElementById('last-synced-time').textContent = 'Syncing...';
 
-            // Update all dashboard data
+            // Simulate API call
             setTimeout(() => {
-                updateDashboardData(data);
+                // Update metrics based on current time range
+                handleTimeRangeChange();
+
+                // Update other sections
+                updateTimeBasedTables(data.timeBasedMetrics);
+
+                // Stop loading
                 icon.classList.remove('fa-spin');
-                document.querySelector('.last-sync').textContent = 'Last synced: Just now';
-            }, 500);
+                updateLastSyncedTime();
+            }, 800);
+        }
+
+        // Update last synced time
+        function updateLastSyncedTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            document.getElementById('last-synced-time').textContent = 'Last synced: Just now';
+        }
+
+        // Update Metrics Cards from Time Range Data
+        function updateMetricsCardsFromTimeRange(metricsData) {
+            const cards = document.querySelectorAll('#metrics-section .metric-card');
+            if (cards.length >= 5 && metricsData) {
+                // Calculate derived values
+                const spend = metricsData.spend || 0;
+                const revenue = metricsData.revenue || 0;
+                const leads = metricsData.leads || 0;
+                const sales = metricsData.sales || Math.round(revenue / 700); // Estimate based on avg sale
+                const roas = spend > 0 ? (revenue / spend) : 0;
+                const cpl = leads > 0 ? (spend / leads) : 0;
+
+                // Format currency
+                const formatCurrency = (val) => `$${val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+                // Update Total Ad Spend
+                cards[0].querySelector('.metric-value').textContent = formatCurrency(spend);
+
+                // Update Total Revenue with Sales Count
+                const totalRevenueEl = document.getElementById('total-revenue-value');
+                const totalSalesCountEl = document.getElementById('total-sales-count');
+                if (totalRevenueEl) totalRevenueEl.textContent = formatCurrency(revenue);
+                if (totalSalesCountEl) totalSalesCountEl.textContent = sales;
+
+                // Update ROAS
+                const roasValueEl = document.getElementById('roas-value');
+                if (roasValueEl) {
+                    roasValueEl.textContent = roas.toFixed(2);
+                    roasValueEl.style.color = roas >= 1.5 ? 'var(--success-color)' : roas >= 1.0 ? 'var(--warning-color)' : 'var(--danger-color)';
+                }
+
+                // Update Total Leads with CPL
+                const totalLeadsEl = document.getElementById('total-leads-value');
+                const cplEl = document.getElementById('cpl-value');
+                if (totalLeadsEl) totalLeadsEl.textContent = leads;
+                if (cplEl) cplEl.textContent = formatCurrency(cpl);
+            }
         }
 
         // Update all dashboard sections with account data
         function updateDashboardData(data) {
-            // Update Metrics Cards
-            updateMetricsCards(data.metrics);
+            // Update Metrics Cards based on selected time range
+            handleTimeRangeChange();
 
-            // Update Campaigns Table (with its own filter)
-            const filteredCampaigns = data.campaigns.filter(c => campaignsStatusFilter === 'all' || c.status.toLowerCase() === campaignsStatusFilter);
-            updateCampaignsTable(filteredCampaigns);
-            updateTableCount('#campaigns-section', filteredCampaigns.length, campaignsStatusFilter);
+            // Update Time-based Tables (always show fixed rolling periods)
+            updateTimeBasedTables(data.timeBasedMetrics);
 
-            // Update Ad Sets Table (with its own filter)
-            const filteredAdSets = data.adSets.filter(a => adSetsStatusFilter === 'all' || a.status.toLowerCase() === adSetsStatusFilter);
-            updateAdSetsTable(filteredAdSets);
-            updateTableCount('#adsets-section', filteredAdSets.length, adSetsStatusFilter);
+            // Reset campaign/adset filters on account switch
+            adSetsCampaignFilter = 'all';
+            adsCampaignFilter = 'all';
+            adsAdSetFilter = 'all';
+            populateFilterDropdowns();
 
-            // Update Ads Table (with its own filter)
-            const filteredAds = data.ads.filter(a => adsStatusFilter === 'all' || a.status.toLowerCase() === adsStatusFilter);
-            updateAdsTable(filteredAds);
-            updateTableCount('#ads-section', filteredAds.length, adsStatusFilter);
+            // Update tables using filter functions
+            applyCampaignsFilter();
+            applyAdSetsFilter();
+            applyAdsFilter();
 
             // Update Countries Table
             updateCountriesTable(data.countries);
@@ -5665,22 +5737,108 @@
         // Update Metrics Cards
         function updateMetricsCards(metrics) {
             const cards = document.querySelectorAll('.metric-card');
-            if (cards.length >= 6) {
+            if (cards.length >= 5) {
+                // Total Ad Spend
                 cards[0].querySelector('.metric-value').textContent = metrics.totalSpend;
-                cards[1].querySelector('.metric-value').textContent = metrics.totalRevenue;
-                cards[2].querySelector('.metric-value').textContent = metrics.roas;
-                // cards[3] is Total Sales - we'll skip for now as it's static
-                // cards[4] is Total Leads with CPL
+
+                // Total Revenue with Sales Count
+                const totalRevenueEl = document.getElementById('total-revenue-value');
+                const totalSalesCountEl = document.getElementById('total-sales-count');
+                if (totalRevenueEl) totalRevenueEl.textContent = metrics.totalRevenue;
+                if (totalSalesCountEl) totalSalesCountEl.textContent = metrics.totalSales || '0';
+
+                // ROAS
+                const roasValueEl = document.getElementById('roas-value');
+                if (roasValueEl) roasValueEl.textContent = metrics.roas;
+
+                // Total Leads with CPL
                 const totalLeadsEl = document.getElementById('total-leads-value');
                 const cplEl = document.getElementById('cpl-value');
                 if (totalLeadsEl) totalLeadsEl.textContent = metrics.totalLeads;
                 if (cplEl) cplEl.textContent = metrics.costPerLead;
-                // Pixel status is cards[5]
-                const pixelCard = cards[5];
+
+                // Pixel status
+                const pixelCard = cards[4];
                 if (pixelCard) {
                     const pixelStatus = pixelCard.querySelector('.pixel-status span:last-child');
                     if (pixelStatus) pixelStatus.textContent = metrics.pixelStatus;
                 }
+            }
+        }
+
+        // Update Time-based Performance Tables
+        function updateTimeBasedTables(timeBasedMetrics) {
+            if (!timeBasedMetrics) return;
+
+            // Helper function to format currency
+            const formatCurrency = (value) => `$${value.toFixed(2)}`;
+
+            // Helper function to format date
+            const formatDate = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            };
+
+            const formatDateShort = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[date.getMonth()]} ${date.getDate()}`;
+            };
+
+            // Calculate date ranges
+            const today = new Date();
+
+            // Today's date
+            const todayDateStr = formatDate(today);
+
+            // Past 7 days
+            const weekEnd = new Date(today);
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - 6); // Past 7 days including today
+            const weekDateStr = `${formatDateShort(weekStart)} - ${formatDateShort(weekEnd)}, ${today.getFullYear()}`;
+
+            // Past 30 days
+            const monthEnd = new Date(today);
+            const monthStart = new Date(today);
+            monthStart.setDate(today.getDate() - 29); // Past 30 days including today
+            const monthDateStr = `${formatDateShort(monthStart)} - ${formatDateShort(monthEnd)}, ${today.getFullYear()}`;
+
+            // Update date range displays
+            const dailyDateEl = document.getElementById('daily-date-range');
+            const weeklyDateEl = document.getElementById('weekly-date-range');
+            const monthlyDateEl = document.getElementById('monthly-date-range');
+
+            if (dailyDateEl) dailyDateEl.textContent = todayDateStr;
+            if (weeklyDateEl) weeklyDateEl.textContent = weekDateStr;
+            if (monthlyDateEl) monthlyDateEl.textContent = monthDateStr;
+
+            // Update Daily Table
+            if (timeBasedMetrics.daily) {
+                const daily = timeBasedMetrics.daily;
+                document.getElementById('daily-spend').textContent = formatCurrency(daily.spend);
+                document.getElementById('daily-revenue').textContent = formatCurrency(daily.revenue);
+                document.getElementById('daily-roas').textContent = daily.roas.toFixed(2);
+                document.getElementById('daily-leads').textContent = daily.leads;
+                document.getElementById('daily-cpl').textContent = formatCurrency(daily.cpl);
+            }
+
+            // Update Weekly Table
+            if (timeBasedMetrics.weekly) {
+                const weekly = timeBasedMetrics.weekly;
+                document.getElementById('weekly-spend').textContent = formatCurrency(weekly.spend);
+                document.getElementById('weekly-revenue').textContent = formatCurrency(weekly.revenue);
+                document.getElementById('weekly-roas').textContent = weekly.roas.toFixed(2);
+                document.getElementById('weekly-leads').textContent = weekly.leads;
+                document.getElementById('weekly-cpl').textContent = formatCurrency(weekly.cpl);
+            }
+
+            // Update Monthly Table
+            if (timeBasedMetrics.monthly) {
+                const monthly = timeBasedMetrics.monthly;
+                document.getElementById('monthly-spend').textContent = formatCurrency(monthly.spend);
+                document.getElementById('monthly-revenue').textContent = formatCurrency(monthly.revenue);
+                document.getElementById('monthly-roas').textContent = monthly.roas.toFixed(2);
+                document.getElementById('monthly-leads').textContent = monthly.leads;
+                document.getElementById('monthly-cpl').textContent = formatCurrency(monthly.cpl);
             }
         }
 
@@ -5689,8 +5847,9 @@
             const tbody = document.querySelector('#campaigns-section tbody');
             if (!tbody) return;
 
-            tbody.innerHTML = campaigns.map(campaign => `
-                <tr>
+            const sorted = [...campaigns].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
+            tbody.innerHTML = sorted.map(campaign => `
+                <tr style="${parseFloat(campaign.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${campaign.status.toLowerCase()}">${campaign.status}</span></td>
                     <td><strong>${campaign.name}</strong></td>
                     <td>${campaign.budget || '$0.00'}</td>
@@ -5711,8 +5870,9 @@
             const tbody = document.querySelector('#adsets-section tbody');
             if (!tbody) return;
 
-            tbody.innerHTML = adSets.map(adSet => `
-                <tr>
+            const sorted = [...adSets].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
+            tbody.innerHTML = sorted.map(adSet => `
+                <tr style="${parseFloat(adSet.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${adSet.status.toLowerCase()}">${adSet.status}</span></td>
                     <td>
                         <span class="name-with-tooltip" data-tooltip="Campaign: ${adSet.campaignName}">
@@ -5737,8 +5897,9 @@
             const tbody = document.querySelector('#ads-section tbody');
             if (!tbody) return;
 
-            tbody.innerHTML = ads.map(ad => `
-                <tr>
+            const sorted = [...ads].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
+            tbody.innerHTML = sorted.map(ad => `
+                <tr style="${parseFloat(ad.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${ad.status.toLowerCase()}">${ad.status}</span></td>
                     <td>
                         <span class="name-with-tooltip" data-tooltip="Campaign: ${ad.campaignName} | Ad Set: ${ad.adSetName}">
@@ -5763,8 +5924,9 @@
             const tbody = document.querySelector('#country-section tbody');
             if (!tbody) return;
 
-            tbody.innerHTML = countries.map(country => `
-                <tr>
+            const sorted = [...countries].sort((a, b) => parseFloat(a.roas) - parseFloat(b.roas));
+            tbody.innerHTML = sorted.map(country => `
+                <tr style="${parseFloat(country.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <img src="https://flagcdn.com/24x18/${country.flag}.png" alt="${country.name}">
@@ -5774,9 +5936,18 @@
                     <td>${country.spend}</td>
                     <td><strong>${country.sales}</strong></td>
                     <td><strong>${country.revenue}</strong></td>
-                    <td><span class="roas-badge ${parseFloat(country.roas) >= 1.5 ? 'good' : parseFloat(country.roas) >= 1.0 ? 'warning' : 'bad'}">${country.roas}</span></td>
+                    <td><span class="roas-value ${parseFloat(country.roas) >= 1.5 ? 'good' : parseFloat(country.roas) >= 1.0 ? 'warning' : 'bad'}">${country.roas}</span></td>
                 </tr>
             `).join('');
+        }
+
+        function applyCountryFilter() {
+            const data = accountData[currentAccount];
+            let filtered = data.countries;
+            if (countrySearchQuery) {
+                filtered = filtered.filter(c => c.name.toLowerCase().includes(countrySearchQuery));
+            }
+            updateCountriesTable(filtered);
         }
 
         // Update Alerts Section
@@ -5801,26 +5972,42 @@
             const salesSection = document.querySelector('#sales-creative-section tbody');
             if (!salesSection) return;
 
-            salesSection.innerHTML = sales.map((sale, index) => `
+            salesSection.innerHTML = sales.map((sale, index) => {
+                const flagMap = { 'United States': 'us', 'India': 'in', 'Brazil': 'br', 'United Kingdom': 'gb', 'Australia': 'au', 'Germany': 'de', 'Canada': 'ca', 'Spain': 'es', 'France': 'fr' };
+                const flag = flagMap[sale.country] || 'us';
+                return `
                 <tr ${index === 0 ? 'style="background: #faf5ff;"' : ''}>
                     <td>
                         <div style="width: 60px; height: 60px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
                             <i class="fas fa-image"></i>
                         </div>
                     </td>
-                    <td><strong>${sale.campaign}</strong></td>
+                    <td><strong>${sale.adName}</strong></td>
+                    <td>${sale.campaign}</td>
                     <td>${sale.adSet}</td>
-                    <td>${sale.adName}</td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <img src="https://flagcdn.com/24x18/${sale.country === 'United States' ? 'us' : sale.country === 'India' ? 'in' : sale.country === 'Brazil' ? 'br' : sale.country === 'United Kingdom' ? 'gb' : sale.country === 'Australia' ? 'au' : 'us'}.png" alt="${sale.country}">
+                            <img src="https://flagcdn.com/24x18/${flag}.png" alt="${sale.country}">
                             ${sale.country}
                         </div>
                     </td>
                     <td><strong style="color: #22c55e;">${sale.amount}</strong></td>
                     <td style="color: var(--text-secondary);">${sale.time}</td>
                 </tr>
-            `).join('');
+            `}).join('');
+        }
+
+        function applySalesCreativeFilter() {
+            const data = accountData[currentAccount];
+            let filtered = data.recentSales;
+            if (salesCreativeSearchQuery) {
+                filtered = filtered.filter(s =>
+                    s.adName.toLowerCase().includes(salesCreativeSearchQuery) ||
+                    s.campaign.toLowerCase().includes(salesCreativeSearchQuery) ||
+                    s.adSet.toLowerCase().includes(salesCreativeSearchQuery)
+                );
+            }
+            updateRecentSales(filtered);
         }
 
         // Update Revenue Cards in Pabbly Revenue Section
@@ -5849,7 +6036,7 @@
             });
         }
 
-        // Update Revenue Transactions (Pabbly Revenue Data Section)
+        // Update Revenue Transactions (Pabbly Sales Data Section)
         function updateRevenueTransactions(data) {
             // Update Revenue Summary Cards using IDs
             const todayEl = document.getElementById('revenue-today');
@@ -5865,19 +6052,11 @@
             // Update Revenue Transactions Table using ID
             const tbody = document.getElementById('revenue-transactions-tbody');
             if (tbody && data.revenueTransactions) {
-                tbody.innerHTML = data.revenueTransactions.map((txn, index) => `
-                    <tr ${index === 0 ? 'style="background: #faf5ff;"' : ''}>
-                        <td>
-                            <div>${txn.date.split(' - ')[0]}</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">${txn.date.split(' - ')[1] || ''}</div>
-                        </td>
+                tbody.innerHTML = data.revenueTransactions.map(txn => `
+                    <tr>
+                        <td style="white-space: nowrap;">${txn.date}</td>
+                        <td><span style="font-size: 13px;">${txn.customer}</span></td>
                         <td><code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 12px;">${txn.txnId}</code></td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                ${index === 0 ? '<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">NEW</span>' : ''}
-                                ${txn.customer}
-                            </div>
-                        </td>
                         <td><strong>${txn.product}</strong></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -5886,8 +6065,17 @@
                             </div>
                         </td>
                         <td><strong style="color: #166534;">${txn.amount}</strong></td>
-                        <td><span class="status-badge" style="background: #f3e8ff; color: #7c3aed;">PSB ${txn.source}</span></td>
-                        <td><button class="action-btn view">View</button></td>
+                        <td>
+                            <div class="action-menu">
+                                <button class="action-menu-btn" onclick="toggleActionMenu(this)">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="action-menu-dropdown">
+                                    <button class="action-menu-item" onclick="editRevenueEntry(this)"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="action-menu-item delete" onclick="confirmDeleteEntry(this)"><i class="fas fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 `).join('');
             }
@@ -5994,42 +6182,57 @@
             // Hide all dashboard sections first
             document.querySelectorAll('.dashboard-section').forEach(section => {
                 section.classList.remove('active');
-                section.style.display = '';
+                section.style.display = 'none';
             });
 
-            // Metric cards should ONLY show on Overview Metrics page
-            if (metricsSection) {
-                if (sectionId === 'metrics-section') {
-                    // Show metrics cards only for Overview Metrics
+            // Overview Metrics page: show metrics cards + related sections
+            if (sectionId === 'metrics-section') {
+                if (metricsSection) {
                     metricsSection.style.display = 'grid';
                     metricsSection.classList.add('active');
-                } else {
-                    // Hide metrics cards for ALL other sections
-                    metricsSection.style.display = 'none';
-                    metricsSection.classList.remove('active');
                 }
+                ['custom-range-header', 'snapshot-header', 'time-based-tables'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.classList.add('active');
+                        el.style.display = 'block';
+                    }
+                });
             }
 
             // Show the selected section
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
                 targetSection.classList.add('active');
+                if (sectionId === 'metrics-section') {
+                    targetSection.style.display = 'grid';
+                } else {
+                    targetSection.style.display = 'block';
+                }
                 console.log('Section found and activated:', sectionId);
             } else {
                 console.error('Section not found:', sectionId);
             }
 
-            // Remove active class from all submenu items and nav-items
+            // Remove active class from all menu elements
             document.querySelectorAll('.submenu-item').forEach(item => {
                 item.classList.remove('active');
             });
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
+            document.querySelectorAll('.nav-item-parent').forEach(item => {
+                item.classList.remove('active');
+            });
 
-            // Add active class to clicked element
+            // Add active class to clicked element and its parent group
             if (clickedElement) {
                 clickedElement.classList.add('active');
+                const parentGroup = clickedElement.closest('.nav-menu-group');
+                if (parentGroup) {
+                    const parentItem = parentGroup.querySelector('.nav-item-parent');
+                    if (parentItem) parentItem.classList.add('active');
+                }
             }
 
             // Scroll to top of content area
@@ -6461,6 +6664,228 @@
             }
         }
 
+        // ==================== WEBHOOK MANAGEMENT FUNCTIONS ====================
+
+        // Switch between Webhooks and API tabs
+        function switchWebhookTab(tab) {
+            const webhooksTab = document.getElementById('webhooks-tab');
+            const apiTab = document.getElementById('api-tab');
+            const tabButtons = document.querySelectorAll('#webhooks-section .tab-btn');
+
+            if (tab === 'webhooks') {
+                webhooksTab.classList.add('active');
+                apiTab.classList.remove('active');
+                tabButtons[0].classList.add('active');
+                tabButtons[1].classList.remove('active');
+            } else {
+                webhooksTab.classList.remove('active');
+                apiTab.classList.add('active');
+                tabButtons[0].classList.remove('active');
+                tabButtons[1].classList.add('active');
+            }
+        }
+
+        // Show webhook form
+        function showWebhookForm() {
+            editingWebhookId = null;
+            document.getElementById('webhook-form-area').style.display = 'block';
+            document.getElementById('webhook-form-title').textContent = 'Add Webhook';
+            document.getElementById('webhook-name').value = '';
+            document.getElementById('webhook-url').value = '';
+            document.querySelectorAll('.webhook-trigger').forEach(cb => cb.checked = false);
+        }
+
+        // Cancel webhook form
+        function cancelWebhookForm() {
+            document.getElementById('webhook-form-area').style.display = 'none';
+            editingWebhookId = null;
+        }
+
+        // Save webhook
+        function saveWebhookSimple() {
+            const name = document.getElementById('webhook-name').value.trim();
+            const url = document.getElementById('webhook-url').value.trim();
+            const triggers = Array.from(document.querySelectorAll('.webhook-trigger:checked')).map(cb => cb.value);
+
+            if (!name || !url) {
+                alert('Please fill in Webhook Name and URL.');
+                return;
+            }
+            if (triggers.length === 0) {
+                alert('Please select at least one trigger.');
+                return;
+            }
+
+            if (editingWebhookId) {
+                const wh = savedWebhooks.find(w => w.id === editingWebhookId);
+                if (wh) { wh.name = name; wh.url = url; wh.triggers = triggers; }
+            } else {
+                savedWebhooks.push({ id: 'wh_' + Date.now(), name, url, triggers });
+            }
+
+            editingWebhookId = null;
+            document.getElementById('webhook-form-area').style.display = 'none';
+            renderWebhooksList();
+        }
+
+        // Save and send test
+        function saveAndTestWebhook() {
+            const name = document.getElementById('webhook-name').value.trim();
+            const url = document.getElementById('webhook-url').value.trim();
+            const triggers = Array.from(document.querySelectorAll('.webhook-trigger:checked')).map(cb => cb.value);
+
+            if (!name || !url) {
+                alert('Please fill in Webhook Name and URL.');
+                return;
+            }
+            if (triggers.length === 0) {
+                alert('Please select at least one trigger.');
+                return;
+            }
+
+            let whId;
+            if (editingWebhookId) {
+                whId = editingWebhookId;
+                const wh = savedWebhooks.find(w => w.id === editingWebhookId);
+                if (wh) { wh.name = name; wh.url = url; wh.triggers = triggers; }
+            } else {
+                whId = 'wh_' + Date.now();
+                savedWebhooks.push({ id: whId, name, url, triggers });
+            }
+
+            editingWebhookId = null;
+            document.getElementById('webhook-form-area').style.display = 'none';
+            renderWebhooksList();
+
+            // Send test immediately
+            sendTestWebhook(whId);
+        }
+
+        // Render all saved webhook cards
+        function renderWebhooksList() {
+            const container = document.getElementById('webhooks-list');
+            if (!container) return;
+
+            if (savedWebhooks.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = savedWebhooks.map(wh => `
+                <div id="wh-card-${wh.id}" style="background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success-color); flex-shrink: 0;"></span>
+                                <strong style="font-size: 15px;">${wh.name}</strong>
+                            </div>
+                            <code style="font-size: 12px; color: var(--text-secondary); word-break: break-all; display: block;">${wh.url}</code>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-shrink: 0; margin-left: 12px;">
+                            <button onclick="editWebhookById('${wh.id}')" style="padding: 6px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button onclick="deleteWebhookById('${wh.id}')" style="padding: 6px 12px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500;">Triggers:</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            ${wh.triggers.map(t => `<span style="display: inline-block; padding: 3px 10px; background: #e7f3ff; color: var(--primary-color); border-radius: 12px; font-size: 12px; font-weight: 500;">${triggerLabels[t] || t}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="sendTestWebhook('${wh.id}')" style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-paper-plane"></i> Send Test Data
+                        </button>
+                        <span id="test-status-${wh.id}" style="font-size: 13px; color: var(--text-secondary); display: flex; align-items: center;"></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Edit webhook by ID
+        function editWebhookById(id) {
+            const wh = savedWebhooks.find(w => w.id === id);
+            if (!wh) return;
+            editingWebhookId = id;
+            document.getElementById('webhook-form-area').style.display = 'block';
+            document.getElementById('webhook-form-title').textContent = 'Edit Webhook';
+            document.getElementById('webhook-name').value = wh.name;
+            document.getElementById('webhook-url').value = wh.url;
+            document.querySelectorAll('.webhook-trigger').forEach(cb => {
+                cb.checked = wh.triggers.includes(cb.value);
+            });
+            // Scroll to form
+            document.getElementById('webhook-form-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Delete webhook by ID
+        function deleteWebhookById(id) {
+            if (confirm('Are you sure you want to delete this webhook?')) {
+                savedWebhooks = savedWebhooks.filter(w => w.id !== id);
+                renderWebhooksList();
+            }
+        }
+
+        // Send test webhook data
+        function sendTestWebhook(id) {
+            const wh = savedWebhooks.find(w => w.id === id);
+            if (!wh) return;
+
+            const statusEl = document.getElementById('test-status-' + id);
+            if (statusEl) {
+                statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            }
+
+            const testData = {
+                event: 'test',
+                timestamp: new Date().toISOString(),
+                account: currentAccount,
+                webhook_name: wh.name,
+                message: 'This is a test webhook from Facebook Ads Dashboard',
+                sample_data: {
+                    campaign: 'USA - Lifetime Deal',
+                    ad_spend: '$336.00',
+                    revenue: '$1,999.00',
+                    roas: 5.94,
+                    leads: 39,
+                    sale_amount: '$700.00',
+                    customer_email: 'john@example.com',
+                    alert_type: 'overspending',
+                    pixel_status: 'active'
+                },
+                triggers_enabled: wh.triggers
+            };
+
+            console.log('Test webhook sent to:', wh.url);
+            console.log('Payload:', JSON.stringify(testData, null, 2));
+
+            setTimeout(() => {
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success-color);"></i> <span style="color: var(--success-color);">Test data sent successfully!</span>';
+                    setTimeout(() => { statusEl.innerHTML = ''; }, 4000);
+                }
+            }, 1000);
+        }
+
+        // Copy API Key
+        function copyApiKey() {
+            const apiKey = document.getElementById('api-key-display').value;
+            navigator.clipboard.writeText(apiKey).then(() => {
+                const btn = event.currentTarget;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+            });
+        }
+
+        // Render webhooks on page load
+        function renderWebhooks() {
+            renderWebhooksList();
+        }
+
         // Close modals on Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
@@ -6470,6 +6895,7 @@
                 closeAddLeadModal();
                 closeEditLeadModal();
                 closeDeleteLeadModal();
+                cancelWebhookForm();
             }
         });
 
@@ -6533,11 +6959,57 @@
             applyAdSetsFilter();
         });
 
+        // Campaign filter for Ad Sets table
+        document.getElementById('adsets-campaign-filter').addEventListener('change', function() {
+            adSetsCampaignFilter = this.value;
+            applyAdSetsFilter();
+        });
+
         // Filter change handler for Ads table
         document.getElementById('ads-status-filter').addEventListener('change', function() {
             adsStatusFilter = this.value;
             updateFilterColor(this);
             applyAdsFilter();
+        });
+
+        // Campaign filter for Ads table
+        document.getElementById('ads-campaign-filter').addEventListener('change', function() {
+            adsCampaignFilter = this.value;
+            adsAdSetFilter = 'all';
+            populateAdsAdSetDropdown();
+            applyAdsFilter();
+        });
+
+        // Ad Set filter for Ads table
+        document.getElementById('ads-adset-filter').addEventListener('change', function() {
+            adsAdSetFilter = this.value;
+            applyAdsFilter();
+        });
+
+        // Search inputs
+        document.getElementById('campaigns-search').addEventListener('input', function() {
+            campaignsSearchQuery = this.value.toLowerCase().trim();
+            applyCampaignsFilter();
+        });
+
+        document.getElementById('adsets-search').addEventListener('input', function() {
+            adSetsSearchQuery = this.value.toLowerCase().trim();
+            applyAdSetsFilter();
+        });
+
+        document.getElementById('ads-search').addEventListener('input', function() {
+            adsSearchQuery = this.value.toLowerCase().trim();
+            applyAdsFilter();
+        });
+
+        document.getElementById('country-search').addEventListener('input', function() {
+            countrySearchQuery = this.value.toLowerCase().trim();
+            applyCountryFilter();
+        });
+
+        document.getElementById('sales-creative-search').addEventListener('input', function() {
+            salesCreativeSearchQuery = this.value.toLowerCase().trim();
+            applySalesCreativeFilter();
         });
 
         // Update filter dropdown color based on selected value
@@ -6549,7 +7021,10 @@
         // Apply Campaigns filter
         function applyCampaignsFilter() {
             const data = accountData[currentAccount];
-            const filteredCampaigns = filterByStatus(data.campaigns, campaignsStatusFilter);
+            let filteredCampaigns = filterByStatus(data.campaigns, campaignsStatusFilter);
+            if (campaignsSearchQuery) {
+                filteredCampaigns = filteredCampaigns.filter(c => c.name.toLowerCase().includes(campaignsSearchQuery));
+            }
             updateCampaignsTable(filteredCampaigns);
             updateTableCount('#campaigns-section', filteredCampaigns.length, campaignsStatusFilter);
         }
@@ -6557,7 +7032,13 @@
         // Apply Ad Sets filter
         function applyAdSetsFilter() {
             const data = accountData[currentAccount];
-            const filteredAdSets = filterByStatus(data.adSets, adSetsStatusFilter);
+            let filteredAdSets = filterByStatus(data.adSets, adSetsStatusFilter);
+            if (adSetsCampaignFilter !== 'all') {
+                filteredAdSets = filteredAdSets.filter(a => a.campaignName === adSetsCampaignFilter);
+            }
+            if (adSetsSearchQuery) {
+                filteredAdSets = filteredAdSets.filter(a => a.name.toLowerCase().includes(adSetsSearchQuery));
+            }
             updateAdSetsTable(filteredAdSets);
             updateTableCount('#adsets-section', filteredAdSets.length, adSetsStatusFilter);
         }
@@ -6565,7 +7046,16 @@
         // Apply Ads filter
         function applyAdsFilter() {
             const data = accountData[currentAccount];
-            const filteredAds = filterByStatus(data.ads, adsStatusFilter);
+            let filteredAds = filterByStatus(data.ads, adsStatusFilter);
+            if (adsCampaignFilter !== 'all') {
+                filteredAds = filteredAds.filter(a => a.campaignName === adsCampaignFilter);
+            }
+            if (adsAdSetFilter !== 'all') {
+                filteredAds = filteredAds.filter(a => a.adSetName === adsAdSetFilter);
+            }
+            if (adsSearchQuery) {
+                filteredAds = filteredAds.filter(a => a.name.toLowerCase().includes(adsSearchQuery));
+            }
             updateAdsTable(filteredAds);
             updateTableCount('#ads-section', filteredAds.length, adsStatusFilter);
         }
@@ -6578,24 +7068,54 @@
             return items.filter(item => item.status.toLowerCase() === filter);
         }
 
+        // Populate campaign/ad set filter dropdowns
+        function populateFilterDropdowns() {
+            const data = accountData[currentAccount];
+            const campaignNames = [...new Set(data.campaigns.map(c => c.name))];
+            const adSetNames = [...new Set(data.adSets.map(a => a.name))];
+
+            // Ad Sets page â€” campaign filter
+            const adSetsCampaignEl = document.getElementById('adsets-campaign-filter');
+            if (adSetsCampaignEl) {
+                adSetsCampaignEl.innerHTML = '<option value="all">All Campaigns</option>' +
+                    campaignNames.map(n => `<option value="${n}">${n}</option>`).join('');
+                adSetsCampaignEl.value = adSetsCampaignFilter;
+            }
+
+            // Ads page â€” campaign filter
+            const adsCampaignEl = document.getElementById('ads-campaign-filter');
+            if (adsCampaignEl) {
+                adsCampaignEl.innerHTML = '<option value="all">All Campaigns</option>' +
+                    campaignNames.map(n => `<option value="${n}">${n}</option>`).join('');
+                adsCampaignEl.value = adsCampaignFilter;
+            }
+
+            // Ads page â€” ad set filter (scoped to selected campaign)
+            populateAdsAdSetDropdown();
+        }
+
+        function populateAdsAdSetDropdown() {
+            const data = accountData[currentAccount];
+            let adSetNames;
+            if (adsCampaignFilter === 'all') {
+                adSetNames = [...new Set(data.adSets.map(a => a.name))];
+            } else {
+                adSetNames = [...new Set(data.adSets.filter(a => a.campaignName === adsCampaignFilter).map(a => a.name))];
+            }
+            const adsAdSetEl = document.getElementById('ads-adset-filter');
+            if (adsAdSetEl) {
+                adsAdSetEl.innerHTML = '<option value="all">All Ad Sets</option>' +
+                    adSetNames.map(n => `<option value="${n}">${n}</option>`).join('');
+                adsAdSetEl.value = adsAdSetFilter;
+            }
+        }
+
         // Other filter change handlers (Time Range, etc.)
         document.querySelectorAll('.filter-select:not(#status-filter)').forEach(select => {
             select.addEventListener('change', function() {
                 // In a real app, this would trigger a data refresh
                 console.log('Filter changed:', this.value);
             });
-        });
-
-        // Refresh button
-        document.querySelector('.refresh-btn').addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            icon.classList.add('fa-spin');
-
-            // Simulate data refresh
-            setTimeout(() => {
-                icon.classList.remove('fa-spin');
-                document.querySelector('.last-sync').textContent = 'Last synced: Just now';
-            }, 1500);
         });
 
         // Initialize dashboard with current account data and filters on page load
@@ -6611,19 +7131,24 @@
             updateFilterColor(adSetsFilter);
             updateFilterColor(adsFilter);
 
-            // Apply initial filters to all tables
+            // Populate filter dropdowns and apply initial filters
+            populateFilterDropdowns();
             applyCampaignsFilter();
             applyAdSetsFilter();
             applyAdsFilter();
 
             // Update other sections
             updateMetricsCards(data.metrics);
+            updateTimeBasedTables(data.timeBasedMetrics);
             updateCountriesTable(data.countries);
             updateAlerts(data.alerts, data.name);
             updateRecentSales(data.recentSales);
             updateRevenueCards(data);
             updateRevenueTransactions(data);
             updateLeadsData(data);
+
+            // Initialize webhooks
+            renderWebhooks();
         })();
 
         // Creative Preview Modal Functionality
