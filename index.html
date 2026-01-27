@@ -964,6 +964,11 @@
             50% { opacity: 0.5; }
         }
 
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         /* Tables */
         .table-section {
             background: var(--card-bg);
@@ -4535,27 +4540,35 @@
                                     <span class="status-badge status-active">Lifetime</span>
                                 </td>
                                 <td style="color: var(--text-secondary); font-size: 13px;">
-                                    After spend > $500, if ROAS < 1.0 â†’ Alert
+                                    After spend > $500, if ROAS < 1.0 → Alert
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <i class="fas fa-redo-alt" style="color: var(--primary-color); font-size: 18px;"></i>
+                                        <strong>Frequency</strong>
+                                    </div>
+                                </td>
+                                <td style="color: var(--text-secondary);">Applies to all levels</td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <span>&gt;</span>
+                                        <input type="number" id="frequency-threshold-value" class="config-input" value="3" min="1" step="0.5" style="width: 100px;">
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="color: var(--text-secondary); font-size: 13px;">—</span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-active">Lifetime</span>
+                                </td>
+                                <td style="color: var(--text-secondary); font-size: 13px;">
+                                    If frequency &gt; 3, trigger alert
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-
-                    <!-- View Active Alerts Link -->
-                    <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div>
-                                <h4 style="margin: 0 0 8px 0;"><i class="fas fa-robot" style="color: #3b82f6;"></i> Automatic Monitoring Active</h4>
-                                <p style="color: var(--text-secondary); margin: 0; font-size: 13px;">
-                                    System is monitoring all campaigns, ad sets, ads, and countries based on the thresholds above.
-                                    Alerts are sent automatically to Google Chat and shown in the Alerts dashboard.
-                                </p>
-                            </div>
-                            <button class="btn-primary" onclick="showSection('alerts-section', document.querySelector('[onclick*=alerts-section]'))" style="white-space: nowrap;">
-                                <i class="fas fa-bell"></i> View Active Alerts (7)
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- Notification Settings -->
                     <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-color);">
@@ -4577,7 +4590,7 @@
                     </div>
 
                     <div style="margin-top: 24px; display: flex; gap: 12px;">
-                        <button class="btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+                        <button class="btn-primary" onclick="saveAlertSettings()"><i class="fas fa-save"></i> Save Settings</button>
                         <button class="btn-secondary"><i class="fas fa-undo"></i> Reset to Defaults</button>
                     </div>
                 </div>
@@ -6318,7 +6331,7 @@
                 return `
                 <tr>
                     <td>
-                        <div style="width: 40px; height: 40px; border-radius: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">
+                        <div style="width: 28px; height: 28px; border-radius: 4px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
                             <i class="fas fa-image"></i>
                         </div>
                     </td>
@@ -7121,6 +7134,152 @@
             if (confirm('Are you sure you want to remove this user?')) {
                 row.remove();
             }
+        }
+
+        // ==================== FREQUENCY ALERT FUNCTIONS ====================
+
+        // Update the frequency alert rule text in the table when threshold changes
+        document.getElementById('frequency-threshold-value').addEventListener('input', function() {
+            const val = this.value;
+            const ruleCell = this.closest('tr').querySelector('td:last-child');
+            if (ruleCell) {
+                ruleCell.textContent = 'If frequency > ' + val + ', trigger alert';
+            }
+        });
+
+        // Check frequency and create alerts (called by monitoring system or manually)
+        function checkFrequencyAlerts() {
+            const threshold = parseFloat(document.getElementById('frequency-threshold-value').value) || 3;
+
+            // Simulated frequency data from ad accounts
+            const frequencyData = [
+                { name: 'India - Growth', frequency: 4.2, spend: '$1,200', level: 'Ad Set' },
+                { name: 'EU - Subscription Q1', frequency: 3.8, spend: '$890', level: 'Ad Set' },
+                { name: 'Video Ad v3 - Feature Demo', frequency: 5.1, spend: '$650', level: 'Ad' }
+            ];
+
+            const triggered = frequencyData.filter(item => item.frequency > threshold);
+
+            if (triggered.length === 0) return;
+
+            // Add each triggered item as an alert
+            const taskList = document.querySelector('#needs-action .task-list');
+            if (!taskList) return;
+
+            triggered.forEach(item => {
+                const alertId = 'freq-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.setAttribute('data-task-id', alertId);
+                taskItem.innerHTML = `
+                    <div class="task-item-header" onclick="toggleTask(this)">
+                        <span class="task-priority warning">Warning</span>
+                        <div class="task-info">
+                            <div class="task-title">
+                                ${item.name}
+                                <span class="task-type">${item.level}</span>
+                            </div>
+                            <div class="task-meta">
+                                <span><i class="fas fa-redo-alt"></i> High Frequency (${item.frequency.toFixed(1)}) - Threshold: ${threshold}</span>
+                                <span><i class="fas fa-clock"></i> Just now</span>
+                            </div>
+                        </div>
+                        <div class="task-metrics">
+                            <div class="task-metric">
+                                <div class="task-metric-label">Frequency</div>
+                                <div class="task-metric-value" style="color: #f59e0b;">${item.frequency.toFixed(1)}</div>
+                            </div>
+                            <div class="task-metric">
+                                <div class="task-metric-label">Spend</div>
+                                <div class="task-metric-value">${item.spend}</div>
+                            </div>
+                        </div>
+                        <select class="task-status-select" onclick="event.stopPropagation()">
+                            <option value="open" selected>Open</option>
+                            <option value="on-hold">On Hold</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                        <button class="task-expand-btn">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="task-details">
+                        <div class="task-details-grid">
+                            <div class="task-detail-section">
+                                <h4>Frequency Details</h4>
+                                <div class="task-threshold-info">
+                                    <div class="task-threshold-row">
+                                        <span>Frequency Threshold</span>
+                                        <span><strong>${threshold}</strong></span>
+                                    </div>
+                                    <div class="task-threshold-row">
+                                        <span>Current Frequency</span>
+                                        <span style="color: #f59e0b;"><strong>${item.frequency.toFixed(1)}</strong></span>
+                                    </div>
+                                    <div class="task-threshold-row">
+                                        <span>Total Spend</span>
+                                        <span><strong>${item.spend}</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                taskList.insertBefore(taskItem, taskList.firstChild);
+            });
+
+            // Update counts
+            const needsActionTab = document.querySelector('.task-tab.active .tab-count');
+            if (needsActionTab) {
+                needsActionTab.textContent = parseInt(needsActionTab.textContent || 0) + triggered.length;
+            }
+            const alertsHeader = document.querySelector('#alerts-section .table-header .count');
+            if (alertsHeader) {
+                const current = parseInt(alertsHeader.textContent) || 0;
+                alertsHeader.textContent = (current + triggered.length) + ' Open';
+            }
+            const bellBadge = document.querySelector('.notification-badge');
+            if (bellBadge) {
+                bellBadge.textContent = parseInt(bellBadge.textContent || 0) + triggered.length;
+            }
+            const viewAlertsBtn = document.querySelector('#alert-thresholds-section .btn-primary[onclick*="alerts-section"]');
+            if (viewAlertsBtn) {
+                const current = parseInt(viewAlertsBtn.textContent.match(/\d+/)?.[0] || 0);
+                viewAlertsBtn.innerHTML = '<i class="fas fa-bell"></i> View Active Alerts (' + (current + triggered.length) + ')';
+            }
+
+            // Toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 9999; background: #f59e0b; color: white; padding: 16px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; font-size: 14px; max-width: 400px; animation: slideInRight 0.3s ease;';
+            toast.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i>
+                <div>
+                    <div style="font-weight: 600;">Frequency Alert</div>
+                    <div style="font-size: 12px; margin-top: 2px; opacity: 0.9;">${triggered.length} item(s) exceeded frequency of ${threshold}.</div>
+                </div>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 8px;">&times;</button>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); } }, 6000);
+        }
+
+        function saveAlertSettings() {
+            // Run frequency check with current threshold
+            checkFrequencyAlerts();
+
+            // Show save confirmation
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 9999; background: #16a34a; color: white; padding: 16px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; font-size: 14px; max-width: 400px; animation: slideInRight 0.3s ease;';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle" style="font-size: 20px;"></i>
+                <div>
+                    <div style="font-weight: 600;">Settings Saved</div>
+                    <div style="font-size: 12px; margin-top: 2px; opacity: 0.9;">Alert & budget settings have been saved successfully.</div>
+                </div>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 8px;">&times;</button>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); } }, 4000);
         }
 
         // ==================== WEBHOOK MANAGEMENT FUNCTIONS ====================
