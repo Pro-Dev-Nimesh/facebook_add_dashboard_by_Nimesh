@@ -4811,9 +4811,7 @@
             </div>
 
             <!-- Sales Data Section -->
-            <div id="pabbly-revenue-section" class="dashboard-section">
-                <!-- Sales Data Table Card -->
-                <div class="table-section">
+            <div id="pabbly-revenue-section" class="table-section dashboard-section">
                     <div class="table-header">
                         <h3><i class="fas fa-file-invoice-dollar"></i> Sales Data <span class="count">23 Entries</span></h3>
                         <div class="table-filter">
@@ -4885,7 +4883,6 @@
                         <button class="pagination-arrow" disabled><i class="fas fa-chevron-left"></i></button>
                         <button class="pagination-arrow"><i class="fas fa-chevron-right"></i></button>
                     </div>
-                </div>
                 </div>
             </div>
 
@@ -6809,7 +6806,7 @@
                 currentDeleteRow.remove();
                 closeDeleteModal();
                 // Update entry count (optional)
-                const countSpan = document.querySelector('#pabbly-revenue-section .table-section:last-child .table-header .count');
+                const countSpan = document.querySelector('#pabbly-revenue-section .table-header .count');
                 if (countSpan) {
                     const currentCount = parseInt(countSpan.textContent) || 23;
                     countSpan.textContent = `${currentCount - 1} Entries`;
