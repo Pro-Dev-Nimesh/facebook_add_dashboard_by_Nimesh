@@ -2319,9 +2319,254 @@
                 overflow-x: auto;
             }
         }
+        /* Auth Screen Styles */
+        .auth-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1877f2 0%, #0a4da6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .auth-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+        }
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .auth-logo i {
+            font-size: 36px;
+            color: #1877f2;
+            margin-bottom: 8px;
+        }
+        .auth-logo h2 {
+            margin: 8px 0 4px;
+            font-size: 22px;
+            color: #1c1e21;
+        }
+        .auth-logo p {
+            margin: 0;
+            font-size: 14px;
+            color: #65676b;
+        }
+        .auth-form-group {
+            margin-bottom: 16px;
+        }
+        .auth-form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #444;
+            margin-bottom: 6px;
+        }
+        .auth-form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24,119,242,0.15);
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s;
+        }
+        .auth-btn-primary {
+            background: #1877f2;
+            color: #fff;
+        }
+        .auth-btn-primary:hover {
+            background: #166fe5;
+        }
+        .auth-btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #fff;
+            color: #444;
+            border: 1px solid #ddd;
+            margin-top: 12px;
+        }
+        .auth-btn-google:hover {
+            background: #f7f7f7;
+        }
+        .auth-btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 13px;
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #ddd;
+        }
+        .auth-divider::before { margin-right: 12px; }
+        .auth-divider::after { margin-left: 12px; }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #65676b;
+        }
+        .auth-toggle a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+        .auth-error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* User Menu Dropdown */
+        .user-menu-wrapper {
+            position: relative;
+        }
+        .user-menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 48px;
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            min-width: 220px;
+            z-index: 100;
+            overflow: hidden;
+        }
+        .user-menu-dropdown.show {
+            display: block;
+        }
+        .user-menu-info {
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #65676b;
+        }
+        .user-menu-info strong {
+            color: #1c1e21;
+        }
+        .user-menu-dropdown hr {
+            margin: 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+        .user-menu-dropdown button {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.15s;
+        }
+        .user-menu-dropdown button:hover {
+            background: #f2f3f5;
+        }
     </style>
 </head>
 <body>
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <i class="fab fa-facebook"></i>
+                <h2>Ads Dashboard</h2>
+                <p>Sign in to your account</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email">
+                </div>
+                <div class="auth-form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password">
+                </div>
+                <div id="login-error" class="auth-error"></div>
+                <button class="auth-btn auth-btn-primary" onclick="handleLogin()">Sign In</button>
+                <div class="auth-divider">or</div>
+                <button class="auth-btn auth-btn-google" onclick="handleGoogleSSO()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Continue with Google
+                </button>
+                <div class="auth-toggle">
+                    Don't have an account? <a onclick="showSignup()">Create Account</a>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" style="display:none;">
+                <div class="auth-form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name">
+                </div>
+                <div class="auth-form-group">
+                    <label>Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                </div>
+                <div class="auth-form-group">
+                    <label>Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password">
+                </div>
+                <div class="auth-form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="signup-confirm" placeholder="Confirm your password">
+                </div>
+                <div id="signup-error" class="auth-error"></div>
+                <button class="auth-btn auth-btn-primary" onclick="handleSignup()">Create Account</button>
+                <div class="auth-divider">or</div>
+                <button class="auth-btn auth-btn-google" onclick="handleGoogleSSO()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Continue with Google
+                </button>
+                <div class="auth-toggle">
+                    Already have an account? <a onclick="showLogin()">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="logo">
@@ -2522,7 +2767,14 @@
                 <div class="header-icon">
                     <i class="fas fa-question-circle"></i>
                 </div>
-                <div class="user-avatar">JD</div>
+                <div class="user-menu-wrapper">
+                    <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()" style="cursor:pointer;">AD</div>
+                    <div class="user-menu-dropdown" id="userMenuDropdown">
+                        <div class="user-menu-info">Signed in as<br><strong id="user-menu-email">admin@pabbly.com</strong></div>
+                        <hr>
+                        <button onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -7117,6 +7369,148 @@
                 console.log('Filter changed:', this.value);
             });
         });
+
+        // ========== AUTH SYSTEM ==========
+        // Seed admin account if not present
+        (function seedAdmin() {
+            let users = JSON.parse(localStorage.getItem('fb_dash_users') || '[]');
+            if (!users.find(u => u.email === 'admin@pabbly.com')) {
+                users.push({ name: 'Admin', email: 'admin@pabbly.com', password: 'Admin@123' });
+                localStorage.setItem('fb_dash_users', JSON.stringify(users));
+            }
+        })();
+
+        function showLogin() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('signup-form').style.display = 'none';
+            document.querySelector('.auth-logo p').textContent = 'Sign in to your account';
+        }
+
+        function showSignup() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'block';
+            document.querySelector('.auth-logo p').textContent = 'Create a new account';
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.style.display = 'none';
+
+            if (!email || !password) {
+                errorEl.textContent = 'Please fill in all fields.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('fb_dash_users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+            if (!user) {
+                errorEl.textContent = 'Invalid email or password.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            localStorage.setItem('fb_dash_session', JSON.stringify({ name: user.name, email: user.email }));
+            showDashboard(user);
+        }
+
+        function handleSignup() {
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+            const errorEl = document.getElementById('signup-error');
+            errorEl.style.display = 'none';
+
+            if (!name || !email || !password || !confirm) {
+                errorEl.textContent = 'Please fill in all fields.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (password !== confirm) {
+                errorEl.textContent = 'Passwords do not match.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (password.length < 6) {
+                errorEl.textContent = 'Password must be at least 6 characters.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('fb_dash_users') || '[]');
+            if (users.find(u => u.email === email)) {
+                errorEl.textContent = 'An account with this email already exists.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            users.push({ name, email, password });
+            localStorage.setItem('fb_dash_users', JSON.stringify(users));
+            localStorage.setItem('fb_dash_session', JSON.stringify({ name, email }));
+            showDashboard({ name, email });
+        }
+
+        function handleGoogleSSO() {
+            alert('Google SSO requires a backend server with OAuth configuration. This feature is not available on static hosting.');
+        }
+
+        function showDashboard(user) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.querySelector('.sidebar').style.display = 'flex';
+            document.querySelector('.main-content').style.display = 'flex';
+
+            // Update avatar initials
+            const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('user-menu-email').textContent = user.email;
+        }
+
+        function signOut() {
+            localStorage.removeItem('fb_dash_session');
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.main-content').style.display = 'none';
+            document.getElementById('userMenuDropdown').classList.remove('show');
+            // Clear form fields
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            showLogin();
+        }
+
+        function toggleUserMenu() {
+            document.getElementById('userMenuDropdown').classList.toggle('show');
+        }
+
+        // Close user menu on outside click
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.user-menu-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('userMenuDropdown').classList.remove('show');
+            }
+        });
+
+        // Allow Enter key on login/signup forms
+        document.getElementById('login-password').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('signup-confirm').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleSignup();
+        });
+
+        // Auth check on page load
+        (function initAuth() {
+            const session = JSON.parse(localStorage.getItem('fb_dash_session') || 'null');
+            if (session) {
+                showDashboard(session);
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.querySelector('.sidebar').style.display = 'none';
+                document.querySelector('.main-content').style.display = 'none';
+            }
+        })();
 
         // Initialize dashboard with current account data and filters on page load
         (function initializeDashboard() {
