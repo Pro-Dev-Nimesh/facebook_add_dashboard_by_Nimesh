@@ -1157,14 +1157,6 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        #sales-creative-section .data-table td {
-            padding: 8px 12px;
-            font-size: 13px;
-        }
-
-        #sales-creative-section .data-table th {
-            padding: 8px 12px;
-        }
 
         .data-table tr:last-child td {
             border-bottom: none;
@@ -4595,7 +4587,7 @@
             <div id="user-management-section" class="table-section dashboard-section">
                 <div class="table-header">
                     <h3><i class="fas fa-user-cog" style="color: var(--primary-color);"></i> User Management</h3>
-                    <button class="btn-primary"><i class="fas fa-plus"></i> Add User</button>
+                    <button class="btn-primary" onclick="openAddUserModal()"><i class="fas fa-plus"></i> Add User</button>
                 </div>
                 <div style="padding: 24px;">
                     <p style="color: var(--text-secondary); margin-bottom: 24px;">Manage team members and their access permissions.</p>
@@ -4606,13 +4598,13 @@
                             <tr>
                                 <th>User</th>
                                 <th>Email</th>
-                                <th>Role</th>
-                                <th>Ad Account Access</th>
+                                <th>Access Type</th>
+                                <th>Ad Accounts</th>
                                 <th>Last Active</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="users-tbody">
                             <tr>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -4624,10 +4616,10 @@
                                     </div>
                                 </td>
                                 <td>john@pabbly.com</td>
-                                <td><span class="status-badge active">Admin</span></td>
+                                <td><span class="status-badge active">Full Access</span></td>
                                 <td>All Accounts</td>
                                 <td>Just now</td>
-                                <td><button class="action-btn view">Edit</button></td>
+                                <td><span style="color: var(--text-secondary); font-size: 12px;">Owner</span></td>
                             </tr>
                             <tr>
                                 <td>
@@ -4639,10 +4631,18 @@
                                     </div>
                                 </td>
                                 <td>sarah@pabbly.com</td>
-                                <td><span class="status-badge" style="background: #e7f3ff; color: var(--primary-color);">Manager</span></td>
+                                <td><span class="status-badge active">Full Access</span></td>
                                 <td>Pabbly Connect, Pabbly Chatflow</td>
                                 <td>2 hours ago</td>
-                                <td><button class="action-btn view">Edit</button></td>
+                                <td>
+                                    <div class="action-menu">
+                                        <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
+                                        <div class="action-menu-dropdown">
+                                            <button class="action-menu-item" onclick="editUser(this)"><i class="fas fa-edit"></i> Edit</button>
+                                            <button class="action-menu-item delete" onclick="removeUser(this)"><i class="fas fa-trash"></i> Remove</button>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
@@ -4654,60 +4654,159 @@
                                     </div>
                                 </td>
                                 <td>mike@pabbly.com</td>
-                                <td><span class="status-badge" style="background: #f5f5f5; color: var(--text-secondary);">Viewer</span></td>
+                                <td><span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span></td>
                                 <td>Pabbly Connect</td>
                                 <td>1 day ago</td>
-                                <td><button class="action-btn view">Edit</button></td>
+                                <td>
+                                    <div class="action-menu">
+                                        <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
+                                        <div class="action-menu-dropdown">
+                                            <button class="action-menu-item" onclick="editUser(this)"><i class="fas fa-edit"></i> Edit</button>
+                                            <button class="action-menu-item delete" onclick="removeUser(this)"><i class="fas fa-trash"></i> Remove</button>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <!-- Roles Legend -->
-                    <div class="config-section" style="margin-top: 24px;">
-                        <h4><i class="fas fa-shield-alt"></i> Role Permissions</h4>
-                        <table class="data-table" style="font-size: 13px;">
-                            <thead>
-                                <tr>
-                                    <th>Permission</th>
-                                    <th>Admin</th>
-                                    <th>Manager</th>
-                                    <th>Viewer</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>View Dashboard</td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>Edit Data (Sales/Leads)</td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>Configure Alerts</td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>Manage Users</td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                                    <td><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>Access Settings</td>
-                                    <td><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                                    <td><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                                    <td><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Access Type Info -->
+                    <div style="margin-top: 20px; display: flex; gap: 16px;">
+                        <div style="flex: 1; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                            <div style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 4px;"><i class="fas fa-unlock"></i> Full Access</div>
+                            <div style="font-size: 12px; color: #166534;">Can view Dashboard, Alerts, Data Management (Sales & Leads), and Settings for assigned ad accounts.</div>
+                        </div>
+                        <div style="flex: 1; padding: 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
+                            <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;"><i class="fas fa-eye"></i> Read Access</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Can only view Dashboard and Alerts sections. No access to Data Management or Settings.</div>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Add User Modal -->
+            <div id="add-user-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: var(--card-bg); border-radius: 12px; width: 500px; max-width: 90vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 16px;"><i class="fas fa-user-plus" style="color: var(--primary-color); margin-right: 8px;"></i>Add New User</h3>
+                        <button onclick="closeAddUserModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+                    </div>
+                    <form id="add-user-form" onsubmit="submitAddUser(event)" style="padding: 24px;">
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">First Name <span style="color: #dc2626;">*</span></label>
+                                <input type="text" id="user-first-name" required placeholder="Enter first name" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Last Name <span style="color: #dc2626;">*</span></label>
+                                <input type="text" id="user-last-name" required placeholder="Enter last name" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email <span style="color: #dc2626;">*</span></label>
+                            <input type="email" id="user-email" required placeholder="Enter email address" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Access Type <span style="color: #dc2626;">*</span></label>
+                            <div style="display: flex; gap: 12px;">
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-full-label">
+                                    <input type="radio" name="access-type" value="full" required onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">Full Access</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard, Alerts, Data Management, Settings</div>
+                                    </div>
+                                </label>
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-read-label">
+                                    <input type="radio" name="access-type" value="read" required onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">Read Access</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard and Alerts only</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts <span style="color: #dc2626;">*</span></label>
+                            <div id="ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="ad-accounts" value="Pabbly Connect" style="accent-color: var(--primary-color);"> Pabbly Connect
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="ad-accounts" value="Pabbly Chatflow" style="accent-color: var(--primary-color);"> Pabbly Chatflow
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="ad-accounts" value="Pabbly Subscription" style="accent-color: var(--primary-color);"> Pabbly Subscription
+                                </label>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" onclick="closeAddUserModal()" style="padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; background: white; font-size: 13px; cursor: pointer;">Cancel</button>
+                            <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 13px;"><i class="fas fa-plus"></i> Add User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Edit User Modal -->
+            <div id="edit-user-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: var(--card-bg); border-radius: 12px; width: 500px; max-width: 90vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 16px;"><i class="fas fa-user-edit" style="color: var(--primary-color); margin-right: 8px;"></i>Edit User</h3>
+                        <button onclick="closeEditUserModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+                    </div>
+                    <form id="edit-user-form" onsubmit="submitEditUser(event)" style="padding: 24px;">
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">First Name <span style="color: #dc2626;">*</span></label>
+                                <input type="text" id="edit-user-first-name" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Last Name <span style="color: #dc2626;">*</span></label>
+                                <input type="text" id="edit-user-last-name" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email</label>
+                            <input type="email" id="edit-user-email" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; background: #f5f5f5; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Access Type <span style="color: #dc2626;">*</span></label>
+                            <div style="display: flex; gap: 12px;">
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-full-label">
+                                    <input type="radio" name="edit-access-type" value="full" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">Full Access</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard, Alerts, Data Management, Settings</div>
+                                    </div>
+                                </label>
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-read-label">
+                                    <input type="radio" name="edit-access-type" value="read" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">Read Access</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard and Alerts only</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts <span style="color: #dc2626;">*</span></label>
+                            <div id="edit-ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-ad-accounts" value="Pabbly Connect" style="accent-color: var(--primary-color);"> Pabbly Connect
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-ad-accounts" value="Pabbly Chatflow" style="accent-color: var(--primary-color);"> Pabbly Chatflow
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-ad-accounts" value="Pabbly Subscription" style="accent-color: var(--primary-color);"> Pabbly Subscription
+                                </label>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" onclick="closeEditUserModal()" style="padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; background: white; font-size: 13px; cursor: pointer;">Cancel</button>
+                            <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 13px;"><i class="fas fa-save"></i> Save Changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -4717,21 +4816,15 @@
                 <div class="table-section">
                     <div class="table-header">
                         <h3><i class="fas fa-file-invoice-dollar"></i> Sales Data <span class="count">23 Entries</span></h3>
-                        <button class="btn-primary" onclick="openAddRevenueModal()"><i class="fas fa-plus"></i> Add Entry</button>
-                    </div>
-
-                    <!-- Filters and Search -->
-                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <select class="table-status-filter" style="min-width: 130px;">
-                            <option>All Time</option>
-                            <option>Today</option>
-                            <option>This Week</option>
-                            <option selected>This Month</option>
-                            <option>Last 30 Days</option>
-                            <option>Last 90 Days</option>
-                        </select>
-                        <div style="position: relative;">
+                        <div class="table-filter">
+                            <select class="table-status-filter" style="min-width: 130px;">
+                                <option>All Time</option>
+                                <option>Today</option>
+                                <option>This Week</option>
+                                <option selected>This Month</option>
+                                <option>Last 30 Days</option>
+                                <option>Last 90 Days</option>
+                            </select>
                             <select class="table-status-filter" id="revenue-country-filter" style="min-width: 150px;">
                                 <option value="">All Countries</option>
                                 <option value="us">United States</option>
@@ -4745,13 +4838,13 @@
                                 <option value="br">Brazil</option>
                                 <option value="sg">Singapore</option>
                             </select>
+                            <div class="table-search-wrapper">
+                                <i class="fas fa-search table-search-icon"></i>
+                                <input type="text" id="revenue-search" class="table-search-input" placeholder="Search by Transaction ID...">
+                            </div>
+                            <button class="btn-primary" onclick="openAddRevenueModal()"><i class="fas fa-plus"></i> Add Entry</button>
                         </div>
                     </div>
-                    <div style="position: relative; flex: 1; max-width: 300px;">
-                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
-                        <input type="text" id="revenue-search" placeholder="Search by Transaction ID..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px;">
-                    </div>
-                </div>
 
                 <!-- Revenue Table -->
                 <table class="data-table">
@@ -4992,12 +5085,7 @@
             <div id="leads-data-section" class="table-section dashboard-section">
                 <div class="table-header">
                     <h3><i class="fas fa-user-plus" style="color: var(--primary-color);"></i> Leads Data <span class="count">156 Leads</span></h3>
-                    <button class="btn-primary" onclick="openAddLeadModal()"><i class="fas fa-plus"></i> Add Lead Manually</button>
-                </div>
-
-                <!-- Filters and Search -->
-                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 12px; align-items: center;">
+                    <div class="table-filter">
                         <select class="table-status-filter" style="min-width: 130px;">
                             <option>All Time</option>
                             <option>Today</option>
@@ -5014,10 +5102,11 @@
                             <option value="referral">Referral</option>
                             <option value="direct">Direct</option>
                         </select>
-                    </div>
-                    <div style="position: relative; flex: 1; max-width: 300px;">
-                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
-                        <input type="text" id="leads-search" placeholder="Search leads..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px;">
+                        <div class="table-search-wrapper">
+                            <i class="fas fa-search table-search-icon"></i>
+                            <input type="text" id="leads-search" class="table-search-input" placeholder="Search leads...">
+                        </div>
+                        <button class="btn-primary" onclick="openAddLeadModal()"><i class="fas fa-plus"></i> Add Lead</button>
                     </div>
                 </div>
 
@@ -6869,6 +6958,171 @@
                     const currentCount = parseInt(countSpan.textContent) || 156;
                     countSpan.textContent = `${currentCount - 1} Leads`;
                 }
+            }
+        }
+
+        // ==================== USER MANAGEMENT FUNCTIONS ====================
+        let currentEditUserRow = null;
+
+        function openAddUserModal() {
+            document.getElementById('add-user-form').reset();
+            updateAccessStyle();
+            document.getElementById('add-user-modal').style.display = 'flex';
+        }
+
+        function closeAddUserModal() {
+            document.getElementById('add-user-modal').style.display = 'none';
+        }
+
+        function updateAccessStyle() {
+            const fullRadio = document.querySelector('input[name="access-type"][value="full"]');
+            const readRadio = document.querySelector('input[name="access-type"][value="read"]');
+            document.getElementById('access-full-label').style.borderColor = fullRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
+            document.getElementById('access-read-label').style.borderColor = readRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
+        }
+
+        function updateEditAccessStyle() {
+            const fullRadio = document.querySelector('input[name="edit-access-type"][value="full"]');
+            const readRadio = document.querySelector('input[name="edit-access-type"][value="read"]');
+            document.getElementById('edit-access-full-label').style.borderColor = fullRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
+            document.getElementById('edit-access-read-label').style.borderColor = readRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
+        }
+
+        function getInitials(first, last) {
+            return (first.charAt(0) + last.charAt(0)).toUpperCase();
+        }
+
+        function getRandomColor() {
+            const colors = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function submitAddUser(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('user-first-name').value.trim();
+            const lastName = document.getElementById('user-last-name').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const accessType = document.querySelector('input[name="access-type"]:checked').value;
+            const accounts = Array.from(document.querySelectorAll('input[name="ad-accounts"]:checked')).map(cb => cb.value);
+
+            if (accounts.length === 0) {
+                alert('Please select at least one ad account.');
+                return;
+            }
+
+            const initials = getInitials(firstName, lastName);
+            const color = getRandomColor();
+            const fullName = firstName + ' ' + lastName;
+            const isFullAccess = accessType === 'full';
+            const badgeHtml = isFullAccess
+                ? '<span class="status-badge active">Full Access</span>'
+                : '<span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span>';
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">${initials}</div>
+                        <div><div style="font-weight: 600;">${fullName}</div></div>
+                    </div>
+                </td>
+                <td>${email}</td>
+                <td>${badgeHtml}</td>
+                <td>${accounts.join(', ')}</td>
+                <td>Just now</td>
+                <td>
+                    <div class="action-menu">
+                        <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
+                        <div class="action-menu-dropdown">
+                            <button class="action-menu-item" onclick="editUser(this)"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="action-menu-item delete" onclick="removeUser(this)"><i class="fas fa-trash"></i> Remove</button>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            document.getElementById('users-tbody').appendChild(newRow);
+            closeAddUserModal();
+        }
+
+        function editUser(button) {
+            const row = button.closest('tr');
+            currentEditUserRow = row;
+            button.closest('.action-menu').classList.remove('open');
+
+            const cells = row.querySelectorAll('td');
+            const nameEl = cells[0].querySelector('div[style*="font-weight: 600"]');
+            const fullName = nameEl ? nameEl.textContent.trim() : '';
+            const parts = fullName.split(' ');
+            const firstName = parts[0] || '';
+            const lastName = parts.slice(1).join(' ') || '';
+            const email = cells[1].textContent.trim();
+            const accessBadge = cells[2].querySelector('.status-badge').textContent.trim();
+            const accountsText = cells[3].textContent.trim();
+
+            document.getElementById('edit-user-first-name').value = firstName;
+            document.getElementById('edit-user-last-name').value = lastName;
+            document.getElementById('edit-user-email').value = email;
+
+            const isFullAccess = accessBadge === 'Full Access';
+            document.querySelector('input[name="edit-access-type"][value="full"]').checked = isFullAccess;
+            document.querySelector('input[name="edit-access-type"][value="read"]').checked = !isFullAccess;
+            updateEditAccessStyle();
+
+            const accountsList = accountsText.split(',').map(a => a.trim());
+            document.querySelectorAll('input[name="edit-ad-accounts"]').forEach(cb => {
+                cb.checked = accountsList.includes(cb.value);
+            });
+
+            document.getElementById('edit-user-modal').style.display = 'flex';
+        }
+
+        function closeEditUserModal() {
+            document.getElementById('edit-user-modal').style.display = 'none';
+            currentEditUserRow = null;
+        }
+
+        function submitEditUser(e) {
+            e.preventDefault();
+            if (!currentEditUserRow) return;
+
+            const firstName = document.getElementById('edit-user-first-name').value.trim();
+            const lastName = document.getElementById('edit-user-last-name').value.trim();
+            const accessType = document.querySelector('input[name="edit-access-type"]:checked').value;
+            const accounts = Array.from(document.querySelectorAll('input[name="edit-ad-accounts"]:checked')).map(cb => cb.value);
+
+            if (accounts.length === 0) {
+                alert('Please select at least one ad account.');
+                return;
+            }
+
+            const cells = currentEditUserRow.querySelectorAll('td');
+            const fullName = firstName + ' ' + lastName;
+            const initials = getInitials(firstName, lastName);
+            const isFullAccess = accessType === 'full';
+
+            // Update name
+            const nameContainer = cells[0].querySelector('div[style*="font-weight: 600"]');
+            if (nameContainer) nameContainer.textContent = fullName;
+            const initialsEl = cells[0].querySelector('div[style*="border-radius: 50%"]');
+            if (initialsEl) initialsEl.textContent = initials;
+
+            // Update access badge
+            cells[2].innerHTML = isFullAccess
+                ? '<span class="status-badge active">Full Access</span>'
+                : '<span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span>';
+
+            // Update accounts
+            cells[3].textContent = accounts.join(', ');
+
+            closeEditUserModal();
+        }
+
+        function removeUser(button) {
+            const row = button.closest('tr');
+            button.closest('.action-menu').classList.remove('open');
+            if (confirm('Are you sure you want to remove this user?')) {
+                row.remove();
             }
         }
 
