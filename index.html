@@ -4749,7 +4749,7 @@
                     </div>
                     <div style="position: relative; flex: 1; max-width: 300px;">
                         <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
-                        <input type="text" placeholder="Search by Transaction ID..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px;">
+                        <input type="text" id="revenue-search" placeholder="Search by Transaction ID..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px;">
                     </div>
                 </div>
 
@@ -5017,7 +5017,7 @@
                     </div>
                     <div style="position: relative; flex: 1; max-width: 300px;">
                         <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
-                        <input type="text" placeholder="Search leads..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px;">
+                        <input type="text" id="leads-search" placeholder="Search leads..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px;">
                     </div>
                 </div>
 
@@ -5027,7 +5027,6 @@
                         <tr>
                             <th>Date</th>
                             <th>Lead Count</th>
-                            <th>Lead Source</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -5035,7 +5034,6 @@
                         <tr>
                             <td>Jan 24, 2026</td>
                             <td><strong>12</strong></td>
-                            <td><span class="status-badge active">Facebook Ads</span></td>
                             <td>
                                 <div class="action-menu">
                                     <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -5051,7 +5049,6 @@
                         <tr>
                             <td>Jan 23, 2026</td>
                             <td><strong>18</strong></td>
-                            <td><span class="status-badge active">Facebook Ads</span></td>
                             <td>
                                 <div class="action-menu">
                                     <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -5067,7 +5064,6 @@
                         <tr>
                             <td>Jan 22, 2026</td>
                             <td><strong>15</strong></td>
-                            <td><span class="status-badge" style="background: #e7f3ff; color: var(--primary-color);">Organic</span></td>
                             <td>
                                 <div class="action-menu">
                                     <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -5083,7 +5079,6 @@
                         <tr>
                             <td>Jan 21, 2026</td>
                             <td><strong>22</strong></td>
-                            <td><span class="status-badge active">Facebook Ads</span></td>
                             <td>
                                 <div class="action-menu">
                                     <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -5099,7 +5094,6 @@
                         <tr>
                             <td>Jan 20, 2026</td>
                             <td><strong>9</strong></td>
-                            <td><span class="status-badge" style="background: #fef3c7; color: #92400e;">Google Ads</span></td>
                             <td>
                                 <div class="action-menu">
                                     <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -5115,7 +5109,6 @@
                         <tr>
                             <td>Jan 19, 2026</td>
                             <td><strong>14</strong></td>
-                            <td><span class="status-badge" style="background: #e7f3ff; color: var(--primary-color);">Organic</span></td>
                             <td>
                                 <div class="action-menu">
                                     <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -6374,23 +6367,10 @@
             const tbody = document.getElementById('leads-tbody');
             if (tbody && data.leads) {
                 tbody.innerHTML = data.leads.map(lead => {
-                    let badgeStyle = '';
-                    if (lead.source === 'Facebook Ads') {
-                        badgeStyle = 'class="status-badge active"';
-                    } else if (lead.source === 'Google Ads') {
-                        badgeStyle = 'class="status-badge" style="background: #fef3c7; color: #92400e;"';
-                    } else if (lead.source === 'Organic') {
-                        badgeStyle = 'class="status-badge" style="background: #e7f3ff; color: var(--primary-color);"';
-                    } else if (lead.source === 'Referral') {
-                        badgeStyle = 'class="status-badge" style="background: #dcfce7; color: #166534;"';
-                    } else {
-                        badgeStyle = 'class="status-badge" style="background: #f3f4f6; color: #374151;"';
-                    }
                     return `
                     <tr>
                         <td>${lead.date}</td>
                         <td><strong>${lead.count}</strong></td>
-                        <td><span ${badgeStyle}>${lead.source}</span></td>
                         <td>
                             <div class="action-menu">
                                 <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -6779,26 +6759,11 @@
             const dateObj = new Date(date);
             const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-            // Get source badge style
-            let badgeStyle = '';
-            if (source === 'Facebook Ads') {
-                badgeStyle = 'class="status-badge active"';
-            } else if (source === 'Google Ads') {
-                badgeStyle = 'class="status-badge" style="background: #fef3c7; color: #92400e;"';
-            } else if (source === 'Organic') {
-                badgeStyle = 'class="status-badge" style="background: #e7f3ff; color: var(--primary-color);"';
-            } else if (source === 'Referral') {
-                badgeStyle = 'class="status-badge" style="background: #dcfce7; color: #166534;"';
-            } else {
-                badgeStyle = 'class="status-badge" style="background: #f3f4f6; color: #374151;"';
-            }
-
             // Create new row
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${formattedDate}</td>
                 <td><strong>${count}</strong></td>
-                <td><span ${badgeStyle}>${source}</span></td>
                 <td>
                     <div class="action-menu">
                         <button class="action-menu-btn" onclick="toggleActionMenu(this)">
@@ -6837,7 +6802,6 @@
             const cells = row.querySelectorAll('td');
             const dateText = cells[0].textContent.trim();
             const count = cells[1].textContent.trim();
-            const source = cells[2].querySelector('.status-badge').textContent.trim();
 
             // Parse date to input format
             const dateObj = new Date(dateText);
@@ -6846,7 +6810,6 @@
             // Populate the edit form
             document.getElementById('edit-lead-date').value = formattedDate;
             document.getElementById('edit-lead-count').value = count;
-            document.getElementById('edit-lead-source').value = source;
 
             // Show the edit modal
             document.getElementById('edit-lead-modal').style.display = 'flex';
@@ -6862,9 +6825,8 @@
 
             const date = document.getElementById('edit-lead-date').value;
             const count = document.getElementById('edit-lead-count').value;
-            const source = document.getElementById('edit-lead-source').value;
 
-            if (!date || !count || !source) {
+            if (!date || !count) {
                 alert('Please fill in all required fields');
                 return;
             }
@@ -6873,25 +6835,10 @@
             const dateObj = new Date(date);
             const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-            // Get source badge style
-            let badgeStyle = '';
-            if (source === 'Facebook Ads') {
-                badgeStyle = 'class="status-badge active"';
-            } else if (source === 'Google Ads') {
-                badgeStyle = 'class="status-badge" style="background: #fef3c7; color: #92400e;"';
-            } else if (source === 'Organic') {
-                badgeStyle = 'class="status-badge" style="background: #e7f3ff; color: var(--primary-color);"';
-            } else if (source === 'Referral') {
-                badgeStyle = 'class="status-badge" style="background: #dcfce7; color: #166534;"';
-            } else {
-                badgeStyle = 'class="status-badge" style="background: #f3f4f6; color: #374151;"';
-            }
-
             // Update the row
             const cells = currentEditLeadRow.querySelectorAll('td');
             cells[0].textContent = formattedDate;
             cells[1].innerHTML = `<strong>${count}</strong>`;
-            cells[2].innerHTML = `<span ${badgeStyle}>${source}</span>`;
 
             closeEditLeadModal();
         }
@@ -7271,6 +7218,26 @@
         document.getElementById('sales-creative-search').addEventListener('input', function() {
             salesCreativeSearchQuery = this.value.toLowerCase().trim();
             applySalesCreativeFilter();
+        });
+
+        // Sales Data (Revenue) search
+        document.getElementById('revenue-search').addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#revenue-transactions-tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Leads Data search
+        document.getElementById('leads-search').addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#leads-tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
         });
 
         // Update filter dropdown color based on selected value
