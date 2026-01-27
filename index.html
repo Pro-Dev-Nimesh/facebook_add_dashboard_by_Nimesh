@@ -1157,6 +1157,15 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        #sales-creative-section .data-table td {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        #sales-creative-section .data-table th {
+            padding: 8px 12px;
+        }
+
         .data-table tr:last-child td {
             border-bottom: none;
         }
@@ -2712,7 +2721,7 @@
                                 <div class="option-name">Pabbly Connect</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active â€¢ 5 Campaigns
+                                    Active &#8226; 5 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2725,7 +2734,7 @@
                                 <div class="option-name">Pabbly Chatflow</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active â€¢ 3 Campaigns
+                                    Active &#8226; 3 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2738,7 +2747,7 @@
                                 <div class="option-name">Pabbly Email Marketing</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active â€¢ 2 Campaigns
+                                    Active &#8226; 2 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2751,7 +2760,7 @@
                                 <div class="option-name">Pabbly PSB</div>
                                 <div class="option-status">
                                     <span class="status-dot"></span>
-                                    Active â€¢ 4 Campaigns
+                                    Active &#8226; 4 Campaigns
                                 </div>
                             </div>
                             <i class="fas fa-check check-icon"></i>
@@ -2957,7 +2966,7 @@
                     <i class="fas fa-calendar-alt" style="color: var(--primary-color); margin-right: 6px;"></i>Quick Performance Snapshot
                 </h3>
                 <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
-                    A fixed overview of your ad performance across three time periods â€” Today, Last 7 Days, and Last 30 Days. This data updates automatically and always reflects the most recent rolling periods.
+                    A fixed overview of your ad performance across three time periods &#8212; Today, Last 7 Days, and Last 30 Days. This data updates automatically and always reflects the most recent rolling periods.
                 </p>
             </div>
 
@@ -6228,9 +6237,9 @@
                 const flagMap = { 'United States': 'us', 'India': 'in', 'Brazil': 'br', 'United Kingdom': 'gb', 'Australia': 'au', 'Germany': 'de', 'Canada': 'ca', 'Spain': 'es', 'France': 'fr' };
                 const flag = flagMap[sale.country] || 'us';
                 return `
-                <tr ${index === 0 ? 'style="background: #faf5ff;"' : ''}>
+                <tr>
                     <td>
-                        <div style="width: 60px; height: 60px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                        <div style="width: 40px; height: 40px; border-radius: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">
                             <i class="fas fa-image"></i>
                         </div>
                     </td>
@@ -7326,7 +7335,7 @@
             const campaignNames = [...new Set(data.campaigns.map(c => c.name))];
             const adSetNames = [...new Set(data.adSets.map(a => a.name))];
 
-            // Ad Sets page â€” campaign filter
+            // Ad Sets page &#8212; campaign filter
             const adSetsCampaignEl = document.getElementById('adsets-campaign-filter');
             if (adSetsCampaignEl) {
                 adSetsCampaignEl.innerHTML = '<option value="all">All Campaigns</option>' +
@@ -7334,7 +7343,7 @@
                 adSetsCampaignEl.value = adSetsCampaignFilter;
             }
 
-            // Ads page â€” campaign filter
+            // Ads page &#8212; campaign filter
             const adsCampaignEl = document.getElementById('ads-campaign-filter');
             if (adsCampaignEl) {
                 adsCampaignEl.innerHTML = '<option value="all">All Campaigns</option>' +
@@ -7342,7 +7351,7 @@
                 adsCampaignEl.value = adsCampaignFilter;
             }
 
-            // Ads page â€” ad set filter (scoped to selected campaign)
+            // Ads page &#8212; ad set filter (scoped to selected campaign)
             populateAdsAdSetDropdown();
         }
 
