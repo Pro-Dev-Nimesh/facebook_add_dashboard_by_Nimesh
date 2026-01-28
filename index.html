@@ -4618,6 +4618,7 @@
                                 <th>Email</th>
                                 <th>Access Type</th>
                                 <th>Ad Accounts</th>
+                                <th>Page Access</th>
                                 <th>Last Active</th>
                                 <th>Actions</th>
                             </tr>
@@ -4636,6 +4637,7 @@
                                 <td>john@pabbly.com</td>
                                 <td><span class="status-badge active">Full Access</span></td>
                                 <td>All Accounts</td>
+                                <td><span style="font-size: 12px; color: var(--text-secondary);">All Pages</span></td>
                                 <td>Just now</td>
                                 <td><span style="color: var(--text-secondary); font-size: 12px;">Owner</span></td>
                             </tr>
@@ -4651,6 +4653,7 @@
                                 <td>sarah@pabbly.com</td>
                                 <td><span class="status-badge active">Full Access</span></td>
                                 <td>Pabbly Connect, Pabbly Chatflow</td>
+                                <td><span style="font-size: 12px; color: var(--text-secondary);">All Pages</span></td>
                                 <td>2 hours ago</td>
                                 <td>
                                     <div class="action-menu">
@@ -4674,6 +4677,7 @@
                                 <td>mike@pabbly.com</td>
                                 <td><span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span></td>
                                 <td>Pabbly Connect</td>
+                                <td><span style="font-size: 12px; color: var(--text-secondary);">Overview Metrics, Campaigns, Alerts</span></td>
                                 <td>1 day ago</td>
                                 <td>
                                     <div class="action-menu">
@@ -4692,11 +4696,11 @@
                     <div style="margin-top: 20px; display: flex; gap: 16px;">
                         <div style="flex: 1; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
                             <div style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 4px;"><i class="fas fa-unlock"></i> Full Access</div>
-                            <div style="font-size: 12px; color: #166534;">Can view Dashboard, Alerts, Data Management (Sales & Leads), and Settings for assigned ad accounts.</div>
+                            <div style="font-size: 12px; color: #166534;">Can view and edit selected pages for assigned ad accounts. Page access is configurable per user.</div>
                         </div>
                         <div style="flex: 1; padding: 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
                             <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;"><i class="fas fa-eye"></i> Read Access</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Can only view Dashboard and Alerts sections. No access to Data Management or Settings.</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Can only view selected pages (read-only). Page access is configurable per user.</div>
                         </div>
                     </div>
                 </div>
@@ -4743,7 +4747,7 @@
                                 </label>
                             </div>
                         </div>
-                        <div style="margin-bottom: 24px;">
+                        <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts <span style="color: #dc2626;">*</span></label>
                             <div id="ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
@@ -4754,6 +4758,41 @@
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
                                     <input type="checkbox" name="ad-accounts" value="Pabbly Subscription" style="accent-color: var(--primary-color);"> Pabbly Subscription
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Page Access <span style="color: #dc2626;">*</span></label>
+                            <div id="page-access-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                                    <input type="checkbox" id="page-select-all" onchange="toggleAllPages(this)" style="accent-color: var(--primary-color);"> Select All
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Overview Metrics" style="accent-color: var(--primary-color);"> Overview Metrics
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Campaigns" style="accent-color: var(--primary-color);"> Campaigns
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Ad Sets" style="accent-color: var(--primary-color);"> Ad Sets
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Ads" style="accent-color: var(--primary-color);"> Ads
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Country Performance" style="accent-color: var(--primary-color);"> Country Performance
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Sales by Ad Creative" style="accent-color: var(--primary-color);"> Sales by Ad Creative
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Alerts" style="accent-color: var(--primary-color);"> Alerts
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Data Management" style="accent-color: var(--primary-color);"> Data Management
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="page-access" value="Settings" style="accent-color: var(--primary-color);"> Settings
                                 </label>
                             </div>
                         </div>
@@ -4806,7 +4845,7 @@
                                 </label>
                             </div>
                         </div>
-                        <div style="margin-bottom: 24px;">
+                        <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts <span style="color: #dc2626;">*</span></label>
                             <div id="edit-ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
@@ -4817,6 +4856,41 @@
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
                                     <input type="checkbox" name="edit-ad-accounts" value="Pabbly Subscription" style="accent-color: var(--primary-color);"> Pabbly Subscription
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Page Access <span style="color: #dc2626;">*</span></label>
+                            <div id="edit-page-access-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                                    <input type="checkbox" id="edit-page-select-all" onchange="toggleAllEditPages(this)" style="accent-color: var(--primary-color);"> Select All
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Overview Metrics" style="accent-color: var(--primary-color);"> Overview Metrics
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Campaigns" style="accent-color: var(--primary-color);"> Campaigns
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Ad Sets" style="accent-color: var(--primary-color);"> Ad Sets
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Ads" style="accent-color: var(--primary-color);"> Ads
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Country Performance" style="accent-color: var(--primary-color);"> Country Performance
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Sales by Ad Creative" style="accent-color: var(--primary-color);"> Sales by Ad Creative
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Alerts" style="accent-color: var(--primary-color);"> Alerts
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Data Management" style="accent-color: var(--primary-color);"> Data Management
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                                    <input type="checkbox" name="edit-page-access" value="Settings" style="accent-color: var(--primary-color);"> Settings
                                 </label>
                             </div>
                         </div>
@@ -6989,6 +7063,13 @@
             document.getElementById('add-user-modal').style.display = 'none';
         }
 
+        function toggleAllPages(selectAllCb) {
+            document.querySelectorAll('input[name="page-access"]').forEach(cb => { cb.checked = selectAllCb.checked; });
+        }
+        function toggleAllEditPages(selectAllCb) {
+            document.querySelectorAll('input[name="edit-page-access"]').forEach(cb => { cb.checked = selectAllCb.checked; });
+        }
+
         function updateAccessStyle() {
             const fullRadio = document.querySelector('input[name="access-type"][value="full"]');
             const readRadio = document.querySelector('input[name="access-type"][value="read"]');
@@ -7019,9 +7100,14 @@
             const email = document.getElementById('user-email').value.trim();
             const accessType = document.querySelector('input[name="access-type"]:checked').value;
             const accounts = Array.from(document.querySelectorAll('input[name="ad-accounts"]:checked')).map(cb => cb.value);
+            const pages = Array.from(document.querySelectorAll('input[name="page-access"]:checked')).map(cb => cb.value);
 
             if (accounts.length === 0) {
                 alert('Please select at least one ad account.');
+                return;
+            }
+            if (pages.length === 0) {
+                alert('Please select at least one page.');
                 return;
             }
 
@@ -7044,6 +7130,7 @@
                 <td>${email}</td>
                 <td>${badgeHtml}</td>
                 <td>${accounts.join(', ')}</td>
+                <td><span style="font-size: 12px; color: var(--text-secondary);">${pages.length === 9 ? 'All Pages' : pages.join(', ')}</span></td>
                 <td>Just now</td>
                 <td>
                     <div class="action-menu">
@@ -7089,6 +7176,16 @@
                 cb.checked = accountsList.includes(cb.value);
             });
 
+            // Parse page access from cell index 4
+            const pagesText = cells[4].textContent.trim();
+            const allPageValues = ['Overview Metrics','Campaigns','Ad Sets','Ads','Country Performance','Sales by Ad Creative','Alerts','Data Management','Settings'];
+            const pagesList = pagesText === 'All Pages' ? allPageValues : pagesText.split(',').map(p => p.trim());
+            document.querySelectorAll('input[name="edit-page-access"]').forEach(cb => {
+                cb.checked = pagesList.includes(cb.value);
+            });
+            const editSelectAll = document.getElementById('edit-page-select-all');
+            if (editSelectAll) editSelectAll.checked = pagesList.length === allPageValues.length;
+
             document.getElementById('edit-user-modal').style.display = 'flex';
         }
 
@@ -7105,9 +7202,14 @@
             const lastName = document.getElementById('edit-user-last-name').value.trim();
             const accessType = document.querySelector('input[name="edit-access-type"]:checked').value;
             const accounts = Array.from(document.querySelectorAll('input[name="edit-ad-accounts"]:checked')).map(cb => cb.value);
+            const pages = Array.from(document.querySelectorAll('input[name="edit-page-access"]:checked')).map(cb => cb.value);
 
             if (accounts.length === 0) {
                 alert('Please select at least one ad account.');
+                return;
+            }
+            if (pages.length === 0) {
+                alert('Please select at least one page.');
                 return;
             }
 
@@ -7129,6 +7231,9 @@
 
             // Update accounts
             cells[3].textContent = accounts.join(', ');
+
+            // Update page access
+            cells[4].innerHTML = '<span style="font-size: 12px; color: var(--text-secondary);">' + (pages.length === 9 ? 'All Pages' : pages.join(', ')) + '</span>';
 
             closeEditUserModal();
         }
