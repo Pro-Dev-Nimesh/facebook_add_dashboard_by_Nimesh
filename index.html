@@ -4201,229 +4201,243 @@
             <!-- Webhooks and API Section -->
             <div id="webhooks-section" class="table-section dashboard-section">
                 <div class="table-header">
-                    <h3><i class="fas fa-plug" style="color: var(--primary-color);"></i> Webhook and API</h3>
+                    <h3><i class="fas fa-plug" style="color: var(--primary-color);"></i> Webhook & API</h3>
                 </div>
 
                 <!-- Tabs -->
-                <div class="tabs-container" style="border-bottom: 2px solid var(--border-color); margin: 0;">
-                    <button class="tab-btn active" onclick="switchWebhookTab('webhooks')">
-                        <i class="fas fa-plug"></i> Webhook
-                    </button>
-                    <button class="tab-btn" onclick="switchWebhookTab('api')">
-                        <i class="fas fa-code"></i> API
-                    </button>
+                <div class="tabs-container" style="border-bottom: 2px solid var(--border-color); margin: 0; display: flex; justify-content: space-between; align-items: center; padding-right: 16px;">
+                    <div style="display: flex;">
+                        <button class="tab-btn active" onclick="switchWebhookTab('webhooks')">
+                            <i class="fas fa-plug"></i> Webhooks
+                        </button>
+                        <button class="tab-btn" onclick="switchWebhookTab('api')">
+                            <i class="fas fa-code"></i> API
+                        </button>
+                    </div>
+                    <button onclick="showWebhookForm()" id="add-webhook-btn" class="btn-primary" style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-plus"></i> Add Webhook</button>
                 </div>
 
                 <!-- Webhook Tab -->
-                <div id="webhooks-tab" class="tab-content active" style="padding: 24px;">
-                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
-                        Add a webhook to receive real-time notifications when specific events happen in your dashboard. Choose which triggers should fire the webhook.
+                <div id="webhooks-tab" class="tab-content active" style="padding: 20px;">
+                    <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+                        Receive real-time notifications when specific events happen in your dashboard.
                     </p>
 
                     <!-- Saved Webhooks List -->
                     <div id="webhooks-list"></div>
 
-                    <!-- Add Webhook Button -->
-                    <div id="add-webhook-area" style="margin-top: 16px;">
-                        <button onclick="showWebhookForm()" id="add-webhook-btn" class="btn-primary" style="display: flex; align-items: center; gap: 8px; padding: 10px 20px;">
-                            <i class="fas fa-plus"></i> Add Webhook
-                        </button>
+                    <!-- Empty state when no webhooks -->
+                    <div id="webhooks-empty" style="text-align: center; padding: 40px 20px; color: var(--text-secondary); display: none;">
+                        <i class="fas fa-plug" style="font-size: 32px; margin-bottom: 12px; opacity: 0.3;"></i>
+                        <p style="margin: 0; font-size: 13px;">No webhooks configured yet. Click <strong>Add Webhook</strong> to get started.</p>
                     </div>
 
                     <!-- Webhook Form (hidden by default) -->
-                    <div id="webhook-form-area" style="display: none; background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px;">
-                        <h4 style="margin: 0 0 20px 0; font-size: 15px; color: var(--text-primary);">
+                    <div id="webhook-form-area" style="display: none; background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 12px;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 14px; color: var(--text-primary);">
                             <i class="fas fa-plug" style="color: var(--primary-color); margin-right: 6px;"></i>
                             <span id="webhook-form-title">Add Webhook</span>
                         </h4>
 
-                        <div style="display: grid; gap: 16px;">
+                        <div style="display: grid; gap: 14px;">
                             <!-- Webhook Name -->
                             <div>
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary);">
+                                <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px;">
                                     Webhook Name <span style="color: #dc2626;">*</span>
                                 </label>
                                 <input type="text" id="webhook-name" placeholder="e.g., Google Chat Notifications"
-                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                                    style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
                             </div>
 
                             <!-- Webhook URL -->
                             <div>
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary);">
+                                <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px;">
                                     Webhook URL <span style="color: #dc2626;">*</span>
                                 </label>
                                 <input type="url" id="webhook-url" placeholder="https://example.com/webhook/endpoint"
-                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-                                <span style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block;">The endpoint URL where data will be sent when a trigger fires.</span>
+                                    style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                                <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;">The endpoint URL where data will be sent when a trigger fires.</span>
                             </div>
 
                             <!-- Triggers -->
                             <div>
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary);">
+                                <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px;">
                                     Select Triggers <span style="color: #dc2626;">*</span>
                                 </label>
-                                <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px 0;">
-                                    Choose when this webhook should be triggered. The webhook will fire automatically when any selected event occurs.
-                                </p>
-                                <div style="display: grid; gap: 10px; background: #f8f9fa; padding: 16px; border-radius: 8px;">
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="new_sale" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">New Sale</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a new sale/revenue is recorded from Pabbly Subscription Billing.</span>
-                                        </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="new_sale" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">New Sale</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="new_lead" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">New Lead Captured</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a new lead is captured via CRM integration.</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="new_lead" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">New Lead Captured</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="overspend_alert" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">Overspend Alert</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a campaign, ad set, or ad exceeds the spend threshold with low ROAS.</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="overspend_alert" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">Overspend Alert</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="low_roas_alert" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">Low ROAS Alert</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when ROAS drops below the target threshold you have set.</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="low_roas_alert" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">Low ROAS Alert</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="high_frequency" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">High Ad Frequency</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when ad frequency gets too high, indicating audience fatigue.</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="high_frequency" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">High Ad Frequency</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="daily_report" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">Daily Summary Report</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Sends a daily summary of ad spend, revenue, ROAS, leads, and sales at end of day.</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="daily_report" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">Daily Summary Report</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="pixel_status" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">Pixel Status Change</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when the Facebook Pixel status changes (e.g., goes inactive).</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="pixel_status" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">Pixel Status Change</span>
                                     </label>
-                                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                                        <input type="checkbox" class="webhook-trigger" value="campaign_status" style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary-color);">
-                                        <div>
-                                            <span style="font-size: 14px; font-weight: 500; display: block;">Campaign Status Change</span>
-                                            <span style="font-size: 12px; color: var(--text-secondary);">Triggered when a campaign is paused, activated, or budget is changed.</span>
-                                        </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: white;">
+                                        <input type="checkbox" class="webhook-trigger" value="campaign_status" style="accent-color: var(--primary-color);">
+                                        <span style="font-size: 12px; font-weight: 500;">Campaign Status Change</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Form Actions -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-                            <button type="button" onclick="cancelWebhookForm()" style="padding: 10px 20px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color); gap: 10px;">
+                            <button type="button" onclick="cancelWebhookForm()" style="padding: 8px 16px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 13px;">
                                 Cancel
                             </button>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="button" onclick="saveAndTestWebhook()" style="padding: 10px 20px; border: 1px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-paper-plane"></i> Save & Send Test
-                                </button>
-                                <button type="button" onclick="saveWebhookSimple()" style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                                    Save Webhook
-                                </button>
-                            </div>
+                            <button type="button" onclick="saveAndTestWebhook()" style="padding: 8px 16px; border: 1px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-paper-plane"></i> Save & Test
+                            </button>
+                            <button type="button" onclick="saveWebhookSimple()" class="btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                                Save Webhook
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- API Tab -->
-                <div id="api-tab" class="tab-content" style="padding: 24px;">
-                    <div style="margin-bottom: 24px;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 15px;"><i class="fas fa-code" style="color: var(--primary-color); margin-right: 6px;"></i> Connect via API</h4>
-                        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">
-                            Use the API to connect this dashboard with your automation tools like Pabbly Connect, Zapier, or any custom integration. Fetch your ad data programmatically and build custom workflows.
-                        </p>
-                    </div>
+                <div id="api-tab" class="tab-content" style="padding: 20px;">
+                    <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+                        Connect this dashboard with your automation tools like Pabbly Connect, Zapier, or any custom integration.
+                    </p>
 
-                    <!-- API Key Section -->
-                    <div style="background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                        <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Your API Key</div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="text" id="api-key-display" value="your_api_key_here_xxxxxxxxxxxxxxxxxxxx" readonly
-                                style="flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; font-family: monospace; background: #f8f9fa; box-sizing: border-box;">
-                            <button onclick="copyApiKey()" style="padding: 10px 14px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap;">
+                    <!-- API Key Card -->
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div style="font-size: 13px; font-weight: 600;">API Key</div>
+                            <span class="status-badge active" style="font-size: 11px;">Active</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                            <input type="password" id="api-key-display" value="dbk_demo_a1b2c3d4e5f6g7h8i9j0k1l2m3" readonly
+                                style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 12px; font-family: monospace; background: #f8f9fa; box-sizing: border-box;">
+                            <button onclick="toggleApiKeyVisibility()" id="api-key-toggle-btn" style="padding: 8px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="copyApiKey()" style="padding: 8px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
+                            <button onclick="regenerateApiKey()" style="padding: 8px 12px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">
+                                <i class="fas fa-sync-alt"></i> Regenerate
+                            </button>
                         </div>
-                        <p style="font-size: 12px; color: var(--text-secondary); margin: 8px 0 0 0;">
-                            Include this key in the <code>Authorization: Bearer YOUR_API_KEY</code> header for all requests.
+                        <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">
+                            Include in request header: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 11px;">Authorization: Bearer YOUR_API_KEY</code>
                         </p>
                     </div>
 
                     <!-- Base URL -->
-                    <div style="background: #f0f7ff; border-left: 4px solid var(--primary-color); padding: 14px 16px; border-radius: 4px; margin-bottom: 20px;">
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Base URL</div>
-                        <code style="font-size: 14px; color: var(--text-primary);">https://api.dashboard.pabbly.com/v1</code>
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 2px;">Base URL</div>
+                            <code style="font-size: 13px; color: var(--text-primary); font-weight: 500;">https://api.dashboard.pabbly.com/v1</code>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('https://api.dashboard.pabbly.com/v1'); this.innerHTML='<i class=\'fas fa-check\'></i>'; setTimeout(()=>this.innerHTML='<i class=\'fas fa-copy\'></i>',1500)" style="padding: 6px 10px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
 
-                    <!-- Available Endpoints -->
-                    <h4 style="font-size: 14px; margin: 0 0 12px 0;">Available Endpoints</h4>
-                    <div style="display: grid; gap: 12px;">
-                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
-                                <code style="font-size: 13px;">/metrics</code>
-                            </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Get ad spend, revenue, ROAS, leads, and CPL for the selected account.</p>
-                        </div>
-                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
-                                <code style="font-size: 13px;">/campaigns</code>
-                            </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">List all campaigns with spend, revenue, ROAS, and status.</p>
-                        </div>
-                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
-                                <code style="font-size: 13px;">/leads</code>
-                            </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Fetch all captured leads with source, date, and status.</p>
-                        </div>
-                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
-                                <code style="font-size: 13px;">/revenue</code>
-                            </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Get revenue transactions from Pabbly Subscription Billing.</p>
-                        </div>
-                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <span style="background: #e6f7f1; color: var(--success-color); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span>
-                                <code style="font-size: 13px;">/alerts</code>
-                            </div>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Retrieve active alerts for overspending, low ROAS, etc.</p>
-                        </div>
-                    </div>
+                    <!-- Endpoints Table -->
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Available Endpoints</div>
+                    <table class="data-table" style="margin-bottom: 16px;">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
+                                <td><code style="font-size: 12px;">/metrics</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Ad spend, revenue, ROAS, leads, and CPL for selected account</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
+                                <td><code style="font-size: 12px;">/campaigns</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">All campaigns with spend, revenue, ROAS, and status</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
+                                <td><code style="font-size: 12px;">/adsets</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">All ad sets with performance data and budget info</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
+                                <td><code style="font-size: 12px;">/leads</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">All captured leads with date and status</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
+                                <td><code style="font-size: 12px;">/revenue</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Revenue transactions from Pabbly Subscription Billing</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
+                                <td><code style="font-size: 12px;">/alerts</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Active alerts for overspending, low ROAS, frequency, etc.</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">POST</span></td>
+                                <td><code style="font-size: 12px;">/leads</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Add a new lead entry to the dashboard</td>
+                            </tr>
+                            <tr>
+                                <td><span style="background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">POST</span></td>
+                                <td><code style="font-size: 12px;">/revenue</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Add a new revenue/sale entry to the dashboard</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
                     <!-- Usage Example -->
-                    <h4 style="font-size: 14px; margin: 24px 0 12px 0;">Quick Example</h4>
-                    <div style="background: #1e293b; border-radius: 8px; padding: 16px; overflow-x: auto;">
-                        <pre style="margin: 0; color: #e2e8f0; font-size: 13px; line-height: 1.5;"><code><span style="color: #94a3b8;">// Fetch metrics using API</span>
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Quick Example</div>
+                    <div style="background: #1e293b; border-radius: 8px; padding: 14px; overflow-x: auto;">
+                        <pre style="margin: 0; color: #e2e8f0; font-size: 12px; line-height: 1.6;"><code><span style="color: #94a3b8;">// Fetch metrics using API</span>
 <span style="color: #7dd3fc;">fetch</span>(<span style="color: #86efac;">'https://api.dashboard.pabbly.com/v1/metrics'</span>, {
   <span style="color: #fbbf24;">headers</span>: {
-    <span style="color: #86efac;">'Authorization'</span>: <span style="color: #86efac;">'Bearer sk_live_a1b2c3...'</span>
+    <span style="color: #86efac;">'Authorization'</span>: <span style="color: #86efac;">'Bearer dbk_demo_a1b2c3...'</span>
   }
 })
 .<span style="color: #7dd3fc;">then</span>(res => res.<span style="color: #7dd3fc;">json</span>())
 .<span style="color: #7dd3fc;">then</span>(data => <span style="color: #7dd3fc;">console</span>.<span style="color: #7dd3fc;">log</span>(data));</code></pre>
+                    </div>
+
+                    <!-- Response Example -->
+                    <div style="font-size: 13px; font-weight: 600; margin: 16px 0 10px 0;">Sample Response</div>
+                    <div style="background: #1e293b; border-radius: 8px; padding: 14px; overflow-x: auto;">
+                        <pre style="margin: 0; color: #e2e8f0; font-size: 12px; line-height: 1.6;"><code>{
+  <span style="color: #86efac;">"status"</span>: <span style="color: #86efac;">"success"</span>,
+  <span style="color: #86efac;">"data"</span>: {
+    <span style="color: #86efac;">"ad_spend"</span>: <span style="color: #fbbf24;">336.00</span>,
+    <span style="color: #86efac;">"revenue"</span>: <span style="color: #fbbf24;">1999.00</span>,
+    <span style="color: #86efac;">"roas"</span>: <span style="color: #fbbf24;">5.94</span>,
+    <span style="color: #86efac;">"leads"</span>: <span style="color: #fbbf24;">39</span>,
+    <span style="color: #86efac;">"cpl"</span>: <span style="color: #fbbf24;">8.62</span>,
+    <span style="color: #86efac;">"currency"</span>: <span style="color: #86efac;">"USD"</span>
+  }
+}</code></pre>
                     </div>
                 </div>
             </div>
@@ -7399,17 +7413,20 @@
             const webhooksTab = document.getElementById('webhooks-tab');
             const apiTab = document.getElementById('api-tab');
             const tabButtons = document.querySelectorAll('#webhooks-section .tab-btn');
+            const addBtn = document.getElementById('add-webhook-btn');
 
             if (tab === 'webhooks') {
                 webhooksTab.classList.add('active');
                 apiTab.classList.remove('active');
                 tabButtons[0].classList.add('active');
                 tabButtons[1].classList.remove('active');
+                if (addBtn) addBtn.style.display = 'flex';
             } else {
                 webhooksTab.classList.remove('active');
                 apiTab.classList.add('active');
                 tabButtons[0].classList.remove('active');
                 tabButtons[1].classList.add('active');
+                if (addBtn) addBtn.style.display = 'none';
             }
         }
 
@@ -7492,43 +7509,39 @@
         // Render all saved webhook cards
         function renderWebhooksList() {
             const container = document.getElementById('webhooks-list');
+            const emptyState = document.getElementById('webhooks-empty');
             if (!container) return;
 
             if (savedWebhooks.length === 0) {
                 container.innerHTML = '';
+                if (emptyState) emptyState.style.display = 'block';
                 return;
             }
+            if (emptyState) emptyState.style.display = 'none';
 
             container.innerHTML = savedWebhooks.map(wh => `
-                <div id="wh-card-${wh.id}" style="background: var(--card-background); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success-color); flex-shrink: 0;"></span>
-                                <strong style="font-size: 15px;">${wh.name}</strong>
-                            </div>
-                            <code style="font-size: 12px; color: var(--text-secondary); word-break: break-all; display: block;">${wh.url}</code>
+                <div id="wh-card-${wh.id}" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success-color); flex-shrink: 0;"></span>
+                            <strong style="font-size: 13px;">${wh.name}</strong>
                         </div>
-                        <div style="display: flex; gap: 8px; flex-shrink: 0; margin-left: 12px;">
-                            <button onclick="editWebhookById('${wh.id}')" style="padding: 6px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                        <div style="display: flex; gap: 6px;">
+                            <button onclick="sendTestWebhook('${wh.id}')" style="padding: 4px 10px; background: white; border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--primary-color);">
+                                <i class="fas fa-paper-plane"></i> Test
+                            </button>
+                            <button onclick="editWebhookById('${wh.id}')" style="padding: 4px 10px; border: 1px solid var(--border-color); background: white; border-radius: 5px; cursor: pointer; font-size: 11px;">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button onclick="deleteWebhookById('${wh.id}')" style="padding: 6px 12px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                                <i class="fas fa-trash"></i> Delete
+                            <button onclick="deleteWebhookById('${wh.id}')" style="padding: 4px 10px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; border-radius: 5px; cursor: pointer; font-size: 11px;">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
-                    <div style="margin-bottom: 14px;">
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500;">Triggers:</div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                            ${wh.triggers.map(t => `<span style="display: inline-block; padding: 3px 10px; background: #e7f3ff; color: var(--primary-color); border-radius: 12px; font-size: 12px; font-weight: 500;">${triggerLabels[t] || t}</span>`).join('')}
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <button onclick="sendTestWebhook('${wh.id}')" style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-paper-plane"></i> Send Test Data
-                        </button>
-                        <span id="test-status-${wh.id}" style="font-size: 13px; color: var(--text-secondary); display: flex; align-items: center;"></span>
+                    <code style="font-size: 11px; color: var(--text-secondary); word-break: break-all; display: block; margin-bottom: 8px;">${wh.url}</code>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+                        ${wh.triggers.map(t => `<span style="display: inline-block; padding: 2px 8px; background: #e7f3ff; color: var(--primary-color); border-radius: 10px; font-size: 11px; font-weight: 500;">${triggerLabels[t] || t}</span>`).join('')}
+                        <span id="test-status-${wh.id}" style="font-size: 11px; color: var(--text-secondary); margin-left: 4px;"></span>
                     </div>
                 </div>
             `).join('');
@@ -7607,6 +7620,28 @@
                 btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
             });
+        }
+
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('api-key-display');
+            const btn = document.getElementById('api-key-toggle-btn');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        }
+
+        function regenerateApiKey() {
+            if (!confirm('Are you sure you want to regenerate your API key? The current key will stop working immediately.')) return;
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let newKey = 'dbk_demo_';
+            for (let i = 0; i < 24; i++) newKey += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('api-key-display').value = newKey;
+            document.getElementById('api-key-display').type = 'password';
+            document.getElementById('api-key-toggle-btn').innerHTML = '<i class="fas fa-eye"></i>';
         }
 
         // Render webhooks on page load
