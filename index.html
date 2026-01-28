@@ -7470,11 +7470,8 @@
                             </button>
                         </div>
                     </div>
-                    <code style="font-size: 11px; color: var(--text-secondary); word-break: break-all; display: block; margin-bottom: 8px;">${wh.url}</code>
-                    <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
-                        ${wh.triggers.map(t => `<span style="display: inline-block; padding: 2px 8px; background: #e7f3ff; color: var(--primary-color); border-radius: 10px; font-size: 11px; font-weight: 500;">${triggerLabels[t] || t}</span>`).join('')}
-                        <span id="test-status-${wh.id}" style="font-size: 11px; color: var(--text-secondary); margin-left: 4px;"></span>
-                    </div>
+                    <code style="font-size: 11px; color: var(--text-secondary); word-break: break-all; display: block;">${wh.url}</code>
+                    <span id="test-status-${wh.id}" style="font-size: 11px; color: var(--text-secondary); display: block; margin-top: 6px;"></span>
                 </div>
             `).join('');
         }
