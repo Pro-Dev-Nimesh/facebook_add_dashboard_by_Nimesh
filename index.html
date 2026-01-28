@@ -4285,59 +4285,37 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
-                                <td><code style="font-size: 12px;">/metrics</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">Ad spend, revenue, ROAS, leads, and CPL for selected account</td>
-                            </tr>
-                            <tr>
-                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
-                                <td><code style="font-size: 12px;">/campaigns</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">All campaigns with spend, revenue, ROAS, and status</td>
-                            </tr>
-                            <tr>
-                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
-                                <td><code style="font-size: 12px;">/adsets</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">All ad sets with performance data and budget info</td>
-                            </tr>
-                            <tr>
-                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
-                                <td><code style="font-size: 12px;">/leads</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">All captured leads with date and status</td>
-                            </tr>
-                            <tr>
-                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
-                                <td><code style="font-size: 12px;">/revenue</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">Revenue transactions from Pabbly Subscription Billing</td>
-                            </tr>
-                            <tr>
-                                <td><span style="background: #e6f7f1; color: var(--success-color); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">GET</span></td>
-                                <td><code style="font-size: 12px;">/alerts</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">Active alerts for overspending, low ROAS, frequency, etc.</td>
+                                <td><span style="background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">POST</span></td>
+                                <td><code style="font-size: 12px;">/{ad_account}/leads</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Add a new lead entry for the specified ad account</td>
                             </tr>
                             <tr>
                                 <td><span style="background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">POST</span></td>
-                                <td><code style="font-size: 12px;">/leads</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">Add a new lead entry to the dashboard</td>
-                            </tr>
-                            <tr>
-                                <td><span style="background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">POST</span></td>
-                                <td><code style="font-size: 12px;">/revenue</code></td>
-                                <td style="font-size: 12px; color: var(--text-secondary);">Add a new revenue/sale entry to the dashboard</td>
+                                <td><code style="font-size: 12px;">/{ad_account}/revenue</code></td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">Add a new revenue/sale entry for the specified ad account</td>
                             </tr>
                         </tbody>
                     </table>
+                    <div style="background: #f0f7ff; border-left: 3px solid var(--primary-color); padding: 10px 14px; border-radius: 4px; margin-bottom: 16px;">
+                        <p style="font-size: 12px; color: var(--text-secondary); margin: 0;"><strong style="color: var(--text-primary);">Note:</strong> Replace <code style="background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 11px;">{ad_account}</code> with your ad account name (e.g., <code style="background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 11px;">pabbly-connect</code>, <code style="background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 11px;">pabbly-chatflow</code>, <code style="background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 11px;">pabbly-subscription</code>). Each ad account has its own settings and data.</p>
+                    </div>
 
                     <!-- Usage Example -->
                     <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Quick Example</div>
                     <div style="background: #1e293b; border-radius: 8px; padding: 14px; overflow-x: auto;">
-                        <pre style="margin: 0; color: #e2e8f0; font-size: 12px; line-height: 1.6;"><code><span style="color: #94a3b8;">// Fetch metrics using API</span>
-<span style="color: #7dd3fc;">fetch</span>(<span style="color: #86efac;">'https://api.dashboard.pabbly.com/v1/metrics'</span>, {
+                        <pre style="margin: 0; color: #e2e8f0; font-size: 12px; line-height: 1.6;"><code><span style="color: #94a3b8;">// Add a new lead for Pabbly Connect ad account</span>
+<span style="color: #7dd3fc;">fetch</span>(<span style="color: #86efac;">'https://api.dashboard.pabbly.com/v1/pabbly-connect/leads'</span>, {
+  <span style="color: #fbbf24;">method</span>: <span style="color: #86efac;">'POST'</span>,
   <span style="color: #fbbf24;">headers</span>: {
-    <span style="color: #86efac;">'Authorization'</span>: <span style="color: #86efac;">'Bearer dbk_demo_a1b2c3...'</span>
-  }
-})
-.<span style="color: #7dd3fc;">then</span>(res => res.<span style="color: #7dd3fc;">json</span>())
-.<span style="color: #7dd3fc;">then</span>(data => <span style="color: #7dd3fc;">console</span>.<span style="color: #7dd3fc;">log</span>(data));</code></pre>
+    <span style="color: #86efac;">'Authorization'</span>: <span style="color: #86efac;">'Bearer dbk_demo_a1b2c3...'</span>,
+    <span style="color: #86efac;">'Content-Type'</span>: <span style="color: #86efac;">'application/json'</span>
+  },
+  <span style="color: #fbbf24;">body</span>: <span style="color: #7dd3fc;">JSON</span>.<span style="color: #7dd3fc;">stringify</span>({
+    <span style="color: #86efac;">"name"</span>: <span style="color: #86efac;">"John Doe"</span>,
+    <span style="color: #86efac;">"email"</span>: <span style="color: #86efac;">"john@example.com"</span>,
+    <span style="color: #86efac;">"status"</span>: <span style="color: #86efac;">"New"</span>
+  })
+})</code></pre>
                     </div>
 
                     <!-- Response Example -->
@@ -4345,13 +4323,14 @@
                     <div style="background: #1e293b; border-radius: 8px; padding: 14px; overflow-x: auto;">
                         <pre style="margin: 0; color: #e2e8f0; font-size: 12px; line-height: 1.6;"><code>{
   <span style="color: #86efac;">"status"</span>: <span style="color: #86efac;">"success"</span>,
+  <span style="color: #86efac;">"message"</span>: <span style="color: #86efac;">"Lead added successfully"</span>,
+  <span style="color: #86efac;">"ad_account"</span>: <span style="color: #86efac;">"pabbly-connect"</span>,
   <span style="color: #86efac;">"data"</span>: {
-    <span style="color: #86efac;">"ad_spend"</span>: <span style="color: #fbbf24;">336.00</span>,
-    <span style="color: #86efac;">"revenue"</span>: <span style="color: #fbbf24;">1999.00</span>,
-    <span style="color: #86efac;">"roas"</span>: <span style="color: #fbbf24;">5.94</span>,
-    <span style="color: #86efac;">"leads"</span>: <span style="color: #fbbf24;">39</span>,
-    <span style="color: #86efac;">"cpl"</span>: <span style="color: #fbbf24;">8.62</span>,
-    <span style="color: #86efac;">"currency"</span>: <span style="color: #86efac;">"USD"</span>
+    <span style="color: #86efac;">"id"</span>: <span style="color: #fbbf24;">124</span>,
+    <span style="color: #86efac;">"name"</span>: <span style="color: #86efac;">"John Doe"</span>,
+    <span style="color: #86efac;">"email"</span>: <span style="color: #86efac;">"john@example.com"</span>,
+    <span style="color: #86efac;">"status"</span>: <span style="color: #86efac;">"New"</span>,
+    <span style="color: #86efac;">"created_at"</span>: <span style="color: #86efac;">"2026-01-28T10:30:00Z"</span>
   }
 }</code></pre>
                     </div>
@@ -4379,70 +4358,12 @@
                             </label>
                             <input type="url" id="webhook-url" placeholder="https://example.com/webhook/endpoint"
                                 style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
-                            <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;">The endpoint URL where data will be sent when a trigger fires.</span>
+                            <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;">The endpoint URL where notification data will be sent.</span>
                         </div>
                         <div style="margin-bottom: 20px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;">
-                                Select Triggers <span style="color: #dc2626;">*</span>
-                            </label>
-                            <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 10px 0;">Choose which events should fire this webhook.</p>
-                            <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="new_sale" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">New Sale</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When a new sale/revenue is recorded</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="new_lead" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">New Lead Captured</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When a new lead is captured via CRM</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="overspend_alert" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">Overspend Alert</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When spend exceeds threshold with low ROAS</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="low_roas_alert" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">Low ROAS Alert</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When ROAS drops below target threshold</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="high_frequency" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">High Ad Frequency</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When ad frequency indicates audience fatigue</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="daily_report" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">Daily Summary Report</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">End-of-day summary of spend, revenue, ROAS</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-bottom: 1px solid var(--border-color);">
-                                    <input type="checkbox" class="webhook-trigger" value="pixel_status" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">Pixel Status Change</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When Facebook Pixel status changes</div>
-                                    </div>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px;">
-                                    <input type="checkbox" class="webhook-trigger" value="campaign_status" style="accent-color: var(--primary-color);">
-                                    <div>
-                                        <div style="font-size: 13px; font-weight: 500;">Campaign Status Change</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">When a campaign is paused, activated, or budget changed</div>
-                                    </div>
-                                </label>
+                            <div style="background: #f0f7ff; border-left: 3px solid var(--primary-color); padding: 12px 14px; border-radius: 4px;">
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;"><i class="fas fa-info-circle" style="margin-right: 6px;"></i>All Events Included</div>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">This webhook will automatically receive notifications for all alert events including new sales, new leads, overspend alerts, low ROAS alerts, high frequency alerts, daily reports, pixel status changes, and campaign status changes.</p>
                             </div>
                         </div>
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -5956,21 +5877,21 @@
         let savedWebhooks = [
             {
                 id: 'wh_001',
-                name: 'Google Chat - Sales Alerts',
-                url: 'https://chat.googleapis.com/v1/spaces/AAAA1234/messages?key=AIzaSyBxxx',
-                triggers: ['new_sale', 'overspend_alert', 'low_roas_alert']
+                name: 'Facebook Ads Notification to Chat',
+                url: 'https://chat.googleapis.com/v1/spaces/AAAA1234/messages?key=sample_webhook_key_12345',
+                triggers: ['new_sale', 'new_lead', 'overspend_alert', 'low_roas_alert', 'high_frequency', 'daily_report', 'pixel_status', 'campaign_status']
             },
             {
                 id: 'wh_002',
-                name: 'Slack - Lead Notifications',
-                url: 'https://hooks.slack.com/services/T00000/B00000/XXXXXXXXXXXXXXX',
-                triggers: ['new_lead', 'daily_report']
+                name: 'Slack Alert Notifications',
+                url: 'https://hooks.slack.com/services/T00000/B00000/sample_webhook_url_xyz',
+                triggers: ['new_sale', 'new_lead', 'overspend_alert', 'low_roas_alert', 'high_frequency', 'daily_report', 'pixel_status', 'campaign_status']
             },
             {
                 id: 'wh_003',
-                name: 'Pabbly Connect - Automation',
-                url: 'https://connect.pabbly.com/workflow/sendwebhookdata/abcdef123456',
-                triggers: ['new_sale', 'new_lead', 'campaign_status', 'pixel_status']
+                name: 'Pabbly Connect Notification',
+                url: 'https://connect.pabbly.com/workflow/sendwebhookdata/sample_webhook_abc123',
+                triggers: ['new_sale', 'new_lead', 'overspend_alert', 'low_roas_alert', 'high_frequency', 'daily_report', 'pixel_status', 'campaign_status']
             }
         ];
         let editingWebhookId = null;
@@ -7452,7 +7373,6 @@
             document.getElementById('webhook-form-title').textContent = 'Add Webhook';
             document.getElementById('webhook-name').value = '';
             document.getElementById('webhook-url').value = '';
-            document.querySelectorAll('.webhook-trigger').forEach(cb => cb.checked = false);
             document.getElementById('webhook-modal').style.display = 'flex';
         }
 
@@ -7468,14 +7388,11 @@
         function saveWebhookSimple() {
             const name = document.getElementById('webhook-name').value.trim();
             const url = document.getElementById('webhook-url').value.trim();
-            const triggers = Array.from(document.querySelectorAll('.webhook-trigger:checked')).map(cb => cb.value);
+            // All events are automatically included
+            const triggers = ['new_sale', 'new_lead', 'overspend_alert', 'low_roas_alert', 'high_frequency', 'daily_report', 'pixel_status', 'campaign_status'];
 
             if (!name || !url) {
                 alert('Please fill in Webhook Name and URL.');
-                return;
-            }
-            if (triggers.length === 0) {
-                alert('Please select at least one trigger.');
                 return;
             }
 
@@ -7495,14 +7412,11 @@
         function saveAndTestWebhook() {
             const name = document.getElementById('webhook-name').value.trim();
             const url = document.getElementById('webhook-url').value.trim();
-            const triggers = Array.from(document.querySelectorAll('.webhook-trigger:checked')).map(cb => cb.value);
+            // All events are automatically included
+            const triggers = ['new_sale', 'new_lead', 'overspend_alert', 'low_roas_alert', 'high_frequency', 'daily_report', 'pixel_status', 'campaign_status'];
 
             if (!name || !url) {
                 alert('Please fill in Webhook Name and URL.');
-                return;
-            }
-            if (triggers.length === 0) {
-                alert('Please select at least one trigger.');
                 return;
             }
 
@@ -7573,9 +7487,6 @@
             document.getElementById('webhook-form-title').textContent = 'Edit Webhook';
             document.getElementById('webhook-name').value = wh.name;
             document.getElementById('webhook-url').value = wh.url;
-            document.querySelectorAll('.webhook-trigger').forEach(cb => {
-                cb.checked = wh.triggers.includes(cb.value);
-            });
             document.getElementById('webhook-modal').style.display = 'flex';
         }
 
