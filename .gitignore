@@ -19,11 +19,25 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# Node modules (if added later)
+# Node modules
 node_modules/
 
 # Build output
 dist/
 build/
 
+# Vercel
 .vercel
+
+# Sensitive files
+token.json
+*.db
+
+# SQLite database
+backend/data.db
+backend/*.db
+backend/database.sqlite
+*.sqlite
+
+# Package lock (optional - uncomment if needed)
+# package-lock.json

@@ -5379,8 +5379,347 @@
     </main>
 
     <script>
+        // ==================== API SERVICE LAYER ====================
+        const API_BASE = 'http://localhost:3001/api';
+
+        // Authentication state
+        let authToken = localStorage.getItem('fb_dash_token') || null;
+        let currentUser = JSON.parse(localStorage.getItem('fb_dash_user') || 'null');
+        let apiAccounts = []; // Accounts loaded from API
+
+        // API Service
+        const api = {
+            // Set auth token for all requests
+            setToken(token) {
+                authToken = token;
+                if (token) {
+                    localStorage.setItem('fb_dash_token', token);
+                } else {
+                    localStorage.removeItem('fb_dash_token');
+                }
+            },
+
+            // Set current user
+            setUser(user) {
+                currentUser = user;
+                if (user) {
+                    localStorage.setItem('fb_dash_user', JSON.stringify(user));
+                } else {
+                    localStorage.removeItem('fb_dash_user');
+                }
+            },
+
+            // Make authenticated API request
+            async request(endpoint, options = {}) {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE}${endpoint}`, {
+                        ...options,
+                        headers
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            // Token expired, sign out
+                            api.setToken(null);
+                            api.setUser(null);
+                            signOut();
+                        }
+                        throw new Error(data.error || 'Request failed');
+                    }
+
+                    return data;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    throw error;
+                }
+            },
+
+            // Auth endpoints
+            async login(email, password) {
+                const result = await this.request('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (result.success) {
+                    this.setToken(result.data.token);
+                    this.setUser(result.data.user);
+                    apiAccounts = result.data.accounts || [];
+                }
+
+                return result;
+            },
+
+            async signup(name, email, password) {
+                const result = await this.request('/auth/signup', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                if (result.success) {
+                    this.setToken(result.data.token);
+                    this.setUser(result.data.user);
+                    apiAccounts = result.data.accounts || [];
+                }
+
+                return result;
+            },
+
+            async logout() {
+                try {
+                    await this.request('/auth/logout', { method: 'POST' });
+                } catch (e) {
+                    // Ignore errors during logout
+                }
+                this.setToken(null);
+                this.setUser(null);
+                apiAccounts = [];
+            },
+
+            async getCurrentUser() {
+                return this.request('/auth/me');
+            },
+
+            // Dashboard endpoints
+            async getAccounts() {
+                return this.request('/dashboard/accounts');
+            },
+
+            async getMetrics(accountId, startDate, endDate) {
+                let url = `/dashboard/metrics/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getCampaigns(accountId, startDate, endDate) {
+                let url = `/dashboard/campaigns/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getAdSets(accountId, startDate, endDate) {
+                let url = `/dashboard/adsets/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getAds(accountId, startDate, endDate) {
+                let url = `/dashboard/ads/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getCountries(accountId, startDate, endDate) {
+                let url = `/dashboard/countries/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getSales(accountId, startDate, endDate, limit = 20) {
+                let url = `/dashboard/sales/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                params.append('limit', limit);
+                url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            // Revenue endpoints
+            async getRevenue(accountId, startDate, endDate) {
+                let url = `/revenue/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            // Leads endpoints
+            async getLeads(accountId, startDate, endDate) {
+                let url = `/leads/${accountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            // Alerts endpoints
+            async getAlerts(accountId) {
+                return this.request(`/alerts/${accountId}`);
+            },
+
+            // Webhooks endpoints
+            async getWebhooks(accountId) {
+                return this.request(`/webhooks/manage/${accountId}`);
+            },
+
+            async createWebhook(accountId, data) {
+                return this.request(`/webhooks/manage/${accountId}`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            },
+
+            async deleteWebhook(webhookId) {
+                return this.request(`/webhooks/manage/${webhookId}`, {
+                    method: 'DELETE'
+                });
+            },
+
+            // Settings endpoints
+            async getApiKeys(accountId) {
+                return this.request(`/settings/api-keys/${accountId}`);
+            },
+
+            async createApiKey(accountId, data) {
+                return this.request(`/settings/api-keys/${accountId}`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            },
+
+            async deleteApiKey(keyId) {
+                return this.request(`/settings/api-keys/${keyId}`, {
+                    method: 'DELETE'
+                });
+            },
+
+            // Facebook Live Data endpoints
+            async getFbAccounts() {
+                return this.request('/fb/accounts');
+            },
+
+            async getFbInsights(adAccountId, startDate, endDate) {
+                let url = `/fb/insights/${adAccountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getFbCampaigns(adAccountId, startDate, endDate) {
+                let url = `/fb/campaigns/${adAccountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getFbAdSets(adAccountId, startDate, endDate) {
+                let url = `/fb/adsets/${adAccountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getFbAds(adAccountId, startDate, endDate) {
+                let url = `/fb/ads/${adAccountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async getFbCountries(adAccountId, startDate, endDate) {
+                let url = `/fb/countries/${adAccountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            },
+
+            async syncFbAccounts() {
+                return this.request('/fb/sync-accounts', { method: 'POST' });
+            },
+
+            async getFbTimeMetrics(adAccountId) {
+                return this.request(`/fb/time-metrics/${adAccountId}`);
+            },
+
+            async getFbSales(adAccountId, startDate, endDate) {
+                let url = `/fb/sales/${adAccountId}`;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (params.toString()) url += `?${params.toString()}`;
+                return this.request(url);
+            }
+        };
+
+        // Helper function to get date range based on time selector
+        function getDateRange(timeRange) {
+            const now = new Date();
+            let startDate, endDate;
+
+            endDate = now.toISOString().split('T')[0];
+
+            switch(timeRange) {
+                case 'today':
+                    startDate = endDate;
+                    break;
+                case 'last7days':
+                    startDate = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0];
+                    break;
+                case 'last30days':
+                    startDate = new Date(now.setDate(now.getDate() - 30)).toISOString().split('T')[0];
+                    break;
+                case 'last90days':
+                    startDate = new Date(now.setDate(now.getDate() - 90)).toISOString().split('T')[0];
+                    break;
+                case 'thismonth':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                    break;
+                case 'lastmonth':
+                    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    startDate = lastMonth.toISOString().split('T')[0];
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+                    break;
+                default:
+                    startDate = new Date(now.setDate(now.getDate() - 30)).toISOString().split('T')[0];
+            }
+
+            return { startDate, endDate };
+        }
+
+        // Current selected API account ID (database ID, not accountType)
+        let currentApiAccountId = null;
+
         // ==================== MULTI-ACCOUNT DATA STORE ====================
-        // Each ad account has its own complete dataset
+        // Each ad account has its own complete dataset (used as fallback/mock data)
         const accountData = {
             connect: {
                 name: 'Pabbly Connect',
@@ -5965,8 +6304,16 @@
         }
 
         // Handle Time Range Change
-        function handleTimeRangeChange() {
+        async function handleTimeRangeChange() {
             const timeRange = document.getElementById('time-range-selector').value;
+
+            // If we have an API account, fetch data from API
+            if (currentApiAccountId) {
+                await loadAccountData(currentApiAccountId);
+                return;
+            }
+
+            // Fallback to mock data
             const data = accountData[currentAccount];
 
             // Get metrics based on time range
@@ -6004,28 +6351,34 @@
         }
 
         // Refresh Dashboard Data
-        function refreshDashboardData() {
-            const data = accountData[currentAccount];
-            const timeRange = document.getElementById('time-range-selector').value;
-
+        async function refreshDashboardData() {
             // Show loading state
-            const refreshBtn = event.currentTarget;
-            const icon = refreshBtn.querySelector('i');
-            icon.classList.add('fa-spin');
+            const refreshBtn = event?.currentTarget;
+            const icon = refreshBtn?.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
             document.getElementById('last-synced-time').textContent = 'Syncing...';
 
-            // Simulate API call
-            setTimeout(() => {
-                // Update metrics based on current time range
+            try {
+                // Use API if we have an account ID
+                if (currentApiAccountId) {
+                    await loadAccountData(currentApiAccountId);
+                } else {
+                    // Fallback to mock data
+                    const data = accountData[currentAccount];
+                    handleTimeRangeChange();
+                    updateTimeBasedTables(data.timeBasedMetrics);
+                }
+            } catch (error) {
+                console.error('Failed to refresh data:', error);
+                // Fallback to mock data
+                const data = accountData[currentAccount];
                 handleTimeRangeChange();
-
-                // Update other sections
                 updateTimeBasedTables(data.timeBasedMetrics);
-
+            } finally {
                 // Stop loading
-                icon.classList.remove('fa-spin');
+                if (icon) icon.classList.remove('fa-spin');
                 updateLastSyncedTime();
-            }, 800);
+            }
         }
 
         // Update last synced time
@@ -7847,10 +8200,11 @@
             document.querySelector('.auth-logo p').textContent = 'Create a new account';
         }
 
-        function handleLogin() {
+        async function handleLogin() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             const errorEl = document.getElementById('login-error');
+            const btn = document.querySelector('#login-form .auth-btn-primary');
             errorEl.style.display = 'none';
 
             if (!email || !password) {
@@ -7859,24 +8213,38 @@
                 return;
             }
 
-            const users = JSON.parse(localStorage.getItem('fb_dash_users') || '[]');
-            const user = users.find(u => u.email === email && u.password === password);
-            if (!user) {
-                errorEl.textContent = 'Invalid email or password.';
-                errorEl.style.display = 'block';
-                return;
-            }
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
 
-            localStorage.setItem('fb_dash_session', JSON.stringify({ name: user.name, email: user.email }));
-            showDashboard(user);
+            try {
+                const result = await api.login(email, password);
+
+                if (result.success) {
+                    // Update apiAccounts with accounts from login response
+                    apiAccounts = result.data.accounts || [];
+                    showDashboard(result.data.user);
+                    await loadDashboardFromAPI();
+                } else {
+                    errorEl.textContent = result.error || 'Login failed.';
+                    errorEl.style.display = 'block';
+                }
+            } catch (error) {
+                errorEl.textContent = error.message || 'Failed to connect to server. Please try again.';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Sign In';
+            }
         }
 
-        function handleSignup() {
+        async function handleSignup() {
             const name = document.getElementById('signup-name').value.trim();
             const email = document.getElementById('signup-email').value.trim();
             const password = document.getElementById('signup-password').value;
             const confirm = document.getElementById('signup-confirm').value;
             const errorEl = document.getElementById('signup-error');
+            const btn = document.querySelector('#signup-form .auth-btn-primary');
             errorEl.style.display = 'none';
 
             if (!name || !email || !password || !confirm) {
@@ -7895,17 +8263,28 @@
                 return;
             }
 
-            let users = JSON.parse(localStorage.getItem('fb_dash_users') || '[]');
-            if (users.find(u => u.email === email)) {
-                errorEl.textContent = 'An account with this email already exists.';
-                errorEl.style.display = 'block';
-                return;
-            }
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
 
-            users.push({ name, email, password });
-            localStorage.setItem('fb_dash_users', JSON.stringify(users));
-            localStorage.setItem('fb_dash_session', JSON.stringify({ name, email }));
-            showDashboard({ name, email });
+            try {
+                const result = await api.signup(name, email, password);
+
+                if (result.success) {
+                    apiAccounts = result.data.accounts || [];
+                    showDashboard(result.data.user);
+                    await loadDashboardFromAPI();
+                } else {
+                    errorEl.textContent = result.error || 'Signup failed.';
+                    errorEl.style.display = 'block';
+                }
+            } catch (error) {
+                errorEl.textContent = error.message || 'Failed to connect to server. Please try again.';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Create Account';
+            }
         }
 
         function handleGoogleSSO() {
@@ -7923,8 +8302,12 @@
             document.getElementById('user-menu-email').textContent = user.email;
         }
 
-        function signOut() {
-            localStorage.removeItem('fb_dash_session');
+        async function signOut() {
+            try {
+                await api.logout();
+            } catch (e) {
+                // Ignore errors during logout
+            }
             document.getElementById('auth-screen').style.display = 'flex';
             document.querySelector('.sidebar').style.display = 'none';
             document.querySelector('.main-content').style.display = 'none';
@@ -7933,6 +8316,605 @@
             document.getElementById('login-email').value = '';
             document.getElementById('login-password').value = '';
             showLogin();
+        }
+
+        // Load dashboard data from API
+        // Store Facebook ad account IDs
+        let fbAdAccounts = [];
+        let currentFbAccountId = null;
+
+        async function loadDashboardFromAPI() {
+            try {
+                // First try to get real Facebook accounts
+                try {
+                    const fbAccountsResponse = await api.getFbAccounts();
+                    if (fbAccountsResponse.success && fbAccountsResponse.data.length > 0) {
+                        fbAdAccounts = fbAccountsResponse.data;
+                        currentFbAccountId = fbAdAccounts[0].id;
+
+                        // Update dropdown with real FB accounts
+                        updateFbAccountDropdown();
+
+                        // Load data from Facebook
+                        await loadFacebookData(currentFbAccountId);
+                        return;
+                    }
+                } catch (fbError) {
+                    console.log('Facebook API not available, using database accounts:', fbError.message);
+                }
+
+                // Fallback: Get accounts from database
+                if (apiAccounts.length === 0) {
+                    const accountsResponse = await api.getAccounts();
+                    if (accountsResponse.success) {
+                        apiAccounts = accountsResponse.data;
+                    }
+                }
+
+                // Update account dropdown with API accounts
+                updateAccountDropdown();
+
+                // Set first account as current if available
+                if (apiAccounts.length > 0) {
+                    currentApiAccountId = apiAccounts[0].id;
+                    await loadAccountData(currentApiAccountId);
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                // Fall back to mock data
+                updateDashboardData(accountData[currentAccount]);
+            }
+        }
+
+        // Update dropdown with real Facebook accounts
+        function updateFbAccountDropdown() {
+            const dropdown = document.getElementById('accountDropdown');
+            if (!dropdown || fbAdAccounts.length === 0) return;
+
+            const optionsHtml = fbAdAccounts.map((acc, index) => `
+                <div class="account-option ${index === 0 ? 'active' : ''}" onclick="switchToFbAccount('${acc.id}', '${acc.name}')">
+                    <div class="option-icon connect">
+                        <i class="fab fa-facebook-f"></i>
+                    </div>
+                    <div class="option-info">
+                        <span class="option-name">${acc.name}</span>
+                        <span class="option-status">
+                            <span class="status-dot" style="background: ${acc.status === 'active' ? 'var(--success-color)' : 'var(--warning-color)'}"></span>
+                            ${acc.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <i class="fas fa-check check-icon"></i>
+                </div>
+            `).join('');
+
+            dropdown.innerHTML = '<div class="account-dropdown-header">Switch Ad Account</div>' + optionsHtml;
+
+            // Update button with first account
+            if (fbAdAccounts.length > 0) {
+                document.getElementById('currentAccountName').textContent = fbAdAccounts[0].name;
+                const accountIcon = document.querySelector('.account-switcher-btn .account-icon i');
+                if (accountIcon) accountIcon.className = 'fab fa-facebook-f';
+            }
+        }
+
+        // Switch to Facebook account
+        async function switchToFbAccount(accountId, accountName) {
+            currentFbAccountId = accountId;
+
+            // Update button text
+            document.getElementById('currentAccountName').textContent = accountName;
+
+            // Update active state in dropdown
+            document.querySelectorAll('.account-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+
+            // Close dropdown
+            document.getElementById('accountDropdown').classList.remove('show');
+            document.querySelector('.account-switcher-btn')?.classList.remove('open');
+
+            // Load data from Facebook
+            await loadFacebookData(accountId);
+        }
+
+        // Load data directly from Facebook API
+        async function loadFacebookData(adAccountId) {
+            const timeRange = document.getElementById('time-range-selector')?.value || 'last30days';
+            const { startDate, endDate } = getDateRange(timeRange);
+
+            try {
+                document.getElementById('last-synced-time').textContent = 'Loading from Facebook...';
+
+                // Fetch all data in parallel
+                const [insightsRes, campaignsRes, adsetsRes, adsRes, countriesRes, timeMetricsRes, salesRes] = await Promise.all([
+                    api.getFbInsights(adAccountId, startDate, endDate),
+                    api.getFbCampaigns(adAccountId, startDate, endDate),
+                    api.getFbAdSets(adAccountId, startDate, endDate),
+                    api.getFbAds(adAccountId, startDate, endDate),
+                    api.getFbCountries(adAccountId, startDate, endDate),
+                    api.getFbTimeMetrics(adAccountId),
+                    api.getFbSales(adAccountId, startDate, endDate)
+                ]);
+
+                // Update metrics
+                if (insightsRes.success) {
+                    updateMetricsFromAPI(insightsRes.data);
+                }
+
+                // Store campaigns in data object for filtering, then apply filter
+                if (campaignsRes.success) {
+                    // Transform FB data format to match internal format
+                    data.campaigns = campaignsRes.data.map(c => ({
+                        name: c.name,
+                        status: c.status?.toLowerCase() || 'active',
+                        budget: c.budget || 0,
+                        spend: parseFloat(c.spend) || 0,
+                        sales: c.sales || 0,
+                        revenue: parseFloat(c.revenue) || 0,
+                        roas: parseFloat(c.roas) || 0,
+                        frequency: parseFloat(c.frequency) || 0,
+                        outboundClicks: parseInt(c.outboundClicks) || 0,
+                        reach: parseInt(c.reach) || 0,
+                        impressions: parseInt(c.impressions) || 0
+                    }));
+                }
+
+                // Store ad sets in data object for filtering
+                if (adsetsRes.success) {
+                    data.adSets = adsetsRes.data.map(a => ({
+                        name: a.name,
+                        campaignName: a.campaign_name,
+                        status: a.status?.toLowerCase() || 'active',
+                        budget: a.budget || 0,
+                        spend: parseFloat(a.spend) || 0,
+                        sales: a.sales || 0,
+                        revenue: parseFloat(a.revenue) || 0,
+                        roas: parseFloat(a.roas) || 0,
+                        frequency: parseFloat(a.frequency) || 0,
+                        outboundClicks: parseInt(a.outboundClicks) || 0,
+                        reach: parseInt(a.reach) || 0,
+                        impressions: parseInt(a.impressions) || 0
+                    }));
+                }
+
+                // Store ads in data object for filtering
+                if (adsRes.success) {
+                    data.ads = adsRes.data.map(a => ({
+                        name: a.name,
+                        campaignName: a.campaign_name,
+                        adSetName: a.adset_name,
+                        status: a.status?.toLowerCase() || 'active',
+                        budget: a.budget || 0,
+                        spend: parseFloat(a.spend) || 0,
+                        sales: a.sales || 0,
+                        revenue: parseFloat(a.revenue) || 0,
+                        roas: parseFloat(a.roas) || 0,
+                        frequency: parseFloat(a.frequency) || 0,
+                        outboundClicks: parseInt(a.outboundClicks) || 0,
+                        reach: parseInt(a.reach) || 0,
+                        impressions: parseInt(a.impressions) || 0
+                    }));
+                }
+
+                // Update countries
+                if (countriesRes.success) {
+                    data.countries = countriesRes.data.map(c => ({
+                        name: c.country,
+                        flag: c.flag || c.country_code?.toLowerCase(),
+                        spend: parseFloat(c.spend) || 0,
+                        sales: c.sales || 0,
+                        revenue: parseFloat(c.revenue) || 0,
+                        roas: parseFloat(c.roas) || 0
+                    }));
+                }
+
+                // Populate filter dropdowns and apply filters
+                populateFilterDropdowns();
+                applyCampaignsFilter();
+                applyAdSetsFilter();
+                applyAdsFilter();
+                updateCountriesTable(data.countries);
+
+                // Update Quick Performance Snapshot (Today, This Week, This Month)
+                if (timeMetricsRes.success) {
+                    updateTimeBasedMetricsFromFB(timeMetricsRes.data);
+                }
+
+                // Update Sales by Ad Creative
+                if (salesRes.success) {
+                    updateSalesFromAPI(salesRes.data);
+                }
+
+                updateLastSyncedTime();
+
+            } catch (error) {
+                console.error('Failed to load Facebook data:', error);
+                document.getElementById('last-synced-time').textContent = 'Error loading data';
+            }
+        }
+
+        // Update Quick Performance Snapshot with real Facebook data
+        function updateTimeBasedMetricsFromFB(data) {
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            // Update Today section
+            const todaySection = document.querySelector('.time-section:nth-child(1)');
+            if (todaySection && data.today) {
+                const rows = todaySection.querySelectorAll('.time-row');
+                if (rows[0]) rows[0].querySelector('.time-value').textContent = formatCurrency(data.today.spend);
+                if (rows[1]) rows[1].querySelector('.time-value').textContent = formatCurrency(data.today.revenue);
+                if (rows[2]) rows[2].querySelector('.time-value').textContent = data.today.roas.toFixed(2);
+                if (rows[3]) rows[3].querySelector('.time-value').textContent = data.today.leads;
+                if (rows[4]) rows[4].querySelector('.time-value').textContent = formatCurrency(data.today.cpl);
+            }
+
+            // Update This Week section
+            const weekSection = document.querySelector('.time-section:nth-child(2)');
+            if (weekSection && data.thisWeek) {
+                const rows = weekSection.querySelectorAll('.time-row');
+                if (rows[0]) rows[0].querySelector('.time-value').textContent = formatCurrency(data.thisWeek.spend);
+                if (rows[1]) rows[1].querySelector('.time-value').textContent = formatCurrency(data.thisWeek.revenue);
+                if (rows[2]) rows[2].querySelector('.time-value').textContent = data.thisWeek.roas.toFixed(2);
+                if (rows[3]) rows[3].querySelector('.time-value').textContent = data.thisWeek.leads;
+                if (rows[4]) rows[4].querySelector('.time-value').textContent = formatCurrency(data.thisWeek.cpl);
+            }
+
+            // Update This Month section
+            const monthSection = document.querySelector('.time-section:nth-child(3)');
+            if (monthSection && data.thisMonth) {
+                const rows = monthSection.querySelectorAll('.time-row');
+                if (rows[0]) rows[0].querySelector('.time-value').textContent = formatCurrency(data.thisMonth.spend);
+                if (rows[1]) rows[1].querySelector('.time-value').textContent = formatCurrency(data.thisMonth.revenue);
+                if (rows[2]) rows[2].querySelector('.time-value').textContent = data.thisMonth.roas.toFixed(2);
+                if (rows[3]) rows[3].querySelector('.time-value').textContent = data.thisMonth.leads;
+                if (rows[4]) rows[4].querySelector('.time-value').textContent = formatCurrency(data.thisMonth.cpl);
+            }
+        }
+
+        // Update account dropdown with API accounts
+        function updateAccountDropdown() {
+            const dropdown = document.getElementById('accountDropdown');
+            if (!dropdown || apiAccounts.length === 0) return;
+
+            const iconMap = {
+                'connect': 'fa-plug',
+                'chatflow': 'fa-comments',
+                'email': 'fa-envelope',
+                'psb': 'fa-credit-card'
+            };
+
+            const colorMap = {
+                'connect': 'linear-gradient(135deg, #1877f2, #42b72a)',
+                'chatflow': 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                'email': 'linear-gradient(135deg, #10b981, #059669)',
+                'psb': 'linear-gradient(135deg, #f59e0b, #ef4444)'
+            };
+
+            const optionsHtml = apiAccounts.map((acc, index) => `
+                <div class="account-option ${index === 0 ? 'active' : ''}" onclick="switchToApiAccount(${acc.id}, '${acc.name}', '${acc.type}')">
+                    <div class="option-icon ${acc.type}">
+                        <i class="fas ${iconMap[acc.type] || iconMap.connect}"></i>
+                    </div>
+                    <div class="option-info">
+                        <span class="option-name">${acc.name}</span>
+                        <span class="option-status">
+                            <span class="status-dot" style="background: ${acc.status === 'active' ? 'var(--success-color)' : 'var(--warning-color)'}"></span>
+                            ${acc.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <i class="fas fa-check check-icon"></i>
+                </div>
+            `).join('');
+
+            dropdown.innerHTML = '<div class="account-dropdown-header">Switch Ad Account</div>' + optionsHtml;
+
+            // Update first account name in button
+            if (apiAccounts.length > 0) {
+                document.getElementById('currentAccountName').textContent = apiAccounts[0].name;
+                const firstType = apiAccounts[0].type;
+                const accountIcon = document.querySelector('.account-switcher-btn .account-icon i');
+                if (accountIcon) accountIcon.className = 'fas ' + (iconMap[firstType] || iconMap.connect);
+                const iconDiv = document.querySelector('.account-switcher-btn .account-icon');
+                if (iconDiv) iconDiv.style.background = colorMap[firstType] || colorMap.connect;
+            }
+        }
+
+        // Switch to API account
+        async function switchToApiAccount(accountId, accountName, accountType) {
+            currentApiAccountId = accountId;
+            currentAccount = accountType;
+
+            // Update button text
+            document.getElementById('currentAccountName').textContent = accountName;
+
+            // Update active state in dropdown
+            document.querySelectorAll('.account-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+
+            // Update icon
+            const iconMap = {
+                'connect': 'fa-plug',
+                'chatflow': 'fa-comments',
+                'email': 'fa-envelope',
+                'psb': 'fa-credit-card'
+            };
+            const colorMap = {
+                'connect': 'linear-gradient(135deg, #1877f2, #42b72a)',
+                'chatflow': 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                'email': 'linear-gradient(135deg, #10b981, #059669)',
+                'psb': 'linear-gradient(135deg, #f59e0b, #ef4444)'
+            };
+            const accountIcon = document.querySelector('.account-switcher-btn .account-icon i');
+            accountIcon.className = 'fas ' + (iconMap[accountType] || iconMap.connect);
+            const iconDiv = document.querySelector('.account-switcher-btn .account-icon');
+            iconDiv.style.background = colorMap[accountType] || colorMap.connect;
+
+            // Close dropdown
+            document.getElementById('accountDropdown').classList.remove('show');
+            document.querySelector('.account-switcher-btn').classList.remove('open');
+
+            // Load data from API
+            await loadAccountData(accountId);
+        }
+
+        // Load account data from API
+        async function loadAccountData(accountId) {
+            const timeRange = document.getElementById('time-range-selector')?.value || 'last30days';
+            const { startDate, endDate } = getDateRange(timeRange);
+
+            try {
+                // Show loading state
+                document.getElementById('last-synced-time').textContent = 'Loading...';
+
+                // Fetch all data in parallel
+                const [metricsRes, campaignsRes, adsetsRes, adsRes, countriesRes, salesRes] = await Promise.all([
+                    api.getMetrics(accountId, startDate, endDate),
+                    api.getCampaigns(accountId, startDate, endDate),
+                    api.getAdSets(accountId, startDate, endDate),
+                    api.getAds(accountId, startDate, endDate),
+                    api.getCountries(accountId, startDate, endDate),
+                    api.getSales(accountId, startDate, endDate, 15)
+                ]);
+
+                // Update metrics cards
+                if (metricsRes.success) {
+                    updateMetricsFromAPI(metricsRes.data);
+                }
+
+                // Update campaigns table
+                if (campaignsRes.success) {
+                    updateCampaignsFromAPI(campaignsRes.data);
+                }
+
+                // Update ad sets table
+                if (adsetsRes.success) {
+                    updateAdSetsFromAPI(adsetsRes.data);
+                }
+
+                // Update ads table
+                if (adsRes.success) {
+                    updateAdsFromAPI(adsRes.data);
+                }
+
+                // Update countries table
+                if (countriesRes.success) {
+                    updateCountriesFromAPI(countriesRes.data);
+                }
+
+                // Update recent sales
+                if (salesRes.success) {
+                    updateSalesFromAPI(salesRes.data);
+                }
+
+                updateLastSyncedTime();
+
+            } catch (error) {
+                console.error('Failed to load account data:', error);
+                // Fall back to mock data
+                updateDashboardData(accountData[currentAccount]);
+            }
+        }
+
+        // Update metrics from API data
+        function updateMetricsFromAPI(data) {
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            // Update Total Ad Spend
+            const spendEl = document.querySelector('#metrics-section .metric-card:first-child .metric-value');
+            if (spendEl) spendEl.textContent = formatCurrency(data.totalSpend);
+
+            // Update Total Revenue with Sales Count
+            const totalRevenueEl = document.getElementById('total-revenue-value');
+            const totalSalesCountEl = document.getElementById('total-sales-count');
+            if (totalRevenueEl) totalRevenueEl.textContent = formatCurrency(data.totalRevenue);
+            if (totalSalesCountEl) totalSalesCountEl.textContent = data.totalSales || '0';
+
+            // Update ROAS
+            const roasValueEl = document.getElementById('roas-value');
+            if (roasValueEl) {
+                const roas = parseFloat(data.roas || 0);
+                roasValueEl.textContent = roas.toFixed(2);
+                roasValueEl.style.color = roas >= 1.5 ? 'var(--success-color)' : roas >= 1.0 ? 'var(--warning-color)' : 'var(--danger-color)';
+            }
+
+            // Update Total Leads with CPL
+            const totalLeadsEl = document.getElementById('total-leads-value');
+            const cplEl = document.getElementById('cpl-value');
+            if (totalLeadsEl) totalLeadsEl.textContent = data.totalLeads || '0';
+            if (cplEl) cplEl.textContent = formatCurrency(data.costPerLead);
+
+            // Update Pixel Status
+            const pixelStatusEl = document.querySelector('.metric-card .pixel-status');
+            if (pixelStatusEl) {
+                pixelStatusEl.className = 'pixel-status ' + (data.pixelStatus === 'active' ? 'active' : 'inactive');
+                pixelStatusEl.innerHTML = `<i class="fas fa-circle"></i> ${data.pixelStatus === 'active' ? 'Active' : 'Inactive'}`;
+            }
+        }
+
+        // Update campaigns from API data
+        function updateCampaignsFromAPI(campaigns) {
+            const tbody = document.querySelector('#campaigns-table tbody');
+            if (!tbody) return;
+
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            if (campaigns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: var(--text-secondary);">No campaigns found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = campaigns.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td><span class="status-badge ${c.status?.toLowerCase() || 'active'}">${c.status || 'Active'}</span></td>
+                    <td>${formatCurrency(c.budget)}</td>
+                    <td>${formatCurrency(c.spend)}</td>
+                    <td>${c.sales || 0}</td>
+                    <td>${formatCurrency(c.revenue)}</td>
+                    <td style="color: ${parseFloat(c.roas) >= 1.5 ? 'var(--success-color)' : parseFloat(c.roas) >= 1 ? 'var(--warning-color)' : 'var(--danger-color)'}">${parseFloat(c.roas || 0).toFixed(2)}</td>
+                    <td>${parseFloat(c.frequency || 0).toFixed(1)}</td>
+                    <td>${parseInt(c.outbound_clicks || c.outboundClicks || 0).toLocaleString()}</td>
+                    <td>${parseInt(c.reach || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Update ad sets from API data
+        function updateAdSetsFromAPI(adsets) {
+            const tbody = document.querySelector('#adsets-table tbody');
+            if (!tbody) return;
+
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            if (adsets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px; color: var(--text-secondary);">No ad sets found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = adsets.map(a => `
+                <tr>
+                    <td>${a.name}</td>
+                    <td>${a.campaign_name || a.campaignName || '-'}</td>
+                    <td><span class="status-badge ${a.status?.toLowerCase() || 'active'}">${a.status || 'Active'}</span></td>
+                    <td>${formatCurrency(a.budget)}</td>
+                    <td>${formatCurrency(a.spend)}</td>
+                    <td>${a.sales || 0}</td>
+                    <td>${formatCurrency(a.revenue)}</td>
+                    <td style="color: ${parseFloat(a.roas) >= 1.5 ? 'var(--success-color)' : parseFloat(a.roas) >= 1 ? 'var(--warning-color)' : 'var(--danger-color)'}">${parseFloat(a.roas || 0).toFixed(2)}</td>
+                    <td>${parseFloat(a.frequency || 0).toFixed(1)}</td>
+                    <td>${parseInt(a.outbound_clicks || a.outboundClicks || 0).toLocaleString()}</td>
+                    <td>${parseInt(a.reach || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Update ads from API data
+        function updateAdsFromAPI(ads) {
+            const tbody = document.querySelector('#ads-table tbody');
+            if (!tbody) return;
+
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            if (ads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 20px; color: var(--text-secondary);">No ads found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = ads.map(a => `
+                <tr>
+                    <td>${a.name}</td>
+                    <td>${a.campaign_name || a.campaignName || '-'}</td>
+                    <td>${a.adset_name || a.adSetName || '-'}</td>
+                    <td><span class="status-badge ${a.status?.toLowerCase() || 'active'}">${a.status || 'Active'}</span></td>
+                    <td>${formatCurrency(a.budget)}</td>
+                    <td>${formatCurrency(a.spend)}</td>
+                    <td>${a.sales || 0}</td>
+                    <td>${formatCurrency(a.revenue)}</td>
+                    <td style="color: ${parseFloat(a.roas) >= 1.5 ? 'var(--success-color)' : parseFloat(a.roas) >= 1 ? 'var(--warning-color)' : 'var(--danger-color)'}">${parseFloat(a.roas || 0).toFixed(2)}</td>
+                    <td>${parseFloat(a.frequency || 0).toFixed(1)}</td>
+                    <td>${parseInt(a.outbound_clicks || a.outboundClicks || 0).toLocaleString()}</td>
+                    <td>${parseInt(a.reach || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Update countries from API data
+        function updateCountriesFromAPI(countries) {
+            const tbody = document.querySelector('#countries-table tbody');
+            if (!tbody) return;
+
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            const flagMap = {
+                'United States': 'us', 'United Kingdom': 'gb', 'India': 'in', 'Germany': 'de',
+                'Canada': 'ca', 'Australia': 'au', 'Brazil': 'br', 'France': 'fr', 'Mexico': 'mx',
+                'Spain': 'es', 'Italy': 'it', 'Japan': 'jp', 'Netherlands': 'nl'
+            };
+
+            if (countries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">No country data found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = countries.map(c => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <img src="https://flagcdn.com/24x18/${flagMap[c.country] || c.flag || 'us'}.png" alt="${c.country}" style="border-radius: 2px;">
+                            ${c.country}
+                        </div>
+                    </td>
+                    <td>${c.sales || 0}</td>
+                    <td>${formatCurrency(c.revenue)}</td>
+                    <td>${formatCurrency(c.spend)}</td>
+                    <td style="color: ${parseFloat(c.roas) >= 1.5 ? 'var(--success-color)' : parseFloat(c.roas) >= 1 ? 'var(--warning-color)' : 'var(--danger-color)'}">${parseFloat(c.roas || 0).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Update sales from API data
+        function updateSalesFromAPI(sales) {
+            const container = document.querySelector('#recent-sales-list');
+            if (!container) return;
+
+            if (sales.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">No recent sales</div>';
+                return;
+            }
+
+            const formatTime = (dateStr) => {
+                const date = new Date(dateStr);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 60) return `${diffMins} min ago`;
+                if (diffHours < 24) return `${diffHours} hours ago`;
+                return `${diffDays} days ago`;
+            };
+
+            const formatCurrency = (val) => `$${parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            container.innerHTML = sales.map(s => `
+                <div class="sale-item">
+                    <div class="sale-time">${formatTime(s.transaction_date || s.time)}</div>
+                    <div class="sale-details">
+                        <strong>${s.campaign_name || s.campaign || 'Unknown Campaign'}</strong>
+                        <span>${s.ad_name || s.adName || 'Unknown Ad'}</span>
+                    </div>
+                    <div class="sale-country">${s.country || 'Unknown'}</div>
+                    <div class="sale-amount">${formatCurrency(s.amount)}</div>
+                </div>
+            `).join('');
         }
 
         function toggleUserMenu() {
@@ -7956,15 +8938,29 @@
         });
 
         // Auth check on page load
-        (function initAuth() {
-            const session = JSON.parse(localStorage.getItem('fb_dash_session') || 'null');
-            if (session) {
-                showDashboard(session);
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.querySelector('.sidebar').style.display = 'none';
-                document.querySelector('.main-content').style.display = 'none';
+        (async function initAuth() {
+            // Check for existing token and user
+            if (authToken && currentUser) {
+                try {
+                    // Verify token is still valid
+                    const response = await api.getCurrentUser();
+                    if (response.success) {
+                        apiAccounts = response.data.accounts || [];
+                        showDashboard(currentUser);
+                        await loadDashboardFromAPI();
+                        return;
+                    }
+                } catch (e) {
+                    // Token invalid, clear it
+                    api.setToken(null);
+                    api.setUser(null);
+                }
             }
+
+            // No valid session, show login
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.main-content').style.display = 'none';
         })();
 
         // Initialize dashboard with current account data and filters on page load
