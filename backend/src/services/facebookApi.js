@@ -197,7 +197,7 @@ class FacebookApiService {
         }
     }
 
-    // Get insights by country
+    // Get insights by country (with pagination to fetch ALL countries)
     async getCountryInsights(adAccountId, startDate, endDate) {
         try {
             const timeRange = startDate && endDate
@@ -207,13 +207,53 @@ class FacebookApiService {
             const data = await this.request(`/${adAccountId}/insights`, {
                 fields: 'spend,impressions,clicks,reach,actions,action_values',
                 time_range: timeRange,
-                breakdowns: 'country'
+                breakdowns: 'country',
+                limit: 500
             });
 
-            return data.data || [];
+            let allResults = data.data || [];
+
+            // Handle pagination to get ALL countries
+            let nextPage = data.paging?.next;
+            while (nextPage) {
+                try {
+                    const response = await axios.get(nextPage);
+                    const pageData = response.data;
+                    if (pageData.data && pageData.data.length > 0) {
+                        allResults = allResults.concat(pageData.data);
+                        nextPage = pageData.paging?.next;
+                    } else {
+                        break;
+                    }
+                } catch (pageError) {
+                    console.error('Pagination error:', pageError.message);
+                    break;
+                }
+            }
+
+            return allResults;
         } catch (error) {
             console.error('Failed to get country insights:', error.message);
             return [];
+        }
+    }
+
+    // Get creative thumbnail/image URL for an ad
+    async getAdCreativeUrl(creativeId) {
+        try {
+            const data = await this.request(`/${creativeId}`, {
+                fields: 'thumbnail_url,image_url,object_story_spec'
+            });
+            // Prefer image_url, fallback to thumbnail_url, then try object_story_spec
+            return data.image_url
+                || data.thumbnail_url
+                || data.object_story_spec?.link_data?.image_url
+                || data.object_story_spec?.photo_data?.url
+                || data.object_story_spec?.video_data?.image_url
+                || null;
+        } catch (error) {
+            console.error(`Failed to get creative URL for ${creativeId}:`, error.message);
+            return null;
         }
     }
 

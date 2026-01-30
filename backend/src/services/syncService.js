@@ -1,6 +1,18 @@
 const { db } = require('../models/database');
 const FacebookApiService = require('./facebookApi');
 
+// Use Node.js built-in Intl API to resolve ANY country code to full name
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+
+function getCountryName(code) {
+    if (!code) return 'Unknown';
+    try {
+        return regionNames.of(code.toUpperCase()) || code.toUpperCase();
+    } catch (e) {
+        return code.toUpperCase();
+    }
+}
+
 // Account mapping
 const ACCOUNT_MAPPING = {
     'act_883912415611751': { internalId: 1, name: 'Pabbly Connect One Time', type: 'connect' },
@@ -45,7 +57,7 @@ class SyncService {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
             const updateMetric = db.prepare(`
-                UPDATE campaign_daily_metrics SET spend = ?, impressions = ?, reach = ?, clicks = ?, frequency = ?
+                UPDATE campaign_daily_metrics SET spend = ?, revenue = ?, sales = ?, leads = ?, impressions = ?, reach = ?, clicks = ?, frequency = ?
                 WHERE campaign_id = ? AND date = ?
             `);
 
@@ -56,6 +68,11 @@ class SyncService {
                 const insights = campaign.insights || {};
                 const status = campaign.status?.toLowerCase() === 'active' ? 'active' : 'paused';
                 const budget = parseFloat(campaign.daily_budget || campaign.lifetime_budget || 0) / 100;
+
+                // Extract revenue, sales, leads from Meta's actions/action_values
+                const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
+                const metaSales = this.fbApi.getPurchases(insights.actions);
+                const metaLeads = this.fbApi.getLeads(insights.actions);
 
                 // Check if campaign exists
                 let dbCampaign = findCampaign.get(campaign.id);
@@ -80,6 +97,9 @@ class SyncService {
                 if (existingMetric) {
                     updateMetric.run(
                         parseFloat(insights.spend || 0),
+                        metaRevenue,
+                        metaSales,
+                        metaLeads,
                         parseInt(insights.impressions || 0),
                         parseInt(insights.reach || 0),
                         parseInt(insights.clicks || 0),
@@ -93,9 +113,9 @@ class SyncService {
                         dbCampaign.id,
                         today,
                         parseFloat(insights.spend || 0),
-                        0, // Revenue from local data
-                        0, // Sales from local data
-                        0, // Leads from local data
+                        metaRevenue,
+                        metaSales,
+                        metaLeads,
                         parseInt(insights.impressions || 0),
                         parseInt(insights.reach || 0),
                         parseInt(insights.clicks || 0),
@@ -141,7 +161,7 @@ class SyncService {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
             const updateMetric = db.prepare(`
-                UPDATE adset_daily_metrics SET spend = ?, impressions = ?, reach = ?, clicks = ?, frequency = ?
+                UPDATE adset_daily_metrics SET spend = ?, revenue = ?, sales = ?, leads = ?, impressions = ?, reach = ?, clicks = ?, frequency = ?
                 WHERE adset_id = ? AND date = ?
             `);
 
@@ -152,6 +172,11 @@ class SyncService {
                 const insights = adset.insights || {};
                 const status = adset.status?.toLowerCase() === 'active' ? 'active' : 'paused';
                 const budget = parseFloat(adset.daily_budget || adset.lifetime_budget || 0) / 100;
+
+                // Extract revenue, sales, leads from Meta's actions/action_values
+                const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
+                const metaSales = this.fbApi.getPurchases(insights.actions);
+                const metaLeads = this.fbApi.getLeads(insights.actions);
 
                 // Get campaign internal ID
                 const dbCampaign = findCampaign.get(adset.campaign_id);
@@ -184,6 +209,9 @@ class SyncService {
                 if (existingMetric) {
                     updateMetric.run(
                         parseFloat(insights.spend || 0),
+                        metaRevenue,
+                        metaSales,
+                        metaLeads,
                         parseInt(insights.impressions || 0),
                         parseInt(insights.reach || 0),
                         parseInt(insights.clicks || 0),
@@ -197,7 +225,9 @@ class SyncService {
                         dbAdSet.id,
                         today,
                         parseFloat(insights.spend || 0),
-                        0, 0, 0,
+                        metaRevenue,
+                        metaSales,
+                        metaLeads,
                         parseInt(insights.impressions || 0),
                         parseInt(insights.reach || 0),
                         parseInt(insights.clicks || 0),
@@ -229,11 +259,11 @@ class SyncService {
             const findAdSet = db.prepare('SELECT id FROM ad_sets WHERE facebook_adset_id = ?');
             const findAd = db.prepare('SELECT id FROM ads WHERE facebook_ad_id = ?');
             const insertAd = db.prepare(`
-                INSERT INTO ads (account_id, campaign_id, adset_id, facebook_ad_id, name, status)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO ads (account_id, campaign_id, adset_id, facebook_ad_id, name, status, creative_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             `);
             const updateAd = db.prepare(`
-                UPDATE ads SET name = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                UPDATE ads SET name = ?, status = ?, creative_url = COALESCE(?, creative_url), updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `);
 
@@ -244,7 +274,7 @@ class SyncService {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
             const updateMetric = db.prepare(`
-                UPDATE ad_daily_metrics SET spend = ?, impressions = ?, reach = ?, clicks = ?, frequency = ?
+                UPDATE ad_daily_metrics SET spend = ?, revenue = ?, sales = ?, leads = ?, impressions = ?, reach = ?, clicks = ?, frequency = ?
                 WHERE ad_id = ? AND date = ?
             `);
 
@@ -255,6 +285,11 @@ class SyncService {
                 const insights = ad.insights || {};
                 const status = ad.status?.toLowerCase() === 'active' ? 'active' : 'paused';
 
+                // Extract revenue, sales, leads from Meta's actions/action_values
+                const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
+                const metaSales = this.fbApi.getPurchases(insights.actions);
+                const metaLeads = this.fbApi.getLeads(insights.actions);
+
                 // Get campaign and adset internal IDs
                 const dbCampaign = findCampaign.get(ad.campaign_id);
                 const dbAdSet = findAdSet.get(ad.adset_id);
@@ -264,12 +299,23 @@ class SyncService {
                     continue;
                 }
 
+                // Fetch creative URL from Facebook
+                let creativeUrl = null;
+                const creativeId = ad.creative?.id;
+                if (creativeId) {
+                    try {
+                        creativeUrl = await this.fbApi.getAdCreativeUrl(creativeId);
+                    } catch (e) {
+                        console.log(`[SYNC] Could not fetch creative URL for ad ${ad.id}:`, e.message);
+                    }
+                }
+
                 // Check if ad exists
                 let dbAd = findAd.get(ad.id);
 
                 if (dbAd) {
                     // Update existing ad
-                    updateAd.run(ad.name, status, dbAd.id);
+                    updateAd.run(ad.name, status, creativeUrl, dbAd.id);
                 } else {
                     // Insert new ad
                     const result = insertAd.run(
@@ -278,7 +324,8 @@ class SyncService {
                         dbAdSet.id,
                         ad.id,
                         ad.name,
-                        status
+                        status,
+                        creativeUrl
                     );
                     dbAd = { id: result.lastInsertRowid };
                 }
@@ -288,6 +335,9 @@ class SyncService {
                 if (existingMetric) {
                     updateMetric.run(
                         parseFloat(insights.spend || 0),
+                        metaRevenue,
+                        metaSales,
+                        metaLeads,
                         parseInt(insights.impressions || 0),
                         parseInt(insights.reach || 0),
                         parseInt(insights.clicks || 0),
@@ -301,7 +351,9 @@ class SyncService {
                         dbAd.id,
                         today,
                         parseFloat(insights.spend || 0),
-                        0, 0, 0,
+                        metaRevenue,
+                        metaSales,
+                        metaLeads,
                         parseInt(insights.impressions || 0),
                         parseInt(insights.reach || 0),
                         parseInt(insights.clicks || 0),
@@ -328,13 +380,6 @@ class SyncService {
             const countryData = await this.fbApi.getCountryInsights(fbAccountId);
             console.log(`[SYNC] Found ${countryData.length} country records`);
 
-            const countryNames = {
-                'US': 'United States', 'GB': 'United Kingdom', 'IN': 'India',
-                'DE': 'Germany', 'CA': 'Canada', 'AU': 'Australia', 'BR': 'Brazil',
-                'FR': 'France', 'MX': 'Mexico', 'ES': 'Spain', 'IT': 'Italy',
-                'JP': 'Japan', 'NL': 'Netherlands', 'PH': 'Philippines', 'ID': 'Indonesia'
-            };
-
             // Prepare statements for INSERT/UPDATE pattern
             const findCountry = db.prepare('SELECT id FROM country_performance WHERE account_id = ? AND country_code = ? AND date = ?');
             const insertCountry = db.prepare(`
@@ -350,7 +395,7 @@ class SyncService {
 
             for (const country of countryData) {
                 const countryCode = country.country?.toLowerCase() || 'unknown';
-                const countryName = countryNames[country.country] || country.country;
+                const countryName = getCountryName(country.country);
 
                 const existingCountry = findCountry.get(internalAccountId, countryCode, today);
                 if (existingCountry) {

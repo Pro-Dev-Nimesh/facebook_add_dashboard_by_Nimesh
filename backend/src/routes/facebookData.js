@@ -175,6 +175,8 @@ router.get('/campaigns/:adAccountId', async (req, res) => {
                 c.status,
                 c.budget,
                 COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
                 COALESCE(SUM(m.impressions), 0) as impressions,
                 COALESCE(SUM(m.reach), 0) as reach,
                 COALESCE(SUM(m.clicks), 0) as clicks,
@@ -201,9 +203,9 @@ router.get('/campaigns/:adAccountId', async (req, res) => {
             status: c.status?.toUpperCase() || 'ACTIVE',
             budget: c.budget || 0,
             spend: c.spend || 0,
-            sales: 0,
-            revenue: 0,
-            roas: '0.00',
+            sales: c.sales || 0,
+            revenue: c.revenue || 0,
+            roas: c.spend > 0 ? (c.revenue / c.spend).toFixed(2) : '0.00',
             impressions: c.impressions || 0,
             clicks: c.clicks || 0,
             reach: c.reach || 0,
@@ -244,6 +246,8 @@ router.get('/adsets/:adAccountId', async (req, res) => {
                 c.name as campaign_name,
                 c.facebook_campaign_id,
                 COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
                 COALESCE(SUM(m.impressions), 0) as impressions,
                 COALESCE(SUM(m.reach), 0) as reach,
                 COALESCE(SUM(m.clicks), 0) as clicks,
@@ -278,9 +282,9 @@ router.get('/adsets/:adAccountId', async (req, res) => {
             campaign_name: a.campaign_name || 'Unknown',
             budget: a.budget || 0,
             spend: a.spend || 0,
-            sales: 0,
-            revenue: 0,
-            roas: '0.00',
+            sales: a.sales || 0,
+            revenue: a.revenue || 0,
+            roas: a.spend > 0 ? (a.revenue / a.spend).toFixed(2) : '0.00',
             impressions: a.impressions || 0,
             clicks: a.clicks || 0,
             reach: a.reach || 0,
@@ -322,6 +326,8 @@ router.get('/ads/:adAccountId', async (req, res) => {
                 a.name as adset_name,
                 a.facebook_adset_id,
                 COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
                 COALESCE(SUM(m.impressions), 0) as impressions,
                 COALESCE(SUM(m.reach), 0) as reach,
                 COALESCE(SUM(m.clicks), 0) as clicks,
@@ -363,9 +369,9 @@ router.get('/ads/:adAccountId', async (req, res) => {
             adset_id: ad.facebook_adset_id,
             adset_name: ad.adset_name || 'Unknown',
             spend: ad.spend || 0,
-            sales: 0,
-            revenue: 0,
-            roas: '0.00',
+            sales: ad.sales || 0,
+            revenue: ad.revenue || 0,
+            roas: ad.spend > 0 ? (ad.revenue / ad.spend).toFixed(2) : '0.00',
             impressions: ad.impressions || 0,
             clicks: ad.clicks || 0,
             reach: ad.reach || 0,
@@ -413,7 +419,6 @@ router.get('/countries/:adAccountId', async (req, res) => {
             WHERE account_id = ?
             GROUP BY country_code
             ORDER BY spend DESC
-            LIMIT 10
         `).all(internalAccountId);
 
         const formattedCountries = countryData.map(c => ({
@@ -540,14 +545,15 @@ router.get('/time-metrics/:adAccountId', async (req, res) => {
     }
 });
 
-// GET /api/fb/sales/:adAccountId - Get recent sales from Data Management (revenue_transactions)
+// GET /api/fb/sales/:adAccountId - Sales by Ad Creative
+// Shows all ads from Facebook with spend, creative URL, and sales/revenue from Meta
 router.get('/sales/:adAccountId', async (req, res) => {
     try {
         const { adAccountId } = req.params;
         const { startDate, endDate, timePeriod } = req.query;
         const internalAccountId = getInternalAccountId(adAccountId);
 
-        // Determine date range based on timePeriod
+        // Determine date range
         let actualStartDate, actualEndDate;
         const todayStr = getDateStr(0);
 
@@ -564,40 +570,48 @@ router.get('/sales/:adAccountId', async (req, res) => {
                 actualStartDate = getDateStr(30);
                 actualEndDate = todayStr;
                 break;
-            default: // 'all' or undefined
-                actualStartDate = startDate || getDateStr(365);
+            default:
+                actualStartDate = startDate || getDateStr(30);
                 actualEndDate = endDate || todayStr;
         }
 
-        // Get sales from local revenue_transactions table
-        const salesData = db.prepare(`
+        // Get all ads with spend, revenue, sales from Meta (ad_daily_metrics) and creative URLs
+        const adsData = db.prepare(`
             SELECT
-                r.id,
-                r.transaction_id,
-                r.customer_email,
-                r.product,
-                r.country,
-                r.country_code,
-                r.amount,
-                r.created_at,
-                r.notes
-            FROM revenue_transactions r
-            WHERE r.account_id = ? AND DATE(r.created_at) >= ? AND DATE(r.created_at) <= ?
-            ORDER BY r.created_at DESC
-            LIMIT 50
-        `).all(internalAccountId, actualStartDate, actualEndDate);
+                ad.id,
+                ad.name as ad_name,
+                ad.creative_url,
+                ad.facebook_ad_id,
+                c.name as campaign_name,
+                a.name as adset_name,
+                COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
+                COALESCE(SUM(m.impressions), 0) as impressions,
+                COALESCE(SUM(m.clicks), 0) as clicks
+            FROM ads ad
+            JOIN campaigns c ON ad.campaign_id = c.id
+            JOIN ad_sets a ON ad.adset_id = a.id
+            LEFT JOIN ad_daily_metrics m ON ad.id = m.ad_id
+                AND m.date >= ? AND m.date <= ?
+            WHERE ad.account_id = ?
+            GROUP BY ad.id
+            ORDER BY spend DESC
+            LIMIT 100
+        `).all(actualStartDate, actualEndDate, internalAccountId);
 
-        const formattedSales = salesData.map(s => ({
-            id: s.id,
-            time: s.created_at,
-            campaign: 'N/A', // Will be populated when you link sales to campaigns
-            adSet: 'N/A',
-            adName: s.product || 'Direct Sale',
-            country: s.country || 'Unknown',
-            countryCode: s.country_code,
-            amount: s.amount.toFixed(2),
-            transactionId: s.transaction_id,
-            email: s.customer_email
+        const formattedSales = adsData.map(ad => ({
+            id: ad.id,
+            adName: ad.ad_name,
+            campaign: ad.campaign_name,
+            adSet: ad.adset_name,
+            creativeUrl: ad.creative_url,
+            spend: ad.spend.toFixed(2),
+            sales: ad.sales || 0,
+            revenue: ad.revenue.toFixed(2),
+            roas: ad.spend > 0 ? (ad.revenue / ad.spend).toFixed(2) : '0.00',
+            impressions: ad.impressions,
+            clicks: ad.clicks
         }));
 
         res.json({

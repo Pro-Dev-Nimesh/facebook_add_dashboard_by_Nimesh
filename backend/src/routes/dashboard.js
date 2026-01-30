@@ -16,14 +16,21 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
         // Calculate date range
         const dateRange = getDateRange(timeRange);
 
-        // Get aggregated metrics from campaign_daily_metrics (spend, leads)
+        // Get aggregated spend from campaign_daily_metrics (spend from Meta)
         const metrics = db.prepare(`
             SELECT
-                COALESCE(SUM(spend), 0) as total_spend,
-                COALESCE(SUM(leads), 0) as total_leads
+                COALESCE(SUM(spend), 0) as total_spend
             FROM campaign_daily_metrics
             WHERE account_id = ? AND date >= ? AND date <= ?
         `).get(accountId, dateRange.start, dateRange.end);
+
+        // Get leads from leads table (manual/automation entry, NOT Meta)
+        const leadsData = db.prepare(`
+            SELECT COALESCE(SUM(count), 0) as total_leads
+            FROM leads
+            WHERE account_id = ? AND date >= ? AND date <= ?
+        `).get(accountId, dateRange.start, dateRange.end);
+        const totalLeads = leadsData.total_leads;
 
         // Get revenue and sales from revenue_transactions (sales data from Data Management)
         const revenueData = db.prepare(`
@@ -42,18 +49,24 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
             ? (totalRevenue / metrics.total_spend).toFixed(2)
             : '0.00';
 
-        // Calculate cost per lead
-        const costPerLead = metrics.total_leads > 0
-            ? (metrics.total_spend / metrics.total_leads).toFixed(2)
+        // Calculate cost per lead (using leads from leads table)
+        const costPerLead = totalLeads > 0
+            ? (metrics.total_spend / totalLeads).toFixed(2)
             : '0.00';
 
         // Get previous period for comparison
         const prevDateRange = getPreviousDateRange(timeRange);
         const prevMetrics = db.prepare(`
             SELECT
-                COALESCE(SUM(spend), 0) as total_spend,
-                COALESCE(SUM(leads), 0) as total_leads
+                COALESCE(SUM(spend), 0) as total_spend
             FROM campaign_daily_metrics
+            WHERE account_id = ? AND date >= ? AND date <= ?
+        `).get(accountId, prevDateRange.start, prevDateRange.end);
+
+        // Get previous period leads from leads table
+        const prevLeadsData = db.prepare(`
+            SELECT COALESCE(SUM(count), 0) as total_leads
+            FROM leads
             WHERE account_id = ? AND date >= ? AND date <= ?
         `).get(accountId, prevDateRange.start, prevDateRange.end);
 
@@ -71,7 +84,7 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
             spend: calculateChange(metrics.total_spend, prevMetrics.total_spend),
             revenue: calculateChange(totalRevenue, prevRevenueData.total_revenue),
             sales: calculateChange(totalSales, prevRevenueData.total_sales),
-            leads: calculateChange(metrics.total_leads, prevMetrics.total_leads)
+            leads: calculateChange(totalLeads, prevLeadsData.total_leads)
         };
 
         // Get sync status
@@ -86,7 +99,7 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
                 totalSpend: metrics.total_spend.toFixed(2),
                 totalRevenue: totalRevenue.toFixed(2),
                 roas,
-                totalLeads: metrics.total_leads,
+                totalLeads: totalLeads,
                 totalSales: totalSales,
                 costPerLead,
                 pixelStatus: 'active',
@@ -110,13 +123,18 @@ router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
         const { accountId } = req.params;
         const today = new Date().toISOString().split('T')[0];
 
-        // Get today's spend and leads from campaign_daily_metrics
+        // Get today's spend from campaign_daily_metrics (Meta)
         const dailySpendMetrics = db.prepare(`
             SELECT
-                COALESCE(SUM(spend), 0) as spend,
-                COALESCE(SUM(leads), 0) as leads
+                COALESCE(SUM(spend), 0) as spend
             FROM campaign_daily_metrics
             WHERE account_id = ? AND date = ?
+        `).get(accountId, today);
+
+        // Get today's leads from leads table (manual/automation)
+        const dailyLeads = db.prepare(`
+            SELECT COALESCE(SUM(count), 0) as leads
+            FROM leads WHERE account_id = ? AND date = ?
         `).get(accountId, today);
 
         // Get today's revenue from revenue_transactions (sales data)
@@ -133,10 +151,14 @@ router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
 
         const weekSpendMetrics = db.prepare(`
             SELECT
-                COALESCE(SUM(spend), 0) as spend,
-                COALESCE(SUM(leads), 0) as leads
+                COALESCE(SUM(spend), 0) as spend
             FROM campaign_daily_metrics
             WHERE account_id = ? AND date >= ?
+        `).get(accountId, weekStartStr);
+
+        const weekLeads = db.prepare(`
+            SELECT COALESCE(SUM(count), 0) as leads
+            FROM leads WHERE account_id = ? AND date >= ?
         `).get(accountId, weekStartStr);
 
         // Get this week's revenue from revenue_transactions
@@ -153,10 +175,14 @@ router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
 
         const monthSpendMetrics = db.prepare(`
             SELECT
-                COALESCE(SUM(spend), 0) as spend,
-                COALESCE(SUM(leads), 0) as leads
+                COALESCE(SUM(spend), 0) as spend
             FROM campaign_daily_metrics
             WHERE account_id = ? AND date >= ?
+        `).get(accountId, monthStartStr);
+
+        const monthLeads = db.prepare(`
+            SELECT COALESCE(SUM(count), 0) as leads
+            FROM leads WHERE account_id = ? AND date >= ?
         `).get(accountId, monthStartStr);
 
         // Get this month's revenue from revenue_transactions
@@ -166,20 +192,20 @@ router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
             WHERE account_id = ? AND DATE(created_at) >= ?
         `).get(accountId, monthStartStr);
 
-        const formatMetrics = (spendData, revenueData) => ({
+        const formatMetrics = (spendData, revenueData, leadsData) => ({
             spend: spendData.spend.toFixed(2),
             revenue: revenueData.revenue.toFixed(2),
             roas: spendData.spend > 0 ? (revenueData.revenue / spendData.spend).toFixed(2) : '0.00',
-            leads: spendData.leads,
-            cpl: spendData.leads > 0 ? (spendData.spend / spendData.leads).toFixed(2) : '0.00'
+            leads: leadsData.leads,
+            cpl: leadsData.leads > 0 ? (spendData.spend / leadsData.leads).toFixed(2) : '0.00'
         });
 
         res.json({
             success: true,
             data: {
-                daily: formatMetrics(dailySpendMetrics, dailyRevenue),
-                weekly: formatMetrics(weekSpendMetrics, weekRevenue),
-                monthly: formatMetrics(monthSpendMetrics, monthRevenue)
+                daily: formatMetrics(dailySpendMetrics, dailyRevenue, dailyLeads),
+                weekly: formatMetrics(weekSpendMetrics, weekRevenue, weekLeads),
+                monthly: formatMetrics(monthSpendMetrics, monthRevenue, monthLeads)
             }
         });
     } catch (error) {
@@ -206,6 +232,8 @@ router.get('/campaigns/:accountId', checkAccountAccess, (req, res) => {
                 c.status,
                 c.budget,
                 COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
                 COALESCE(SUM(m.leads), 0) as leads,
                 COALESCE(SUM(m.impressions), 0) as impressions,
                 COALESCE(SUM(m.reach), 0) as reach,
@@ -233,37 +261,21 @@ router.get('/campaigns/:accountId', checkAccountAccess, (req, res) => {
 
         const campaigns = db.prepare(query).all(...params);
 
-        // Get revenue and sales from revenue_transactions for each campaign
-        const revenueQuery = db.prepare(`
-            SELECT
-                campaign_id,
-                COALESCE(SUM(amount), 0) as revenue,
-                COUNT(*) as sales
-            FROM revenue_transactions
-            WHERE account_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-            GROUP BY campaign_id
-        `);
-        const revenueData = revenueQuery.all(accountId, dateRange.start, dateRange.end);
-        const revenueMap = new Map(revenueData.map(r => [r.campaign_id, { revenue: r.revenue, sales: r.sales }]));
-
-        // Format response
-        const formattedCampaigns = campaigns.map(c => {
-            const revData = revenueMap.get(c.id) || { revenue: 0, sales: 0 };
-            return {
-                id: c.id,
-                name: c.name,
-                status: c.status,
-                budget: `$${c.budget.toFixed(2)}`,
-                spend: `$${c.spend.toFixed(2)}`,
-                revenue: `$${revData.revenue.toFixed(2)}`,
-                sales: revData.sales,
-                roas: c.spend > 0 ? (revData.revenue / c.spend).toFixed(2) : '0.00',
-                frequency: c.frequency.toFixed(1),
-                outboundClicks: c.clicks.toLocaleString(),
-                reach: c.reach.toLocaleString(),
-                impressions: c.impressions.toLocaleString()
-            };
-        });
+        // Format response - revenue and sales come from Meta (campaign_daily_metrics)
+        const formattedCampaigns = campaigns.map(c => ({
+            id: c.id,
+            name: c.name,
+            status: c.status,
+            budget: `$${c.budget.toFixed(2)}`,
+            spend: `$${c.spend.toFixed(2)}`,
+            revenue: `$${c.revenue.toFixed(2)}`,
+            sales: c.sales,
+            roas: c.spend > 0 ? (c.revenue / c.spend).toFixed(2) : '0.00',
+            frequency: c.frequency.toFixed(1),
+            outboundClicks: c.clicks.toLocaleString(),
+            reach: c.reach.toLocaleString(),
+            impressions: c.impressions.toLocaleString()
+        }));
 
         res.json({
             success: true,
@@ -295,6 +307,8 @@ router.get('/adsets/:accountId', checkAccountAccess, (req, res) => {
                 a.budget,
                 c.name as campaign_name,
                 COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
                 COALESCE(SUM(m.leads), 0) as leads,
                 COALESCE(SUM(m.impressions), 0) as impressions,
                 COALESCE(SUM(m.reach), 0) as reach,
@@ -328,37 +342,22 @@ router.get('/adsets/:accountId', checkAccountAccess, (req, res) => {
 
         const adSets = db.prepare(query).all(...params);
 
-        // Get revenue and sales from revenue_transactions for each adset
-        const revenueQuery = db.prepare(`
-            SELECT
-                adset_id,
-                COALESCE(SUM(amount), 0) as revenue,
-                COUNT(*) as sales
-            FROM revenue_transactions
-            WHERE account_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-            GROUP BY adset_id
-        `);
-        const revenueData = revenueQuery.all(accountId, dateRange.start, dateRange.end);
-        const revenueMap = new Map(revenueData.map(r => [r.adset_id, { revenue: r.revenue, sales: r.sales }]));
-
-        const formattedAdSets = adSets.map(a => {
-            const revData = revenueMap.get(a.id) || { revenue: 0, sales: 0 };
-            return {
-                id: a.id,
-                name: a.name,
-                campaignName: a.campaign_name,
-                status: a.status,
-                budget: `$${a.budget.toFixed(2)}`,
-                spend: `$${a.spend.toFixed(2)}`,
-                revenue: `$${revData.revenue.toFixed(2)}`,
-                sales: revData.sales,
-                roas: a.spend > 0 ? (revData.revenue / a.spend).toFixed(2) : '0.00',
-                frequency: a.frequency.toFixed(1),
-                outboundClicks: a.clicks.toLocaleString(),
-                reach: a.reach.toLocaleString(),
-                impressions: a.impressions.toLocaleString()
-            };
-        });
+        // Format response - revenue and sales come from Meta (adset_daily_metrics)
+        const formattedAdSets = adSets.map(a => ({
+            id: a.id,
+            name: a.name,
+            campaignName: a.campaign_name,
+            status: a.status,
+            budget: `$${a.budget.toFixed(2)}`,
+            spend: `$${a.spend.toFixed(2)}`,
+            revenue: `$${a.revenue.toFixed(2)}`,
+            sales: a.sales,
+            roas: a.spend > 0 ? (a.revenue / a.spend).toFixed(2) : '0.00',
+            frequency: a.frequency.toFixed(1),
+            outboundClicks: a.clicks.toLocaleString(),
+            reach: a.reach.toLocaleString(),
+            impressions: a.impressions.toLocaleString()
+        }));
 
         res.json({
             success: true,
@@ -391,6 +390,8 @@ router.get('/ads/:accountId', checkAccountAccess, (req, res) => {
                 c.name as campaign_name,
                 a.name as adset_name,
                 COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
                 COALESCE(SUM(m.leads), 0) as leads,
                 COALESCE(SUM(m.impressions), 0) as impressions,
                 COALESCE(SUM(m.reach), 0) as reach,
@@ -430,38 +431,23 @@ router.get('/ads/:accountId', checkAccountAccess, (req, res) => {
 
         const ads = db.prepare(query).all(...params);
 
-        // Get revenue and sales from revenue_transactions for each ad
-        const revenueQuery = db.prepare(`
-            SELECT
-                ad_id,
-                COALESCE(SUM(amount), 0) as revenue,
-                COUNT(*) as sales
-            FROM revenue_transactions
-            WHERE account_id = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?
-            GROUP BY ad_id
-        `);
-        const revenueData = revenueQuery.all(accountId, dateRange.start, dateRange.end);
-        const revenueMap = new Map(revenueData.map(r => [r.ad_id, { revenue: r.revenue, sales: r.sales }]));
-
-        const formattedAds = ads.map(ad => {
-            const revData = revenueMap.get(ad.id) || { revenue: 0, sales: 0 };
-            return {
-                id: ad.id,
-                name: ad.name,
-                campaignName: ad.campaign_name,
-                adSetName: ad.adset_name,
-                status: ad.status,
-                creativeUrl: ad.creative_url,
-                spend: `$${ad.spend.toFixed(2)}`,
-                revenue: `$${revData.revenue.toFixed(2)}`,
-                sales: revData.sales,
-                roas: ad.spend > 0 ? (revData.revenue / ad.spend).toFixed(2) : '0.00',
-                frequency: ad.frequency.toFixed(1),
-                outboundClicks: ad.clicks.toLocaleString(),
-                reach: ad.reach.toLocaleString(),
-                impressions: ad.impressions.toLocaleString()
-            };
-        });
+        // Format response - revenue and sales come from Meta (ad_daily_metrics)
+        const formattedAds = ads.map(ad => ({
+            id: ad.id,
+            name: ad.name,
+            campaignName: ad.campaign_name,
+            adSetName: ad.adset_name,
+            status: ad.status,
+            creativeUrl: ad.creative_url,
+            spend: `$${ad.spend.toFixed(2)}`,
+            revenue: `$${ad.revenue.toFixed(2)}`,
+            sales: ad.sales,
+            roas: ad.spend > 0 ? (ad.revenue / ad.spend).toFixed(2) : '0.00',
+            frequency: ad.frequency.toFixed(1),
+            outboundClicks: ad.clicks.toLocaleString(),
+            reach: ad.reach.toLocaleString(),
+            impressions: ad.impressions.toLocaleString()
+        }));
 
         res.json({
             success: true,
@@ -547,59 +533,60 @@ router.get('/countries/:accountId', checkAccountAccess, (req, res) => {
 });
 
 // GET /api/dashboard/sales/:accountId (Sales by Ad Creative)
+// Shows all ads from Facebook with their spend and creative URLs
 router.get('/sales/:accountId', checkAccountAccess, (req, res) => {
     try {
         const { accountId } = req.params;
-        const { search = '', timeRange = 'all' } = req.query;
+        const { search = '', timeRange = 'last30days' } = req.query;
 
+        const dateRange = getDateRange(timeRange);
+
+        // Get all ads with their spend from Meta and creative URLs
         let query = `
             SELECT
-                r.id,
-                r.transaction_id,
-                r.customer_email,
-                r.product,
-                r.country,
-                r.country_code,
-                r.amount,
-                r.created_at,
+                ad.id,
                 ad.name as ad_name,
                 ad.creative_url,
+                ad.facebook_ad_id,
+                c.name as campaign_name,
                 a.name as adset_name,
-                c.name as campaign_name
-            FROM revenue_transactions r
-            LEFT JOIN ads ad ON r.ad_id = ad.id
-            LEFT JOIN ad_sets a ON r.adset_id = a.id
-            LEFT JOIN campaigns c ON r.campaign_id = c.id
-            WHERE r.account_id = ?
+                COALESCE(SUM(m.spend), 0) as spend,
+                COALESCE(SUM(m.revenue), 0) as revenue,
+                COALESCE(SUM(m.sales), 0) as sales,
+                COALESCE(SUM(m.impressions), 0) as impressions,
+                COALESCE(SUM(m.clicks), 0) as clicks
+            FROM ads ad
+            JOIN campaigns c ON ad.campaign_id = c.id
+            JOIN ad_sets a ON ad.adset_id = a.id
+            LEFT JOIN ad_daily_metrics m ON ad.id = m.ad_id
+                AND m.date >= ? AND m.date <= ?
+            WHERE ad.account_id = ?
         `;
 
-        const params = [accountId];
-
-        if (timeRange !== 'all') {
-            const dateRange = getDateRange(timeRange);
-            query += ' AND DATE(r.created_at) >= ? AND DATE(r.created_at) <= ?';
-            params.push(dateRange.start, dateRange.end);
-        }
+        const params = [dateRange.start, dateRange.end, accountId];
 
         if (search) {
-            query += ' AND (r.product LIKE ? OR c.name LIKE ? OR a.name LIKE ? OR ad.name LIKE ?)';
-            params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+            query += ' AND (ad.name LIKE ? OR c.name LIKE ? OR a.name LIKE ?)';
+            params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
 
-        query += ' ORDER BY r.created_at DESC LIMIT 100';
+        query += ' GROUP BY ad.id ORDER BY spend DESC LIMIT 100';
 
-        const sales = db.prepare(query).all(...params);
+        const ads = db.prepare(query).all(...params);
 
-        const formattedSales = sales.map(s => ({
-            id: s.id,
-            adName: s.ad_name || 'Direct Sale',
-            campaignName: s.campaign_name || 'N/A',
-            adSetName: s.adset_name || 'N/A',
-            creativeUrl: s.creative_url,
-            country: s.country,
-            countryCode: s.country_code,
-            amount: `$${s.amount.toFixed(2)}`,
-            dateTime: s.created_at
+        // Format response - revenue and sales come from Meta (ad_daily_metrics)
+        const formattedSales = ads.map(ad => ({
+            id: ad.id,
+            adName: ad.ad_name,
+            campaignName: ad.campaign_name,
+            adSetName: ad.adset_name,
+            creativeUrl: ad.creative_url,
+            spend: `$${ad.spend.toFixed(2)}`,
+            sales: ad.sales || 0,
+            revenue: `$${ad.revenue.toFixed(2)}`,
+            roas: ad.spend > 0 ? (ad.revenue / ad.spend).toFixed(2) : '0.00',
+            impressions: ad.impressions,
+            clicks: ad.clicks
         }));
 
         res.json({

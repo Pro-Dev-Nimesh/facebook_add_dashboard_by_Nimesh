@@ -7,6 +7,52 @@ const router = express.Router();
 // Apply authentication to all routes
 router.use(authenticateToken);
 
+// POST /api/revenue/:accountId - Add a new revenue entry
+router.post('/:accountId', checkAccountAccess, (req, res) => {
+    try {
+        const { accountId } = req.params;
+        const { transaction_id, customer_email, product, country, country_code, amount, source, created_at, notes } = req.body;
+
+        if (!amount || isNaN(amount)) {
+            return res.status(400).json({ success: false, error: 'Amount is required and must be a number' });
+        }
+
+        // Map source to valid DB values
+        const sourceMap = { 'manual': 'manual', 'razorpay': 'api', 'paypal': 'api', 'stripe': 'api', 'webhook': 'webhook', 'api': 'api' };
+        const dbSource = sourceMap[(source || 'manual').toLowerCase()] || 'manual';
+
+        const stmt = db.prepare(`
+            INSERT INTO revenue_transactions (account_id, transaction_id, customer_email, product, country, country_code, amount, source, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        const result = stmt.run(
+            accountId,
+            transaction_id || null,
+            customer_email || null,
+            product || null,
+            country || null,
+            country_code || null,
+            parseFloat(amount),
+            dbSource,
+            notes || null,
+            created_at || new Date().toISOString()
+        );
+
+        res.json({
+            success: true,
+            data: { id: result.lastInsertRowid },
+            message: 'Revenue entry added successfully'
+        });
+    } catch (error) {
+        console.error('Add revenue error:', error);
+        if (error.message && error.message.includes('UNIQUE constraint failed')) {
+            return res.status(400).json({ success: false, error: 'A transaction with this ID already exists' });
+        }
+        res.status(500).json({ success: false, error: error.message || 'Failed to add revenue entry' });
+    }
+});
+
 // GET /api/revenue/:accountId - Get revenue/sales data
 router.get('/:accountId', checkAccountAccess, (req, res) => {
     try {
@@ -25,12 +71,12 @@ router.get('/:accountId', checkAccountAccess, (req, res) => {
         const params = [accountId];
 
         if (startDate) {
-            query += ` AND rt.transaction_date >= ?`;
+            query += ` AND DATE(rt.created_at) >= ?`;
             params.push(startDate);
         }
 
         if (endDate) {
-            query += ` AND rt.transaction_date <= ?`;
+            query += ` AND DATE(rt.created_at) <= ?`;
             params.push(endDate);
         }
 
@@ -40,7 +86,7 @@ router.get('/:accountId', checkAccountAccess, (req, res) => {
         const total = totalResult?.total || 0;
 
         // Add pagination
-        query += ` ORDER BY rt.transaction_date DESC LIMIT ? OFFSET ?`;
+        query += ` ORDER BY rt.created_at DESC LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
         const transactions = db.prepare(query).all(...params);
@@ -84,12 +130,12 @@ router.get('/:accountId/summary', checkAccountAccess, (req, res) => {
         const params = [accountId];
 
         if (startDate) {
-            query += ` AND transaction_date >= ?`;
+            query += ` AND DATE(created_at) >= ?`;
             params.push(startDate);
         }
 
         if (endDate) {
-            query += ` AND transaction_date <= ?`;
+            query += ` AND DATE(created_at) <= ?`;
             params.push(endDate);
         }
 
@@ -98,7 +144,7 @@ router.get('/:accountId/summary', checkAccountAccess, (req, res) => {
         // Get daily breakdown
         let dailyQuery = `
             SELECT
-                transaction_date as date,
+                DATE(created_at) as date,
                 SUM(amount) as revenue,
                 COUNT(*) as transactions
             FROM revenue_transactions
@@ -107,16 +153,16 @@ router.get('/:accountId/summary', checkAccountAccess, (req, res) => {
         const dailyParams = [accountId];
 
         if (startDate) {
-            dailyQuery += ` AND transaction_date >= ?`;
+            dailyQuery += ` AND DATE(created_at) >= ?`;
             dailyParams.push(startDate);
         }
 
         if (endDate) {
-            dailyQuery += ` AND transaction_date <= ?`;
+            dailyQuery += ` AND DATE(created_at) <= ?`;
             dailyParams.push(endDate);
         }
 
-        dailyQuery += ` GROUP BY transaction_date ORDER BY transaction_date DESC LIMIT 30`;
+        dailyQuery += ` GROUP BY DATE(created_at) ORDER BY DATE(created_at) DESC LIMIT 30`;
 
         const dailyBreakdown = db.prepare(dailyQuery).all(...dailyParams);
 
@@ -160,12 +206,12 @@ router.get('/:accountId/by-campaign', checkAccountAccess, (req, res) => {
         const params = [accountId];
 
         if (startDate) {
-            query += ` AND (rt.transaction_date >= ? OR rt.transaction_date IS NULL)`;
+            query += ` AND (DATE(rt.created_at) >= ? OR rt.created_at IS NULL)`;
             params.push(startDate);
         }
 
         if (endDate) {
-            query += ` AND (rt.transaction_date <= ? OR rt.transaction_date IS NULL)`;
+            query += ` AND (DATE(rt.created_at) <= ? OR rt.created_at IS NULL)`;
             params.push(endDate);
         }
 
@@ -183,6 +229,62 @@ router.get('/:accountId/by-campaign', checkAccountAccess, (req, res) => {
             success: false,
             error: 'Failed to get revenue by campaign'
         });
+    }
+});
+
+// DELETE /api/revenue/:accountId/:entryId - Delete a revenue entry
+router.delete('/:accountId/:entryId', checkAccountAccess, (req, res) => {
+    try {
+        const { accountId, entryId } = req.params;
+
+        const result = db.prepare('DELETE FROM revenue_transactions WHERE id = ? AND account_id = ?').run(entryId, accountId);
+
+        if (result.changes === 0) {
+            return res.status(404).json({ success: false, error: 'Entry not found' });
+        }
+
+        res.json({ success: true, message: 'Revenue entry deleted successfully' });
+    } catch (error) {
+        console.error('Delete revenue error:', error);
+        res.status(500).json({ success: false, error: 'Failed to delete revenue entry' });
+    }
+});
+
+// PUT /api/revenue/:accountId/:entryId - Update a revenue entry
+router.put('/:accountId/:entryId', checkAccountAccess, (req, res) => {
+    try {
+        const { accountId, entryId } = req.params;
+        const { transaction_id, customer_email, product, country, country_code, amount, source, created_at, notes } = req.body;
+
+        const sourceMap = { 'manual': 'manual', 'razorpay': 'api', 'paypal': 'api', 'stripe': 'api', 'webhook': 'webhook', 'api': 'api' };
+        const dbSource = sourceMap[(source || 'manual').toLowerCase()] || 'manual';
+
+        const result = db.prepare(`
+            UPDATE revenue_transactions
+            SET transaction_id = ?, customer_email = ?, product = ?, country = ?, country_code = ?, amount = ?, source = ?, notes = ?, created_at = ?
+            WHERE id = ? AND account_id = ?
+        `).run(
+            transaction_id || null,
+            customer_email || null,
+            product || null,
+            country || null,
+            country_code || null,
+            parseFloat(amount),
+            dbSource,
+            notes || null,
+            created_at || new Date().toISOString(),
+            entryId,
+            accountId
+        );
+
+        if (result.changes === 0) {
+            return res.status(404).json({ success: false, error: 'Entry not found' });
+        }
+
+        res.json({ success: true, message: 'Revenue entry updated successfully' });
+    } catch (error) {
+        console.error('Update revenue error:', error);
+        res.status(500).json({ success: false, error: error.message || 'Failed to update revenue entry' });
     }
 });
 

@@ -25,8 +25,8 @@ const { initializeCronJobs } = require('./services/cronJobs');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({
+// CORS configuration
+const corsOptions = {
     origin: function(origin, callback) {
         // Allow requests with no origin (like mobile apps, curl, or file://)
         if (!origin) return callback(null, true);
@@ -51,8 +51,35 @@ app.use(cors({
 
         callback(new Error('Not allowed by CORS'));
     },
-    credentials: true
-}));
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Middleware - manual preflight handler for Express 5 compatibility
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (req.method === 'OPTIONS') {
+        const allowedPatterns = [
+            /^http:\/\/localhost(:\d+)?$/,
+            /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+            /^file:\/\//
+        ];
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5500';
+        const isAllowed = !origin || allowedPatterns.some(p => p.test(origin)) || origin === frontendUrl;
+
+        if (isAllowed) {
+            res.header('Access-Control-Allow-Origin', origin || '*');
+            res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            res.header('Access-Control-Allow-Credentials', 'true');
+            res.header('Access-Control-Max-Age', '86400');
+            return res.sendStatus(204);
+        }
+    }
+    next();
+});
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
