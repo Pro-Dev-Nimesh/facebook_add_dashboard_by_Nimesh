@@ -1167,6 +1167,33 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        /* Ellipsis cells for long text with hover tooltip */
+        .cell-ellipsis {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+            cursor: default;
+        }
+        .cell-ellipsis:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 0;
+            top: 100%;
+            z-index: 100;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: normal;
+            max-width: 350px;
+            word-break: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
 
         .data-table tr:last-child td {
             border-bottom: none;
@@ -1214,6 +1241,55 @@
 
         .data-table .roas-value.bad {
             color: var(--danger-color);
+        }
+
+        .campaign-drilldown-link {
+            color: inherit;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .campaign-drilldown-link:hover {
+            opacity: 0.8;
+        }
+
+        .name-cell {
+            max-width: 420px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .drilldown-breadcrumb {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            margin-bottom: 10px;
+            background: #f0f4ff;
+            border: 1px solid #dbe4ff;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .drilldown-breadcrumb.active {
+            display: flex;
+        }
+        .drilldown-breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .drilldown-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .drilldown-breadcrumb .breadcrumb-separator {
+            color: #94a3b8;
+        }
+        .drilldown-breadcrumb .breadcrumb-current {
+            font-weight: 600;
+            color: var(--text-color);
         }
 
         .data-table .action-btn {
@@ -1278,19 +1354,22 @@
 
         .creative-modal-content {
             position: relative;
-            max-width: 500px;
-            max-height: 80vh;
+            max-width: 90vw;
+            max-height: 90vh;
             background: white;
             border-radius: 12px;
-            padding: 8px;
+            padding: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .creative-modal-content img {
-            width: 100%;
+            max-width: 80vw;
+            max-height: 85vh;
+            width: auto;
             height: auto;
             border-radius: 8px;
             display: block;
+            object-fit: contain;
         }
 
         .creative-modal-close {
@@ -2773,7 +2852,7 @@
             <div class="header-right">
                 <div class="header-icon" onclick="toggleNotifications()">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">5</span>
+                    <span class="notification-badge">0</span>
                 </div>
                 <div class="header-icon">
                     <i class="fas fa-question-circle"></i>
@@ -2793,40 +2872,11 @@
         <div class="notification-panel" id="notificationPanel">
             <div class="notification-header">
                 <h3>Notifications</h3>
-                <span class="mark-all-read">Mark all as read</span>
+                <span class="mark-all-read" onclick="markAllNotificationsRead()">Mark all as read</span>
             </div>
-            <div class="notification-list">
-                <div class="notification-item unread">
-                    <div class="notif-icon sale">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="notif-title">New Sale Generated!</div>
-                    <div class="notif-desc">Campaign "USA - Lifetime Deal" - $700</div>
-                    <div class="notif-time">2 minutes ago</div>
-                </div>
-                <div class="notification-item unread">
-                    <div class="notif-icon alert">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="notif-title">Alert: Low ROAS Detected</div>
-                    <div class="notif-desc">Campaign "UK - Retargeting" ROAS: 0.6</div>
-                    <div class="notif-time">15 minutes ago</div>
-                </div>
-                <div class="notification-item">
-                    <div class="notif-icon sale">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="notif-title">New Sale Generated!</div>
-                    <div class="notif-desc">Campaign "India - Tech" - $700</div>
-                    <div class="notif-time">1 hour ago</div>
-                </div>
-                <div class="notification-item">
-                    <div class="notif-icon sale">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="notif-title">Budget Increase Recommended</div>
-                    <div class="notif-desc">Campaign "USA - Lifetime Deal" ROAS: 2.5</div>
-                    <div class="notif-time">3 hours ago</div>
+            <div class="notification-list" id="notification-list">
+                <div class="notification-item" style="text-align: center; color: var(--text-secondary);">
+                    <div class="notif-desc">Loading notifications...</div>
                 </div>
             </div>
         </div>
@@ -2847,6 +2897,7 @@
                     <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
                         <select id="time-range-selector" onchange="handleTimeRangeChange()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-background); color: var(--text-primary); font-size: 13px; cursor: pointer;">
                             <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
                             <option value="last7days">Last 7 Days</option>
                             <option value="last30days" selected>Last 30 Days</option>
                             <option value="last90days">Last 90 Days</option>
@@ -3082,7 +3133,7 @@
             <!-- Alerts Section with Tabs -->
             <div id="alerts-section" class="table-section dashboard-section">
                 <div class="table-header">
-                    <h3><i class="fas fa-bell"></i> Alerts <span class="count">7 Open</span></h3>
+                    <h3><i class="fas fa-bell"></i> Alerts <span class="count">Loading...</span></h3>
                 </div>
 
                 <!-- Task Tabs -->
@@ -3090,649 +3141,32 @@
                     <button class="task-tab active" onclick="switchTaskTab('needs-action')">
                         <i class="fas fa-exclamation-circle"></i>
                         Needs Action
-                        <span class="tab-count">5</span>
+                        <span class="tab-count">0</span>
                     </button>
                     <button class="task-tab" onclick="switchTaskTab('opportunities')">
                         <i class="fas fa-arrow-trend-up"></i>
                         Opportunities
-                        <span class="tab-count">2</span>
+                        <span class="tab-count">0</span>
                     </button>
                 </div>
 
                 <!-- Needs Action Tab Content -->
                 <div id="needs-action" class="task-content active">
-                    <div class="task-list">
-                        <!-- Task 1 - Critical -->
-                        <div class="task-item" data-task-id="1">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority critical">Critical</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        UK - Retargeting
-                                        <span class="task-type">Campaign</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-exclamation-triangle"></i> Low ROAS - Below threshold</span>
-                                        <span><i class="fas fa-clock"></i> 4 days ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$2,847</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value">$980</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #dc2626;">0.34</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open" selected>Open</option>
-                                    <option value="on-hold">On Hold</option>
-                                    <option value="resolved">Resolved</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Threshold Details</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Spend Threshold</span>
-                                                <span><strong>$700.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current Spend</span>
-                                                <span style="color: #dc2626;"><strong>$2,847.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Target ROAS</span>
-                                                <span><strong>1.0</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current ROAS</span>
-                                                <span style="color: #dc2626;"><strong>0.34</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">John D.</span>
-                                                    <span class="task-comment-time">2 days ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Checked the ad creatives. Will try new targeting options.</div>
-                                            </div>
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">4 days ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Task created: Campaign exceeded $700 spend threshold with ROAS below 1.0</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn danger"><i class="fas fa-pause"></i> Pause Campaign</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn primary" style="margin-left: auto;"><i class="fas fa-check"></i> Mark Resolved</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Task 2 - Critical -->
-                        <div class="task-item" data-task-id="2">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority critical">Critical</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        United Kingdom
-                                        <span class="task-type">Country</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-times-circle"></i> No sales after threshold spend</span>
-                                        <span><i class="fas fa-clock"></i> 3 days ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$1,240</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value" style="color: #dc2626;">$0</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #dc2626;">0.00</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open" selected>Open</option>
-                                    <option value="on-hold">On Hold</option>
-                                    <option value="resolved">Resolved</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Threshold Details</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Spend Threshold</span>
-                                                <span><strong>$700.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current Spend</span>
-                                                <span style="color: #dc2626;"><strong>$1,240.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Target ROAS</span>
-                                                <span><strong>1.0</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current ROAS</span>
-                                                <span style="color: #dc2626;"><strong>0.00</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">3 days ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Task created: Country exceeded $700 spend with 0 sales</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn danger"><i class="fas fa-ban"></i> Exclude Country</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn primary" style="margin-left: auto;"><i class="fas fa-check"></i> Mark Resolved</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Task 3 - Warning -->
-                        <div class="task-item" data-task-id="3">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority warning">Warning</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        Interest - Tech Entrepreneurs
-                                        <span class="task-type">Ad Set</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-chart-line"></i> ROAS below target threshold</span>
-                                        <span><i class="fas fa-clock"></i> 1 day ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$920</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value">$700</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #f97316;">0.76</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open" selected>Open</option>
-                                    <option value="on-hold">On Hold</option>
-                                    <option value="resolved">Resolved</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Threshold Details</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Spend Threshold</span>
-                                                <span><strong>$700.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current Spend</span>
-                                                <span style="color: #f97316;"><strong>$920.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Target ROAS</span>
-                                                <span><strong>1.0</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current ROAS</span>
-                                                <span style="color: #f97316;"><strong>0.76</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">1 day ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Task created: Ad Set exceeded $700 spend with ROAS 0.76</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn"><i class="fas fa-sliders-h"></i> Adjust Targeting</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn primary" style="margin-left: auto;"><i class="fas fa-check"></i> Mark Resolved</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Task 4 - Warning -->
-                        <div class="task-item" data-task-id="4">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority warning">Warning</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        Video Ad v3 - Feature Demo
-                                        <span class="task-type">Ad</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-chart-line"></i> ROAS below target threshold</span>
-                                        <span><i class="fas fa-clock"></i> 2 hours ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$520</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value">$350</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #f97316;">0.67</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open" selected>Open</option>
-                                    <option value="on-hold">On Hold</option>
-                                    <option value="resolved">Resolved</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Threshold Details</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Spend Threshold</span>
-                                                <span><strong>$500.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current Spend</span>
-                                                <span style="color: #f97316;"><strong>$520.00</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Target ROAS</span>
-                                                <span><strong>1.0</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current ROAS</span>
-                                                <span style="color: #f97316;"><strong>0.67</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">2 hours ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Task created: Ad exceeded $500 spend with ROAS 0.67</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn danger"><i class="fas fa-pause"></i> Pause Ad</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn primary" style="margin-left: auto;"><i class="fas fa-check"></i> Mark Resolved</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Task 5 - Warning (On Hold) -->
-                        <div class="task-item" data-task-id="5">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority warning">Warning</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        Interests - Business Owners
-                                        <span class="task-type">Ad Set</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-redo"></i> High frequency (2.8)</span>
-                                        <span><i class="fas fa-clock"></i> 5 hours ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$650</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value">$820</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #f97316;">1.26</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open">Open</option>
-                                    <option value="on-hold" selected>On Hold</option>
-                                    <option value="resolved">Resolved</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Threshold Details</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Frequency Threshold</span>
-                                                <span><strong>2.0</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current Frequency</span>
-                                                <span style="color: #f97316;"><strong>2.8</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Impressions</span>
-                                                <span><strong>125,430</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">Sarah M.</span>
-                                                    <span class="task-comment-time">3 hours ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Put on hold. Monitoring for 24 hours to see if frequency drops after new creatives.</div>
-                                            </div>
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">5 hours ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Task created: Ad Set frequency exceeded 2.0 threshold</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn"><i class="fas fa-image"></i> Refresh Creative</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn primary" style="margin-left: auto;"><i class="fas fa-check"></i> Mark Resolved</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="task-list" id="needs-action-list">
+                        <!-- Dynamically populated from API -->
                     </div>
                 </div>
 
                 <!-- Opportunities Tab Content -->
                 <div id="opportunities" class="task-content">
-                    <div class="task-list">
-                        <!-- Opportunity 1 -->
-                        <div class="task-item" data-task-id="6">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority opportunity">Opportunity</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        USA - Lifetime Deal
-                                        <span class="task-type">Campaign</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-arrow-up"></i> High ROAS - Consider budget increase</span>
-                                        <span><i class="fas fa-clock"></i> 3 days ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$3,200</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value">$8,400</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #22c55e;">2.63</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open" selected>Open</option>
-                                    <option value="on-hold">On Hold</option>
-                                    <option value="applied">Applied</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Recommendation</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Current Budget</span>
-                                                <span><strong>$100/day</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Suggested Budget</span>
-                                                <span style="color: #22c55e;"><strong>$130/day (+30%)</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current ROAS</span>
-                                                <span style="color: #22c55e;"><strong>2.63</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Potential Extra Revenue</span>
-                                                <span style="color: #22c55e;"><strong>+$2,520/week</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">3 days ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Opportunity detected: Campaign has consistent ROAS above 2.5 for 7 days</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn primary"><i class="fas fa-arrow-up"></i> Increase Budget</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn" style="margin-left: auto;"><i class="fas fa-times"></i> Dismiss</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Opportunity 2 -->
-                        <div class="task-item" data-task-id="7">
-                            <div class="task-item-header" onclick="toggleTask(this)">
-                                <span class="task-priority opportunity">Opportunity</span>
-                                <div class="task-info">
-                                    <div class="task-title">
-                                        Lookalike - Top Customers
-                                        <span class="task-type">Ad Set</span>
-                                    </div>
-                                    <div class="task-meta">
-                                        <span><i class="fas fa-arrow-up"></i> High ROAS - Consider budget increase</span>
-                                        <span><i class="fas fa-clock"></i> 2 days ago</span>
-                                    </div>
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Spend</div>
-                                        <div class="task-metric-value">$1,850</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">Sales</div>
-                                        <div class="task-metric-value">$4,200</div>
-                                    </div>
-                                    <div class="task-metric">
-                                        <div class="task-metric-label">ROAS</div>
-                                        <div class="task-metric-value" style="color: #22c55e;">2.27</div>
-                                    </div>
-                                </div>
-                                <select class="task-status-select" onclick="event.stopPropagation()">
-                                    <option value="open" selected>Open</option>
-                                    <option value="on-hold">On Hold</option>
-                                    <option value="applied">Applied</option>
-                                </select>
-                                <button class="task-expand-btn">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            <div class="task-details">
-                                <div class="task-details-grid">
-                                    <div class="task-detail-section">
-                                        <h4>Recommendation</h4>
-                                        <div class="task-threshold-info">
-                                            <div class="task-threshold-row">
-                                                <span>Current Budget</span>
-                                                <span><strong>$50/day</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Suggested Budget</span>
-                                                <span style="color: #22c55e;"><strong>$65/day (+30%)</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Current ROAS</span>
-                                                <span style="color: #22c55e;"><strong>2.27</strong></span>
-                                            </div>
-                                            <div class="task-threshold-row">
-                                                <span>Potential Extra Revenue</span>
-                                                <span style="color: #22c55e;"><strong>+$735/week</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="task-detail-section">
-                                        <h4>Comments</h4>
-                                        <div class="task-comments">
-                                            <div class="task-comment">
-                                                <div class="task-comment-header">
-                                                    <span class="task-comment-author">System</span>
-                                                    <span class="task-comment-time">2 days ago</span>
-                                                </div>
-                                                <div class="task-comment-text">Opportunity detected: Ad Set has consistent ROAS above 2.0 for 5 days</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-add-comment">
-                                    <input type="text" class="task-comment-input" placeholder="Add a comment...">
-                                    <button class="task-comment-btn">Add</button>
-                                </div>
-                                <div class="task-actions-row">
-                                    <button class="task-action-btn primary"><i class="fas fa-arrow-up"></i> Increase Budget</button>
-                                    <button class="task-action-btn"><i class="fas fa-external-link-alt"></i> View in Facebook</button>
-                                    <button class="task-action-btn" style="margin-left: auto;"><i class="fas fa-times"></i> Dismiss</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="task-list" id="opportunities-list">
+                        <!-- Dynamically populated from API -->
                     </div>
                 </div>
 
-                <div class="table-pagination">
-                    <div class="pagination-left">
-                        <span>Rows per page:</span>
-                        <select class="pagination-select">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                            <option value="100" selected>100</option>
-                        </select>
-                    </div>
+                <div class="table-pagination" id="alerts-pagination" style="display: none;">
                     <div class="pagination-center">
-                        <span>1-7 of 7</span>
-                    </div>
-                    <div class="pagination-right">
-                        <span>Page:</span>
-                        <input type="number" class="pagination-input" value="1" min="1" max="1">
-                        <span>of 1</span>
-                        <button class="pagination-arrow" disabled><i class="fas fa-chevron-left"></i></button>
-                        <button class="pagination-arrow" disabled><i class="fas fa-chevron-right"></i></button>
+                        <span id="alerts-pagination-info">0 alerts</span>
                     </div>
                 </div>
             </div>
@@ -3799,6 +3233,12 @@
 
             <!-- Ad Sets Table -->
             <div id="adsets-section" class="table-section dashboard-section">
+                <div id="adsets-breadcrumb" class="drilldown-breadcrumb">
+                    <i class="fas fa-arrow-left" style="font-size: 11px;"></i>
+                    <a href="javascript:void(0)" onclick="navigateBackToCampaigns()">Campaigns</a>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right" style="font-size: 10px;"></i></span>
+                    <span class="breadcrumb-current" id="adsets-breadcrumb-name"></span>
+                </div>
                 <div class="table-header">
                     <h3><i class="fas fa-layer-group"></i> Ad Sets <span class="count">12 Active</span></h3>
                     <div class="table-filter">
@@ -3862,6 +3302,14 @@
 
             <!-- Ads Table -->
             <div id="ads-section" class="table-section dashboard-section">
+                <div id="ads-breadcrumb" class="drilldown-breadcrumb">
+                    <i class="fas fa-arrow-left" style="font-size: 11px;"></i>
+                    <a href="javascript:void(0)" onclick="navigateBackToCampaignsFromAds()">Campaigns</a>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right" style="font-size: 10px;"></i></span>
+                    <a href="javascript:void(0)" id="ads-breadcrumb-campaign" onclick="navigateBackToAdSetsFromAds()"></a>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right" style="font-size: 10px;"></i></span>
+                    <span class="breadcrumb-current" id="ads-breadcrumb-adset"></span>
+                </div>
                 <div class="table-header">
                     <h3><i class="fas fa-ad"></i> Ads <span class="count">24 Active</span></h3>
                     <div class="table-filter">
@@ -3931,13 +3379,21 @@
                 <div class="table-header">
                     <h3>
                         <i class="fas fa-globe"></i> Country Performance
-                        <span class="count">From Pabbly</span>
                         <span class="tooltip" style="margin-left: 8px;">
                             <i class="fas fa-info-circle" style="color: var(--text-secondary);"></i>
-                            <span class="tooltip-text">Country data is from Pabbly Subscription Billing (actual sales), NOT Facebook pixel. This gives you accurate geographic performance.</span>
+                            <span class="tooltip-text">Ad Spend from Facebook. Revenue & Sales from Data Management (Sales Data). ROAS = Revenue / Ad Spend.</span>
                         </span>
                     </h3>
-                    <div class="table-filter">
+                    <div class="table-filter" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <select id="country-time-range" onchange="loadCountryPerformance()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-background); color: var(--text-primary); font-size: 13px; cursor: pointer;">
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="last7days">Last 7 Days</option>
+                            <option value="last30days" selected>Last 30 Days</option>
+                            <option value="last90days">Last 90 Days</option>
+                            <option value="thismonth">This Month</option>
+                            <option value="lastmonth">Last Month</option>
+                        </select>
                         <div class="table-search-wrapper">
                             <i class="fas fa-search table-search-icon"></i>
                             <input type="text" id="country-search" class="table-search-input" placeholder="Search country...">
@@ -3984,62 +3440,49 @@
                 </div>
             </div>
 
-            <!-- Sales by Ad Creative Section (Dashboard) -->
+            <!-- Sales by Ad Section - Individual sale records from Meta Pixel -->
             <div id="sales-creative-section" class="table-section dashboard-section">
                 <div class="table-header">
-                    <h3><i class="fas fa-palette"></i> Sales by Ad Creative <span class="count">23 Sales</span></h3>
-                    <div class="table-filter">
-                        <select class="table-status-filter">
-                            <option value="all" selected>All Time</option>
+                    <h3>
+                        <i class="fas fa-shopping-cart"></i> Sales by Ad
+                        <span class="count" id="sales-total-count">0 Sales</span>
+                    </h3>
+                    <div class="table-filter" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <select id="sales-time-range" onchange="loadSalesFromAPI()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--card-background); color: var(--text-primary); font-size: 13px; cursor: pointer;">
                             <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="last7days" selected>Last 7 Days</option>
+                            <option value="last30days">Last 30 Days</option>
+                            <option value="last90days">Last 90 Days</option>
+                            <option value="thismonth">This Month</option>
+                            <option value="lastmonth">Last Month</option>
                         </select>
                         <div class="table-search-wrapper">
                             <i class="fas fa-search table-search-icon"></i>
-                            <input type="text" id="sales-creative-search" class="table-search-input" placeholder="Search by ad, campaign, ad set...">
+                            <input type="text" id="sales-creative-search" class="table-search-input" placeholder="Search by ad, campaign...">
                         </div>
                     </div>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Creative</th>
-                            <th>Ad Name</th>
-                            <th>Campaign</th>
-                            <th>Ad Set</th>
-                            <th>Spend (Meta)</th>
-                            <th>Revenue (Meta)</th>
-                            <th>Sales</th>
-                            <th>ROAS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Populated by JavaScript -->
-                    </tbody>
-                </table>
-
-                <!-- Pagination -->
-                <div class="table-pagination">
-                    <div class="pagination-left">
-                        <span>Rows per page:</span>
-                        <select class="pagination-select">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                            <option value="100" selected>100</option>
-                        </select>
-                    </div>
-                    <div class="pagination-center">
-                        <span></span>
-                    </div>
-                    <div class="pagination-right">
-                        <span>Page:</span>
-                        <input type="number" class="pagination-input" value="1" min="1" max="3">
-                        <span>of 3</span>
-                        <button class="pagination-arrow" disabled><i class="fas fa-chevron-left"></i></button>
-                        <button class="pagination-arrow"><i class="fas fa-chevron-right"></i></button>
-                    </div>
+                <!-- Summary cards removed per user request -->
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="white-space: nowrap;">Date & Time</th>
+                                <th>Campaign</th>
+                                <th>Ad Set</th>
+                                <th>Ad</th>
+                                <th style="white-space: nowrap;">Ad Spend <span style="font-weight: 400; font-size: 10px; color: var(--text-secondary);" id="sales-period-label">(7 Days)</span></th>
+                                <th style="white-space: nowrap;">Total Revenue <span style="font-weight: 400; font-size: 10px; color: var(--text-secondary);" id="sales-rev-period-label">(7 Days)</span></th>
+                                <th>ROAS</th>
+                                <th style="white-space: nowrap;">Sale Amount</th>
+                                <th>Country</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="9" style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading sales data...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -5556,8 +4999,26 @@
             },
 
             // Alerts endpoints
+            async regenerateAlerts(accountId) {
+                return this.request(`/alerts/${accountId}/regenerate`, { method: 'POST' });
+            },
             async getAlerts(accountId) {
-                return this.request(`/alerts/${accountId}`);
+                return this.request(`/alerts/${accountId}?limit=200`);
+            },
+            async updateAlert(alertId, data) {
+                return this.request(`/alerts/${alertId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+            },
+            async getAlertDetail(alertId) {
+                return this.request(`/alerts/detail/${alertId}`);
+            },
+            async addAlertComment(alertId, comment) {
+                return this.request(`/alerts/${alertId}/comments`, {
+                    method: 'POST',
+                    body: JSON.stringify({ comment })
+                });
             },
 
             // Webhooks endpoints
@@ -5669,31 +5130,44 @@
             const now = new Date();
             let startDate, endDate;
 
-            endDate = now.toISOString().split('T')[0];
+            endDate = formatLocalDate(now);
 
             switch(timeRange) {
                 case 'today':
                     startDate = endDate;
                     break;
+                case 'yesterday':
+                    const yesterday = new Date(now);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    startDate = formatLocalDate(yesterday);
+                    endDate = startDate;
+                    break;
                 case 'last7days':
-                    startDate = new Date(now.setDate(now.getDate() - 7)).toISOString().split('T')[0];
+                    const d7 = new Date(now);
+                    d7.setDate(d7.getDate() - 7);
+                    startDate = formatLocalDate(d7);
                     break;
                 case 'last30days':
-                    startDate = new Date(now.setDate(now.getDate() - 30)).toISOString().split('T')[0];
+                    const d30 = new Date(now);
+                    d30.setDate(d30.getDate() - 30);
+                    startDate = formatLocalDate(d30);
                     break;
                 case 'last90days':
-                    startDate = new Date(now.setDate(now.getDate() - 90)).toISOString().split('T')[0];
+                    const d90 = new Date(now);
+                    d90.setDate(d90.getDate() - 90);
+                    startDate = formatLocalDate(d90);
                     break;
                 case 'thismonth':
-                    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                    startDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
                     break;
                 case 'lastmonth':
-                    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                    startDate = lastMonth.toISOString().split('T')[0];
-                    endDate = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+                    startDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+                    endDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 0));
                     break;
                 default:
-                    startDate = new Date(now.setDate(now.getDate() - 30)).toISOString().split('T')[0];
+                    const dDef = new Date(now);
+                    dDef.setDate(dDef.getDate() - 30);
+                    startDate = formatLocalDate(dDef);
             }
 
             return { startDate, endDate };
@@ -6195,6 +5669,41 @@
         let countrySearchQuery = '';
         let salesCreativeSearchQuery = '';
 
+        // Country name to code mapping for flag display
+        const countryNameToCode = {
+            'united states': 'us', 'united kingdom': 'gb', 'india': 'in',
+            'germany': 'de', 'canada': 'ca', 'australia': 'au', 'brazil': 'br',
+            'france': 'fr', 'mexico': 'mx', 'spain': 'es', 'italy': 'it',
+            'japan': 'jp', 'netherlands': 'nl', 'philippines': 'ph', 'indonesia': 'id',
+            'singapore': 'sg', 'switzerland': 'ch', 'thailand': 'th', 'ethiopia': 'et',
+            'kenya': 'ke', 'congo - kinshasa': 'cd', 'madagascar': 'mg', 'sri lanka': 'lk',
+            'south africa': 'za', 'nigeria': 'ng', 'united arab emirates': 'ae',
+            'saudi arabia': 'sa', 'pakistan': 'pk', 'bangladesh': 'bd', 'nepal': 'np',
+            'malaysia': 'my', 'vietnam': 'vn', 'south korea': 'kr', 'taiwan': 'tw',
+            'hong kong': 'hk', 'new zealand': 'nz', 'argentina': 'ar', 'colombia': 'co',
+            'chile': 'cl', 'peru': 'pe', 'sweden': 'se', 'norway': 'no', 'denmark': 'dk',
+            'finland': 'fi', 'poland': 'pl', 'czech republic': 'cz', 'austria': 'at',
+            'belgium': 'be', 'portugal': 'pt', 'ireland': 'ie', 'israel': 'il',
+            'turkey': 'tr', 'egypt': 'eg', 'russia': 'ru', 'ukraine': 'ua',
+            'china': 'cn', 'romania': 'ro', 'hungary': 'hu', 'bulgaria': 'bg',
+            'croatia': 'hr', 'slovakia': 'sk', 'slovenia': 'si', 'lithuania': 'lt',
+            'latvia': 'lv', 'estonia': 'ee', 'cyprus': 'cy', 'malta': 'mt',
+            'luxembourg': 'lu', 'iceland': 'is', 'ghana': 'gh', 'tanzania': 'tz',
+            'uganda': 'ug', 'rwanda': 'rw', 'zambia': 'zm', 'zimbabwe': 'zw',
+            'qatar': 'qa', 'kuwait': 'kw', 'bahrain': 'bh', 'oman': 'om',
+            'jordan': 'jo', 'lebanon': 'lb', 'iraq': 'iq', 'iran': 'ir',
+            'ecuador': 'ec', 'venezuela': 've', 'bolivia': 'bo', 'paraguay': 'py',
+            'uruguay': 'uy', 'costa rica': 'cr', 'panama': 'pa', 'guatemala': 'gt',
+            'dominican republic': 'do', 'cuba': 'cu', 'jamaica': 'jm',
+            'puerto rico': 'pr', 'fiji': 'fj'
+        };
+
+        function resolveCountryCode(countryName, countryCode) {
+            if (countryCode) return countryCode.toLowerCase();
+            if (countryName) return countryNameToCode[countryName.toLowerCase()] || '';
+            return '';
+        }
+
         // ==================== WEBHOOK DATA STORE ====================
         // Saved webhooks list
         let savedWebhooks = [
@@ -6572,10 +6081,16 @@
             if (!tbody) return;
 
             const sorted = [...campaigns].sort((a, b) => parseFloat(String(b.spend).replace(/[$,]/g, '')) - parseFloat(String(a.spend).replace(/[$,]/g, '')));
-            tbody.innerHTML = sorted.map(campaign => `
+            tbody.innerHTML = sorted.map(campaign => {
+                const escapedName = campaign.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `
                 <tr style="${parseFloat(campaign.roas) < 0.5 ? 'background-color: #ffe0e0;' : parseFloat(campaign.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${campaign.status.toLowerCase()}">${campaign.status}</span></td>
-                    <td><strong>${campaign.name}</strong></td>
+                    <td>
+                        <span class="name-with-tooltip" data-tooltip="${campaign.name}">
+                            <strong class="campaign-drilldown-link name-cell" onclick="drillDownToAdSets('${escapedName}')">${campaign.name}</strong>
+                        </span>
+                    </td>
                     <td>${campaign.budget || '$0.00'}</td>
                     <td>${campaign.spend}</td>
                     <td>${campaign.sales}</td>
@@ -6585,8 +6100,8 @@
                     <td>${campaign.outboundClicks || '0'}</td>
                     <td>${campaign.reach || '0'}</td>
                     <td>${campaign.impressions || '0'}</td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
         // Update Ad Sets Table
@@ -6595,12 +6110,15 @@
             if (!tbody) return;
 
             const sorted = [...adSets].sort((a, b) => parseFloat(String(b.spend).replace(/[$,]/g, '')) - parseFloat(String(a.spend).replace(/[$,]/g, '')));
-            tbody.innerHTML = sorted.map(adSet => `
+            tbody.innerHTML = sorted.map(adSet => {
+                const escapedAdSetName = adSet.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const escapedCampaignName = adSet.campaignName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `
                 <tr style="${parseFloat(adSet.roas) < 0.5 ? 'background-color: #ffe0e0;' : parseFloat(adSet.roas) < 1 ? 'background-color: #fff5f5;' : ''}">
                     <td><span class="status-badge ${adSet.status.toLowerCase()}">${adSet.status}</span></td>
                     <td>
                         <span class="name-with-tooltip" data-tooltip="Campaign: ${adSet.campaignName}">
-                            <strong>${adSet.name}</strong>
+                            <strong class="campaign-drilldown-link name-cell" onclick="drillDownToAds('${escapedCampaignName}', '${escapedAdSetName}')">${adSet.name}</strong>
                         </span>
                     </td>
                     <td>${adSet.budget || '$0.00'}</td>
@@ -6612,8 +6130,8 @@
                     <td>${adSet.outboundClicks || '0'}</td>
                     <td>${adSet.reach || '0'}</td>
                     <td>${adSet.impressions || '0'}</td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
         // Update Ads Table
@@ -6627,7 +6145,7 @@
                     <td><span class="status-badge ${ad.status.toLowerCase()}">${ad.status}</span></td>
                     <td>
                         <span class="name-with-tooltip" data-tooltip="Campaign: ${ad.campaignName} | Ad Set: ${ad.adSetName}">
-                            <strong>${ad.name}</strong>
+                            <strong class="name-cell">${ad.name}</strong>
                         </span>
                     </td>
                     <td>${ad.budget || '$0.00'}</td>
@@ -6680,75 +6198,624 @@
             updateCountriesTable(filtered);
         }
 
-        // Update Alerts Section
-        function updateAlerts(alerts, accountName) {
-            const alertsList = document.querySelector('#alerts-section .alerts-list, #alerts-section .table-container');
-            if (!alertsList) return;
+        // Format date as YYYY-MM-DD using local timezone (avoids UTC shift with toISOString)
+        function formatLocalDate(date) {
+            return date.getFullYear() + '-' +
+                String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                String(date.getDate()).padStart(2, '0');
+        }
 
-            // Update alert count badge
-            const alertBadge = document.querySelector('.nav-item .badge');
-            if (alertBadge) alertBadge.textContent = alerts.length;
+        // Get date range for country performance filter
+        function getCountryDateRange(timeRange) {
+            const now = new Date();
+            let startDate, endDate;
 
-            // Update alerts header with account name
-            const alertsHeader = document.querySelector('#alerts-section .table-header h3');
-            if (alertsHeader) {
-                const countSpan = alertsHeader.querySelector('.count');
-                if (countSpan) countSpan.textContent = alerts.length + ' Active';
+            endDate = formatLocalDate(now);
+
+            switch(timeRange) {
+                case 'today':
+                    startDate = endDate;
+                    break;
+                case 'yesterday':
+                    const yd = new Date(now);
+                    yd.setDate(yd.getDate() - 1);
+                    startDate = formatLocalDate(yd);
+                    endDate = startDate;
+                    break;
+                case 'last7days':
+                    const d7 = new Date(now);
+                    d7.setDate(d7.getDate() - 7);
+                    startDate = formatLocalDate(d7);
+                    break;
+                case 'last30days':
+                    const d30 = new Date(now);
+                    d30.setDate(d30.getDate() - 30);
+                    startDate = formatLocalDate(d30);
+                    break;
+                case 'last90days':
+                    const d90 = new Date(now);
+                    d90.setDate(d90.getDate() - 90);
+                    startDate = formatLocalDate(d90);
+                    break;
+                case 'thismonth':
+                    startDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+                    break;
+                case 'lastmonth':
+                    startDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+                    endDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 0));
+                    break;
+                default:
+                    const dDef = new Date(now);
+                    dDef.setDate(dDef.getDate() - 30);
+                    startDate = formatLocalDate(dDef);
+            }
+
+            return { startDate, endDate };
+        }
+
+        // Load country performance with selected time range
+        async function loadCountryPerformance() {
+            if (!currentFbAccountId) return;
+
+            const timeRange = document.getElementById('country-time-range')?.value || 'last30days';
+            const { startDate, endDate } = getCountryDateRange(timeRange);
+
+            try {
+                const tbody = document.querySelector('#country-section tbody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading country data...</td></tr>';
+                }
+
+                const countriesRes = await api.getFbCountries(currentFbAccountId, startDate, endDate);
+
+                if (countriesRes.success) {
+                    const fmtCurrency = (val) => '$' + parseFloat(val || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    const data = accountData[currentAccount];
+                    data.countries = countriesRes.data.map(c => ({
+                        name: c.country,
+                        flag: c.flag || c.country_code?.toLowerCase(),
+                        spend: fmtCurrency(c.spend),
+                        sales: c.sales || 0,
+                        revenue: fmtCurrency(c.revenue),
+                        roas: parseFloat(c.roas || 0).toFixed(2)
+                    }));
+                    applyCountryFilter();
+                }
+            } catch (error) {
+                console.error('Failed to load country performance:', error);
+                showToast('Failed to load country data', 'error');
             }
         }
 
-        // Update Recent Sales
-        function updateRecentSales(sales) {
+        // Toast notification helper
+        function showToast(message, type = 'info') {
+            const colors = { success: '#16a34a', error: '#dc2626', warning: '#f59e0b', info: '#3b82f6' };
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            const toast = document.createElement('div');
+            toast.style.cssText = `position: fixed; top: 24px; right: 24px; z-index: 9999; background: ${colors[type] || colors.info}; color: white; padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; font-size: 14px; max-width: 400px; animation: slideInRight 0.3s ease;`;
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        // Time ago helper
+        function timeAgo(dateString) {
+            if (!dateString) return '';
+            const now = new Date();
+            const date = new Date(dateString);
+            const seconds = Math.floor((now - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+            const days = Math.floor(seconds / 86400);
+            if (days === 1) return '1 day ago';
+            return days + ' days ago';
+        }
+
+        // Alert type display mapping
+        function getAlertTypeInfo(type) {
+            const typeMap = {
+                'low_roas': { icon: 'fas fa-chart-line', label: 'Low ROAS - Below threshold' },
+                'high_frequency': { icon: 'fas fa-redo-alt', label: 'High Frequency' },
+                'overspend': { icon: 'fas fa-exclamation-triangle', label: 'Overspend - Above budget' },
+                'zero_sales': { icon: 'fas fa-times-circle', label: 'No sales after threshold spend' },
+                'high_roas': { icon: 'fas fa-arrow-up', label: 'High ROAS - Consider scaling' },
+                'daily_summary': { icon: 'fas fa-calendar-day', label: 'Daily Summary' },
+                'opportunity': { icon: 'fas fa-arrow-trend-up', label: 'Opportunity detected' }
+            };
+            return typeMap[type] || { icon: 'fas fa-bell', label: type || 'Alert' };
+        }
+
+        // Level display mapping
+        function getLevelLabel(level) {
+            const levelMap = { 'campaign': 'Campaign', 'adset': 'Ad Set', 'ad': 'Ad', 'country': 'Country' };
+            return levelMap[level] || level || 'Alert';
+        }
+
+        // ROAS color
+        function getRoasColor(roas) {
+            if (roas === null || roas === undefined) return 'var(--text-color)';
+            if (roas < 1) return '#dc2626';
+            if (roas < 1.5) return '#f97316';
+            return '#22c55e';
+        }
+
+        // Status display label
+        function getStatusLabel(status) {
+            const map = { 'investigating': 'Investigating', 'in_progress': 'In Progress', 'resolved': 'Resolved', 'dismissed': 'Dismissed' };
+            return map[status] || status || 'Investigating';
+        }
+
+        // Render a single alert item
+        function renderAlertItem(alert) {
+            const typeInfo = getAlertTypeInfo(alert.type);
+            const levelLabel = getLevelLabel(alert.level);
+            const roasColor = getRoasColor(alert.roas);
+            const spend = parseFloat(alert.spend || 0);
+            const roas = alert.roas !== null && alert.roas !== undefined ? parseFloat(alert.roas) : null;
+            const isOpportunity = alert.priority === 'opportunity';
+
+            const statusOptions = isOpportunity
+                ? `<option value="investigating" ${alert.status === 'investigating' ? 'selected' : ''}>Investigating</option>
+                   <option value="in_progress" ${alert.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                   <option value="resolved" ${alert.status === 'resolved' ? 'selected' : ''}>Applied</option>
+                   <option value="dismissed" ${alert.status === 'dismissed' ? 'selected' : ''}>Dismissed</option>`
+                : `<option value="investigating" ${alert.status === 'investigating' ? 'selected' : ''}>Investigating</option>
+                   <option value="in_progress" ${alert.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                   <option value="resolved" ${alert.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+                   <option value="dismissed" ${alert.status === 'dismissed' ? 'selected' : ''}>Dismissed</option>`;
+
+            const detailTitle = isOpportunity ? 'Recommendation' : 'Threshold Details';
+            const thresholdInfo = alert.threshold_info || '';
+
+            return `
+            <div class="task-item" data-task-id="${alert.id}">
+                <div class="task-item-header" onclick="toggleTask(this)">
+                    <span class="task-priority ${alert.priority}">${alert.priority === 'critical' ? 'Critical' : alert.priority === 'warning' ? 'Warning' : 'Opportunity'}</span>
+                    <div class="task-info">
+                        <div class="task-title">
+                            ${alert.item_name || 'Unknown'}
+                            <span class="task-type">${levelLabel}</span>
+                        </div>
+                        <div class="task-meta">
+                            <span><i class="${typeInfo.icon}"></i> ${typeInfo.label}</span>
+                            <span><i class="fas fa-clock"></i> ${timeAgo(alert.created_at)}</span>
+                        </div>
+                    </div>
+                    <div class="task-metrics">
+                        <div class="task-metric">
+                            <div class="task-metric-label">Spend</div>
+                            <div class="task-metric-value">$${spend.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                        </div>
+                        ${roas !== null ? `
+                        <div class="task-metric">
+                            <div class="task-metric-label">ROAS</div>
+                            <div class="task-metric-value" style="color: ${roasColor};">${roas.toFixed(2)}</div>
+                        </div>` : ''}
+                    </div>
+                    <select class="task-status-select" onclick="event.stopPropagation()" onchange="updateAlertStatus(${alert.id}, this.value, this)">
+                        ${statusOptions}
+                    </select>
+                    <button class="task-expand-btn">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="task-details">
+                    <div class="task-details-grid">
+                        <div class="task-detail-section">
+                            <h4>${detailTitle}</h4>
+                            <div class="task-threshold-info">
+                                <div class="task-threshold-row">
+                                    <span>Alert Type</span>
+                                    <span><strong>${typeInfo.label}</strong></span>
+                                </div>
+                                <div class="task-threshold-row">
+                                    <span>Current Spend</span>
+                                    <span style="color: ${spend > 500 ? '#dc2626' : 'inherit'};"><strong>$${spend.toFixed(2)}</strong></span>
+                                </div>
+                                ${roas !== null ? `
+                                <div class="task-threshold-row">
+                                    <span>Current ROAS</span>
+                                    <span style="color: ${roasColor};"><strong>${roas.toFixed(2)}</strong></span>
+                                </div>` : ''}
+                                ${thresholdInfo ? `
+                                <div class="task-threshold-row">
+                                    <span>Details</span>
+                                    <span><strong>${thresholdInfo}</strong></span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                        <div class="task-detail-section">
+                            <h4>Comments</h4>
+                            <div class="task-comments" id="alert-comments-${alert.id}">
+                                <div class="task-comment">
+                                    <div class="task-comment-header">
+                                        <span class="task-comment-author">System</span>
+                                        <span class="task-comment-time">${timeAgo(alert.created_at)}</span>
+                                    </div>
+                                    <div class="task-comment-text">Alert created: ${thresholdInfo || typeInfo.label}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-add-comment">
+                        <input type="text" class="task-comment-input" placeholder="Add a comment..." onkeypress="if(event.key==='Enter')addAlertComment(${alert.id}, this.nextElementSibling)">
+                        <button class="task-comment-btn" onclick="addAlertComment(${alert.id}, this)">Add</button>
+                    </div>
+                    <div class="task-actions-row">
+                        ${isOpportunity
+                            ? `<button class="task-action-btn primary" onclick="resolveAlert(${alert.id}, this, 'resolved')"><i class="fas fa-check"></i> Apply</button>
+                               <button class="task-action-btn" style="margin-left: auto;" onclick="resolveAlert(${alert.id}, this, 'dismissed')"><i class="fas fa-times"></i> Dismiss</button>`
+                            : `<button class="task-action-btn primary" style="margin-left: auto;" onclick="resolveAlert(${alert.id}, this, 'resolved')"><i class="fas fa-check"></i> Mark Resolved</button>`
+                        }
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // Main alert rendering function
+        function renderAlertsFromAPI(alerts) {
+            const needsActionList = document.getElementById('needs-action-list');
+            const opportunitiesList = document.getElementById('opportunities-list');
+
+            if (!needsActionList || !opportunitiesList) return;
+
+            // Filter out resolved/dismissed for display
+            const activeAlerts = (alerts || []).filter(a => a.status !== 'resolved' && a.status !== 'dismissed');
+            const needsAction = activeAlerts.filter(a => a.priority === 'critical' || a.priority === 'warning');
+            const opportunities = activeAlerts.filter(a => a.priority === 'opportunity');
+
+            // Render needs action
+            if (needsAction.length === 0) {
+                needsActionList.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);"><i class="fas fa-check-circle" style="font-size: 32px; margin-bottom: 12px; display: block; color: #22c55e;"></i>No alerts requiring action</div>';
+            } else {
+                needsActionList.innerHTML = needsAction.map(a => renderAlertItem(a)).join('');
+            }
+
+            // Render opportunities
+            if (opportunities.length === 0) {
+                opportunitiesList.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);"><i class="fas fa-lightbulb" style="font-size: 32px; margin-bottom: 12px; display: block; color: #f59e0b;"></i>No opportunities detected</div>';
+            } else {
+                opportunitiesList.innerHTML = opportunities.map(a => renderAlertItem(a)).join('');
+            }
+
+            // Update tab counts
+            const tabCounts = document.querySelectorAll('.task-tab .tab-count');
+            if (tabCounts[0]) tabCounts[0].textContent = needsAction.length;
+            if (tabCounts[1]) tabCounts[1].textContent = opportunities.length;
+
+            // Update header count
+            const totalOpen = activeAlerts.length;
+            const alertsHeader = document.querySelector('#alerts-section .table-header h3 .count');
+            if (alertsHeader) alertsHeader.textContent = totalOpen + ' Open';
+
+            // Update bell badge
+            const bellBadge = document.querySelector('.notification-badge');
+            if (bellBadge) {
+                bellBadge.textContent = totalOpen;
+                bellBadge.style.display = totalOpen > 0 ? '' : 'none';
+            }
+
+            // Update nav badge
+            const navBadge = document.querySelector('.nav-item .badge');
+            if (navBadge) navBadge.textContent = totalOpen;
+
+            // Update pagination info
+            const paginationInfo = document.getElementById('alerts-pagination-info');
+            if (paginationInfo) {
+                paginationInfo.textContent = `${totalOpen} alert${totalOpen !== 1 ? 's' : ''}`;
+            }
+            const paginationDiv = document.getElementById('alerts-pagination');
+            if (paginationDiv) paginationDiv.style.display = totalOpen > 0 ? '' : 'none';
+
+            // Update notification panel
+            updateNotificationPanel(activeAlerts);
+        }
+
+        // Update notification panel with real alerts
+        function updateNotificationPanel(alerts) {
+            const notifList = document.getElementById('notification-list');
+            if (!notifList) return;
+
+            const recentAlerts = (alerts || []).slice(0, 5);
+
+            if (recentAlerts.length === 0) {
+                notifList.innerHTML = '<div class="notification-item" style="text-align: center; color: var(--text-secondary);"><div class="notif-desc">No new notifications</div></div>';
+                return;
+            }
+
+            notifList.innerHTML = recentAlerts.map((alert, i) => {
+                const isWarning = alert.priority === 'critical' || alert.priority === 'warning';
+                const iconClass = isWarning ? 'alert' : 'sale';
+                const icon = isWarning ? 'fas fa-exclamation-triangle' : 'fas fa-chart-line';
+                const typeInfo = getAlertTypeInfo(alert.type);
+                const title = isWarning ? `Alert: ${typeInfo.label}` : `Opportunity: ${typeInfo.label}`;
+                const desc = `${alert.item_name || 'Unknown'} - $${parseFloat(alert.spend || 0).toFixed(0)}`;
+                return `
+                <div class="notification-item ${i < 2 ? 'unread' : ''}" onclick="navigateToAlerts()">
+                    <div class="notif-icon ${iconClass}">
+                        <i class="${icon}"></i>
+                    </div>
+                    <div class="notif-title">${title}</div>
+                    <div class="notif-desc">${desc}</div>
+                    <div class="notif-time">${timeAgo(alert.created_at)}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // Update alert status via API
+        async function updateAlertStatus(alertId, newStatus, selectEl) {
+            const oldValue = selectEl.getAttribute('data-prev') || selectEl.value;
+            selectEl.setAttribute('data-prev', newStatus);
+
+            try {
+                const result = await api.updateAlert(alertId, { status: newStatus });
+                if (result.success) {
+                    showToast('Alert status updated', 'success');
+
+                    // If resolved or dismissed, remove from list after brief delay
+                    if (newStatus === 'resolved' || newStatus === 'dismissed') {
+                        const taskItem = selectEl.closest('.task-item');
+                        if (taskItem) {
+                            taskItem.style.transition = 'opacity 0.3s, transform 0.3s';
+                            taskItem.style.opacity = '0';
+                            taskItem.style.transform = 'translateX(20px)';
+                            setTimeout(() => {
+                                taskItem.remove();
+                                updateAlertCounts();
+                            }, 300);
+                        }
+                    }
+                } else {
+                    selectEl.value = oldValue;
+                    showToast('Failed to update alert status', 'error');
+                }
+            } catch (error) {
+                console.error('Update alert status error:', error);
+                selectEl.value = oldValue;
+                showToast('Failed to update alert status', 'error');
+            }
+        }
+
+        // Add comment to alert
+        async function addAlertComment(alertId, btnEl) {
+            const container = btnEl.closest('.task-add-comment');
+            const input = container.querySelector('.task-comment-input');
+            const comment = input.value.trim();
+
+            if (!comment) return;
+
+            try {
+                const result = await api.addAlertComment(alertId, comment);
+                if (result.success) {
+                    const commentsDiv = document.getElementById('alert-comments-' + alertId);
+                    if (commentsDiv) {
+                        const commentHtml = `
+                        <div class="task-comment">
+                            <div class="task-comment-header">
+                                <span class="task-comment-author">You</span>
+                                <span class="task-comment-time">Just now</span>
+                            </div>
+                            <div class="task-comment-text">${comment.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                        </div>`;
+                        commentsDiv.insertAdjacentHTML('afterbegin', commentHtml);
+                    }
+                    input.value = '';
+                    showToast('Comment added', 'success');
+                } else {
+                    showToast('Failed to add comment', 'error');
+                }
+            } catch (error) {
+                console.error('Add comment error:', error);
+                showToast('Failed to add comment', 'error');
+            }
+        }
+
+        // Resolve/dismiss alert
+        async function resolveAlert(alertId, btnEl, status) {
+            try {
+                const result = await api.updateAlert(alertId, { status: status });
+                if (result.success) {
+                    const taskItem = btnEl.closest('.task-item');
+                    if (taskItem) {
+                        taskItem.style.transition = 'opacity 0.3s, transform 0.3s';
+                        taskItem.style.opacity = '0';
+                        taskItem.style.transform = 'translateX(20px)';
+                        setTimeout(() => {
+                            taskItem.remove();
+                            updateAlertCounts();
+                        }, 300);
+                    }
+                    showToast(status === 'resolved' ? 'Alert resolved' : 'Alert dismissed', 'success');
+                } else {
+                    showToast('Failed to update alert', 'error');
+                }
+            } catch (error) {
+                console.error('Resolve alert error:', error);
+                showToast('Failed to update alert', 'error');
+            }
+        }
+
+        // Recount alerts after DOM removal
+        function updateAlertCounts() {
+            const needsActionCount = document.querySelectorAll('#needs-action-list .task-item').length;
+            const opportunitiesCount = document.querySelectorAll('#opportunities-list .task-item').length;
+            const total = needsActionCount + opportunitiesCount;
+
+            const tabCounts = document.querySelectorAll('.task-tab .tab-count');
+            if (tabCounts[0]) tabCounts[0].textContent = needsActionCount;
+            if (tabCounts[1]) tabCounts[1].textContent = opportunitiesCount;
+
+            const alertsHeader = document.querySelector('#alerts-section .table-header h3 .count');
+            if (alertsHeader) alertsHeader.textContent = total + ' Open';
+
+            const bellBadge = document.querySelector('.notification-badge');
+            if (bellBadge) {
+                bellBadge.textContent = total;
+                bellBadge.style.display = total > 0 ? '' : 'none';
+            }
+
+            const navBadge = document.querySelector('.nav-item .badge');
+            if (navBadge) navBadge.textContent = total;
+
+            const paginationInfo = document.getElementById('alerts-pagination-info');
+            if (paginationInfo) paginationInfo.textContent = `${total} alert${total !== 1 ? 's' : ''}`;
+
+            // Show empty state if needed
+            if (needsActionCount === 0) {
+                const list = document.getElementById('needs-action-list');
+                if (list && !list.querySelector('.task-item')) {
+                    list.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);"><i class="fas fa-check-circle" style="font-size: 32px; margin-bottom: 12px; display: block; color: #22c55e;"></i>No alerts requiring action</div>';
+                }
+            }
+            if (opportunitiesCount === 0) {
+                const list = document.getElementById('opportunities-list');
+                if (list && !list.querySelector('.task-item')) {
+                    list.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);"><i class="fas fa-lightbulb" style="font-size: 32px; margin-bottom: 12px; display: block; color: #f59e0b;"></i>No opportunities detected</div>';
+                }
+            }
+        }
+
+        // Legacy wrapper - kept for compatibility
+        function updateAlerts(alerts, accountName) {
+            renderAlertsFromAPI(alerts);
+        }
+
+        // Get period label for column headers based on time range
+        function getSalesPeriodLabel(timeRange) {
+            switch(timeRange) {
+                case 'today': return '(Today)';
+                case 'yesterday': return '(Yesterday)';
+                case 'last7days': return '(7 Days)';
+                case 'last30days': return '(30 Days)';
+                case 'last90days': return '(90 Days)';
+                case 'thismonth': return '(This Month)';
+                case 'lastmonth': return '(Last Month)';
+                default: return '(Period)';
+            }
+        }
+
+        // Render Sales by Ad table - each individual sale as a separate row
+        function updateRecentSales(salesData, summary) {
             const salesSection = document.querySelector('#sales-creative-section tbody');
             if (!salesSection) return;
 
+            const sales = salesData || [];
+            const fmtCurr = (v) => '$' + parseFloat(v || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // Update period labels in column headers
+            const timeRange = document.getElementById('sales-time-range')?.value || 'last7days';
+            const periodLabel = getSalesPeriodLabel(timeRange);
+            const periodLabelEl = document.getElementById('sales-period-label');
+            const revPeriodLabelEl = document.getElementById('sales-rev-period-label');
+            if (periodLabelEl) periodLabelEl.textContent = periodLabel;
+            if (revPeriodLabelEl) revPeriodLabelEl.textContent = periodLabel;
+
             // Update header count
-            const countEl = document.querySelector('#sales-creative-section .count');
-            if (countEl) countEl.textContent = `${sales.length} Ads`;
+            const countEl = document.getElementById('sales-total-count');
+            if (countEl) countEl.textContent = `${summary ? summary.totalSales : sales.length} Sales`;
 
-            salesSection.innerHTML = sales.map((sale, index) => {
-                const creativeUrl = sale.creativeUrl || sale.creative_url;
-                const creativeHtml = creativeUrl
-                    ? `<img src="${creativeUrl}" alt="Ad Creative" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer;" onclick="showCreativePreview('${creativeUrl}')" onerror="this.outerHTML='<div style=\\'width:40px;height:40px;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;\\'><i class=\\'fas fa-image\\'></i></div>'">`
-                    : `<div style="width: 40px; height: 40px; border-radius: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">
-                            <i class="fas fa-image"></i>
-                       </div>`;
+            if (sales.length === 0) {
+                salesSection.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);"><i class="fas fa-shopping-cart" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>No sales found for this period</td></tr>';
+                return;
+            }
 
-                const spend = sale.spend || sale.amount || '$0.00';
-                const spendDisplay = typeof spend === 'string' && spend.startsWith('$') ? spend : `$${parseFloat(spend || 0).toFixed(2)}`;
-                const revenue = sale.revenue || 0;
-                const revenueDisplay = typeof revenue === 'string' && revenue.startsWith('$') ? revenue : `$${parseFloat(revenue || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            const formatDateTime = (dateStr) => {
+                if (!dateStr) return 'N/A';
+                const d = new Date(dateStr + (dateStr.length === 10 ? 'T00:00:00' : ''));
+                const datePart = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                const timePart = dateStr.includes('T') ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+                return `<div style="font-weight: 600;">${datePart}</div>${timePart ? `<div style="font-size: 11px; color: var(--text-secondary);">${timePart}</div>` : ''}`;
+            };
+
+            salesSection.innerHTML = sales.map(sale => {
+                const roas = parseFloat(sale.roas || 0);
+                const roasColor = roas >= 2 ? '#16a34a' : roas >= 1 ? '#f59e0b' : '#ef4444';
+                const saleAmount = parseFloat(sale.saleAmount || 0);
+                const adSpend = parseFloat(sale.adTotalSpend || 0);
+                const adRevenue = parseFloat(sale.adTotalRevenue || 0);
+                const country = sale.country || '—';
+                const countryCode = sale.countryCode ? sale.countryCode.toLowerCase() : '';
+
+                // Creative image - clickable for preview
+                const imgHtml = sale.creativeUrl
+                    ? `<img src="${sale.creativeUrl}" alt="" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0; border: 1px solid var(--border-color);" onclick="showCreativePreview(this.src)" onerror="this.outerHTML='<div style=\\'width:36px;height:36px;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;flex-shrink:0;\\'><i class=\\'fas fa-image\\'></i></div>'">`
+                    : `<div style="width: 36px; height: 36px; border-radius: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;"><i class="fas fa-image"></i></div>`;
+
+                // Source badge
+                const sourceBadge = sale.source === 'meta_pixel'
+                    ? '<span style="background: #e8f0fe; color: #1a73e8; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600;">Pixel</span>'
+                    : sale.source === 'manual'
+                    ? '<span style="background: #f3e8ff; color: #7c3aed; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600;">Manual</span>'
+                    : '';
 
                 return `
                 <tr>
-                    <td>${creativeHtml}</td>
-                    <td><strong>${sale.adName || sale.ad_name || 'Unknown Ad'}</strong></td>
-                    <td>${sale.campaignName || sale.campaign || 'N/A'}</td>
-                    <td>${sale.adSetName || sale.adSet || 'N/A'}</td>
-                    <td><strong>${spendDisplay}</strong></td>
-                    <td><strong>${revenueDisplay}</strong></td>
-                    <td>${sale.sales || 0}</td>
-                    <td style="color: ${(sale.roas && parseFloat(sale.roas) >= 1) ? '#22c55e' : 'var(--text-secondary)'};">${sale.roas || '0.00'}</td>
-                </tr>
-            `}).join('');
+                    <td style="white-space: nowrap;">${formatDateTime(sale.date)}</td>
+                    <td><strong class="cell-ellipsis" title="${(sale.campaignName || 'N/A').replace(/"/g, '&quot;')}" style="display: block; color: var(--text-primary); font-size: 12px;">${sale.campaignName || 'N/A'}</strong></td>
+                    <td><span class="cell-ellipsis" title="${(sale.adSetName || 'N/A').replace(/"/g, '&quot;')}" style="display: block; font-size: 12px;">${sale.adSetName || 'N/A'}</span></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${imgHtml}
+                            <div style="min-width: 0; flex: 1;">
+                                <div class="cell-ellipsis" title="${(sale.adName || 'N/A').replace(/"/g, '&quot;')}" style="font-size: 12px; font-weight: 500;">${sale.adName || 'N/A'}</div>
+                                ${sourceBadge}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="white-space: nowrap;">${fmtCurr(adSpend)}</td>
+                    <td style="white-space: nowrap;">${fmtCurr(adRevenue)}</td>
+                    <td style="text-align: center;"><span style="font-weight: 700; color: ${roasColor};">${roas.toFixed(2)}</span></td>
+                    <td style="white-space: nowrap;"><strong style="color: #16a34a;">${fmtCurr(saleAmount)}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                            ${countryCode ? `<img src="https://flagcdn.com/16x12/${countryCode}.png" alt="" style="width: 16px; height: 12px; flex-shrink: 0;" onerror="this.style.display='none'">` : ''}
+                            <span style="font-size: 12px;">${country}</span>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         function applySalesCreativeFilter() {
-            // Use API sales data if available, otherwise mock data
-            let filtered = currentSalesCreativeData || (accountData[currentAccount] ? accountData[currentAccount].recentSales : []);
-            if (!filtered) filtered = [];
+            let filtered = currentSalesCreativeData || [];
             if (salesCreativeSearchQuery) {
                 filtered = filtered.filter(s =>
-                    (s.adName || s.ad_name || '').toLowerCase().includes(salesCreativeSearchQuery) ||
-                    (s.campaignName || s.campaign || '').toLowerCase().includes(salesCreativeSearchQuery) ||
-                    (s.adSetName || s.adSet || '').toLowerCase().includes(salesCreativeSearchQuery)
+                    (s.adName || '').toLowerCase().includes(salesCreativeSearchQuery) ||
+                    (s.campaignName || '').toLowerCase().includes(salesCreativeSearchQuery) ||
+                    (s.adSetName || '').toLowerCase().includes(salesCreativeSearchQuery)
                 );
             }
-            updateRecentSales(filtered);
+            updateRecentSales(filtered, currentSalesSummary);
+        }
+
+        // Load sales data from the sales-specific time range dropdown
+        async function loadSalesFromAPI() {
+            const timeRange = document.getElementById('sales-time-range')?.value || 'last7days';
+            const accountId = getCurrentInternalAccountId();
+            if (!accountId) return;
+
+            try {
+                const salesSection = document.querySelector('#sales-creative-section tbody');
+                if (salesSection) salesSection.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading sales data...</td></tr>';
+
+                const { startDate, endDate } = getDateRange(timeRange);
+                const res = await api.getSales(accountId, startDate, endDate, 500);
+                if (res.success) {
+                    currentSalesCreativeData = res.data;
+                    currentSalesSummary = res.summary;
+                    updateRecentSales(res.data, res.summary);
+                }
+            } catch (error) {
+                console.error('Failed to load sales:', error);
+                const salesSection = document.querySelector('#sales-creative-section tbody');
+                if (salesSection) salesSection.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: var(--text-secondary);">Failed to load sales data</td></tr>';
+            }
         }
 
         // Store current sales creative data for filtering
         let currentSalesCreativeData = null;
+        let currentSalesSummary = null;
 
         // Show creative preview in modal
         function showCreativePreview(imageUrl) {
@@ -6900,6 +6967,123 @@
             }
         });
 
+        // Drill-down: Click campaign name → navigate to Ad Sets with that campaign filtered
+        function drillDownToAdSets(campaignName) {
+            // Set filter values
+            adSetsCampaignFilter = campaignName;
+            adSetsStatusFilter = 'active';
+            adSetsSearchQuery = '';
+
+            // Update the dropdown UIs
+            const campaignDropdown = document.getElementById('adsets-campaign-filter');
+            if (campaignDropdown) campaignDropdown.value = campaignName;
+            const statusDropdown = document.getElementById('adsets-status-filter');
+            if (statusDropdown) statusDropdown.value = 'active';
+            const searchInput = document.getElementById('adsets-search');
+            if (searchInput) searchInput.value = '';
+
+            // Show breadcrumb
+            const breadcrumb = document.getElementById('adsets-breadcrumb');
+            const breadcrumbName = document.getElementById('adsets-breadcrumb-name');
+            if (breadcrumb) breadcrumb.classList.add('active');
+            if (breadcrumbName) breadcrumbName.textContent = campaignName;
+
+            // Navigate to Ad Sets section
+            const adSetsNavItem = document.querySelector('a.submenu-item[onclick*="adsets-section"]');
+            showSection('adsets-section', adSetsNavItem);
+
+            // Apply the filter
+            applyAdSetsFilter();
+        }
+
+        // Navigate back from Ad Sets breadcrumb to Campaigns
+        function navigateBackToCampaigns() {
+            // Clear the campaign filter
+            adSetsCampaignFilter = 'all';
+            const campaignDropdown = document.getElementById('adsets-campaign-filter');
+            if (campaignDropdown) campaignDropdown.value = 'all';
+
+            // Hide breadcrumb
+            const breadcrumb = document.getElementById('adsets-breadcrumb');
+            if (breadcrumb) breadcrumb.classList.remove('active');
+
+            // Navigate to Campaigns section
+            const campaignsNavItem = document.querySelector('a.submenu-item[onclick*="campaigns-section"]');
+            showSection('campaigns-section', campaignsNavItem);
+        }
+
+        // Drill-down: Click ad set name → navigate to Ads with that ad set filtered
+        function drillDownToAds(campaignName, adSetName) {
+            // Set filter values
+            adsCampaignFilter = campaignName;
+            adsAdSetFilter = adSetName;
+            adsStatusFilter = 'active';
+            adsSearchQuery = '';
+
+            // Update the dropdown UIs
+            const campaignDropdown = document.getElementById('ads-campaign-filter');
+            if (campaignDropdown) campaignDropdown.value = campaignName;
+            const statusDropdown = document.getElementById('ads-status-filter');
+            if (statusDropdown) statusDropdown.value = 'active';
+            const searchInput = document.getElementById('ads-search');
+            if (searchInput) searchInput.value = '';
+
+            // Populate ad set dropdown scoped to this campaign, then select the ad set
+            populateAdsAdSetDropdown();
+            const adSetDropdown = document.getElementById('ads-adset-filter');
+            if (adSetDropdown) adSetDropdown.value = adSetName;
+
+            // Show breadcrumb
+            const breadcrumb = document.getElementById('ads-breadcrumb');
+            const breadcrumbCampaign = document.getElementById('ads-breadcrumb-campaign');
+            const breadcrumbAdSet = document.getElementById('ads-breadcrumb-adset');
+            if (breadcrumb) breadcrumb.classList.add('active');
+            if (breadcrumbCampaign) breadcrumbCampaign.textContent = campaignName;
+            if (breadcrumbAdSet) breadcrumbAdSet.textContent = adSetName;
+
+            // Navigate to Ads section
+            const adsNavItem = document.querySelector('a.submenu-item[onclick*="ads-section"]');
+            showSection('ads-section', adsNavItem);
+
+            // Apply the filter
+            applyAdsFilter();
+        }
+
+        // Navigate back from Ads breadcrumb to Ad Sets (with the campaign still filtered)
+        function navigateBackToAdSetsFromAds() {
+            const campaignName = document.getElementById('ads-breadcrumb-campaign')?.textContent;
+
+            // Hide Ads breadcrumb
+            const adsBreadcrumb = document.getElementById('ads-breadcrumb');
+            if (adsBreadcrumb) adsBreadcrumb.classList.remove('active');
+
+            // Reset ads filters
+            adsCampaignFilter = 'all';
+            adsAdSetFilter = 'all';
+
+            // Drill back into Ad Sets with the campaign filter
+            if (campaignName) {
+                drillDownToAdSets(campaignName);
+            } else {
+                const adSetsNavItem = document.querySelector('a.submenu-item[onclick*="adsets-section"]');
+                showSection('adsets-section', adSetsNavItem);
+            }
+        }
+
+        // Navigate back from Ads breadcrumb all the way to Campaigns
+        function navigateBackToCampaignsFromAds() {
+            // Hide Ads breadcrumb
+            const adsBreadcrumb = document.getElementById('ads-breadcrumb');
+            if (adsBreadcrumb) adsBreadcrumb.classList.remove('active');
+
+            // Reset all ads filters
+            adsCampaignFilter = 'all';
+            adsAdSetFilter = 'all';
+
+            // Navigate to Campaigns
+            navigateBackToCampaigns();
+        }
+
         // Switch Tabs
         // Show Section (for navigation between dashboard sections)
         function showSection(sectionId, clickedElement) {
@@ -6929,6 +7113,31 @@
                 section.classList.remove('active');
                 section.style.display = 'none';
             });
+
+            // If navigating away from Ad Sets, clear its breadcrumb and reset campaign filter
+            if (sectionId !== 'adsets-section') {
+                const breadcrumb = document.getElementById('adsets-breadcrumb');
+                if (breadcrumb) breadcrumb.classList.remove('active');
+                if (adSetsCampaignFilter !== 'all') {
+                    adSetsCampaignFilter = 'all';
+                    const campaignDropdown = document.getElementById('adsets-campaign-filter');
+                    if (campaignDropdown) campaignDropdown.value = 'all';
+                }
+            }
+
+            // If navigating away from Ads, clear its breadcrumb and reset filters
+            if (sectionId !== 'ads-section') {
+                const adsBreadcrumb = document.getElementById('ads-breadcrumb');
+                if (adsBreadcrumb) adsBreadcrumb.classList.remove('active');
+                if (adsCampaignFilter !== 'all' || adsAdSetFilter !== 'all') {
+                    adsCampaignFilter = 'all';
+                    adsAdSetFilter = 'all';
+                    const adsCampaignDropdown = document.getElementById('ads-campaign-filter');
+                    if (adsCampaignDropdown) adsCampaignDropdown.value = 'all';
+                    const adsAdSetDropdown = document.getElementById('ads-adset-filter');
+                    if (adsAdSetDropdown) adsAdSetDropdown.value = 'all';
+                }
+            }
 
             // Overview Metrics page: show metrics cards + related sections
             if (sectionId === 'metrics-section') {
@@ -7088,6 +7297,20 @@
             panel.classList.toggle('show');
         }
 
+        // Navigate to alerts section from notification panel
+        function navigateToAlerts() {
+            const alertsNav = document.querySelector('.nav-item[onclick*="alerts-section"]');
+            showSection('alerts-section', alertsNav);
+            toggleNotifications();
+        }
+
+        // Mark all notifications as read
+        function markAllNotificationsRead() {
+            document.querySelectorAll('#notification-list .notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+            });
+        }
+
         // Close notification panel when clicking outside
         document.addEventListener('click', function(event) {
             const panel = document.getElementById('notificationPanel');
@@ -7166,6 +7389,7 @@
                     transaction_id: transactionId || null,
                     product,
                     country,
+                    country_code: resolveCountryCode(country, null) || null,
                     amount: parseFloat(amount),
                     source,
                     created_at
@@ -7312,7 +7536,7 @@
 
         function openAddLeadModal() {
             // Set default date to today
-            const today = new Date().toISOString().split('T')[0];
+            const today = formatLocalDate(new Date());
             document.getElementById('lead-date').value = today;
             document.getElementById('lead-count').value = '';
             document.getElementById('lead-source').value = '';
@@ -7387,7 +7611,7 @@
 
             // Parse date to input format
             const dateObj = new Date(dateText);
-            const formattedDate = dateObj.toISOString().split('T')[0];
+            const formattedDate = formatLocalDate(dateObj);
 
             // Populate the edit form
             document.getElementById('edit-lead-date').value = formattedDate;
@@ -8115,6 +8339,16 @@
         // Campaign filter for Ad Sets table
         document.getElementById('adsets-campaign-filter').addEventListener('change', function() {
             adSetsCampaignFilter = this.value;
+            // Update breadcrumb visibility
+            const breadcrumb = document.getElementById('adsets-breadcrumb');
+            if (breadcrumb) {
+                if (this.value !== 'all') {
+                    breadcrumb.classList.add('active');
+                    document.getElementById('adsets-breadcrumb-name').textContent = this.value;
+                } else {
+                    breadcrumb.classList.remove('active');
+                }
+            }
             applyAdSetsFilter();
         });
 
@@ -8634,6 +8868,10 @@
                     }));
                 }
 
+                // Sync country time range dropdown with global selector
+                const countryTimeRange = document.getElementById('country-time-range');
+                if (countryTimeRange) countryTimeRange.value = timeRange;
+
                 // Populate filter dropdowns and apply filters
                 populateFilterDropdowns();
                 applyCampaignsFilter();
@@ -8646,26 +8884,32 @@
                     updateTimeBasedMetricsFromFB(timeMetricsRes.data);
                 }
 
-                // Update Sales by Ad Creative table AND recent sales widget
+                // Update Sales by Ad table
                 if (salesRes.success) {
                     currentSalesCreativeData = salesRes.data;
-                    updateRecentSales(salesRes.data);
+                    currentSalesSummary = salesRes.summary;
+                    updateRecentSales(salesRes.data, salesRes.summary);
                     updateSalesFromAPI(salesRes.data);
                 }
 
-                // Also load Data Management data (revenue/leads) using internal account ID
+                // Also load Data Management data (revenue/leads/alerts) using internal account ID
                 const internalId = getCurrentInternalAccountId();
                 if (internalId) {
                     try {
-                        const [revenueRes, leadsRes] = await Promise.all([
+                        const [revenueRes, leadsRes, alertsRes] = await Promise.all([
                             api.getRevenue(internalId, startDate, endDate).catch(() => ({ success: false })),
-                            api.getLeads(internalId, startDate, endDate).catch(() => ({ success: false }))
+                            api.getLeads(internalId, startDate, endDate).catch(() => ({ success: false })),
+                            api.getAlerts(internalId).catch(() => ({ success: false }))
                         ]);
                         if (revenueRes.success && revenueRes.data) {
                             updateRevenueTableFromAPI(revenueRes.data);
                         }
                         if (leadsRes.success && leadsRes.data) {
                             updateLeadsTableFromAPI(leadsRes.data);
+                        }
+                        if (alertsRes.success && alertsRes.data) {
+                            const alerts = alertsRes.data.alerts || alertsRes.data || [];
+                            renderAlertsFromAPI(alerts);
                         }
                     } catch (dmError) {
                         console.log('Data Management load skipped:', dmError.message);
@@ -8838,12 +9082,15 @@
         async function loadAccountData(accountId) {
             const timeRange = document.getElementById('time-range-selector')?.value || 'last30days';
             const { startDate, endDate } = getDateRange(timeRange);
+            // Alerts, revenue, and leads use internal account IDs (1,2,3...) not Facebook account IDs
+            const internalId = getCurrentInternalAccountId();
 
             try {
                 // Show loading state
                 document.getElementById('last-synced-time').textContent = 'Loading...';
 
-                // Fetch all data in parallel (including alerts, revenue, leads for this account)
+                // Regenerate alerts first so opportunities are fresh
+                if (internalId) await api.regenerateAlerts(internalId).catch(() => {});
                 const [metricsRes, campaignsRes, adsetsRes, adsRes, countriesRes, salesRes, alertsRes, revenueRes, leadsRes] = await Promise.all([
                     api.getMetrics(accountId, startDate, endDate),
                     api.getCampaigns(accountId, startDate, endDate),
@@ -8851,9 +9098,9 @@
                     api.getAds(accountId, startDate, endDate),
                     api.getCountries(accountId, startDate, endDate),
                     api.getSales(accountId, startDate, endDate, 100),
-                    api.getAlerts(accountId).catch(() => ({ success: false })),
-                    api.getRevenue(accountId, startDate, endDate).catch(() => ({ success: false })),
-                    api.getLeads(accountId, startDate, endDate).catch(() => ({ success: false }))
+                    internalId ? api.getAlerts(internalId).catch(() => ({ success: false })) : Promise.resolve({ success: false }),
+                    internalId ? api.getRevenue(internalId, startDate, endDate).catch(() => ({ success: false })) : Promise.resolve({ success: false }),
+                    internalId ? api.getLeads(internalId, startDate, endDate).catch(() => ({ success: false })) : Promise.resolve({ success: false })
                 ]);
 
                 // Update metrics cards
@@ -8881,18 +9128,21 @@
                     updateCountriesFromAPI(countriesRes.data);
                 }
 
-                // Update Sales by Ad Creative table AND recent sales widget
+                // Update Sales by Ad table
                 if (salesRes.success) {
                     currentSalesCreativeData = salesRes.data;
-                    updateRecentSales(salesRes.data);
+                    currentSalesSummary = salesRes.summary;
+                    updateRecentSales(salesRes.data, salesRes.summary);
                     updateSalesFromAPI(salesRes.data);
+                    // Sync sales dropdown to match main time range
+                    const salesDropdown = document.getElementById('sales-time-range');
+                    if (salesDropdown) salesDropdown.value = timeRange;
                 }
 
                 // Update alerts for this account
                 if (alertsRes.success && alertsRes.data) {
                     const alerts = alertsRes.data.alerts || alertsRes.data || [];
-                    updateAlerts(alerts, '');
-                    updateAlertsTableFromAPI(alerts);
+                    renderAlertsFromAPI(alerts);
                 }
 
                 // Update revenue/sales data management for this account
@@ -8914,29 +9164,9 @@
             }
         }
 
-        // Update alerts table from API data
+        // Update alerts table from API data - now uses the full task-item rendering
         function updateAlertsTableFromAPI(alerts) {
-            const alertsList = document.querySelector('#alerts-section tbody');
-            if (!alertsList) return;
-
-            if (!alerts || alerts.length === 0) {
-                alertsList.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-secondary);">No alerts for this account</td></tr>';
-                return;
-            }
-
-            alertsList.innerHTML = alerts.map(a => {
-                const priorityColors = { critical: '#ef4444', warning: '#f59e0b', opportunity: '#22c55e' };
-                const statusColors = { investigating: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', dismissed: '#6b7280' };
-                return `
-                <tr>
-                    <td><span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; background: ${priorityColors[a.priority] || '#6b7280'};">${(a.priority || '').toUpperCase()}</span></td>
-                    <td>${a.type || ''}</td>
-                    <td><strong>${a.item_name || ''}</strong></td>
-                    <td>$${parseFloat(a.spend || 0).toFixed(2)}</td>
-                    <td><span style="color: ${statusColors[a.status] || '#6b7280'};">${(a.status || '').replace('_', ' ')}</span></td>
-                    <td style="color: var(--text-secondary);">${a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}</td>
-                </tr>`;
-            }).join('');
+            renderAlertsFromAPI(alerts);
         }
 
         // Update revenue table from API data
@@ -8952,7 +9182,7 @@
 
             const txnArray = Array.isArray(transactions) ? transactions : [];
             tbody.innerHTML = txnArray.map(txn => {
-                const flagCode = (txn.country_code || 'us').toLowerCase();
+                const flagCode = resolveCountryCode(txn.country, txn.country_code);
                 return `
                 <tr data-revenue-id="${txn.id}">
                     <td style="white-space: nowrap;">${txn.created_at ? new Date(txn.created_at).toLocaleDateString() : txn.transaction_date || ''}</td>
@@ -8961,7 +9191,7 @@
                     <td><strong>${txn.product || ''}</strong></td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <img src="https://flagcdn.com/24x18/${flagCode}.png" alt="${txn.country || ''}" onerror="this.style.display='none'">
+                            ${flagCode ? `<img src="https://flagcdn.com/24x18/${flagCode}.png" alt="${txn.country || ''}" onerror="this.style.display='none'">` : ''}
                             ${txn.country || 'Unknown'}
                         </div>
                     </td>
@@ -9274,40 +9504,44 @@
         // Creative Preview Modal Functionality
         (function() {
             const modal = document.getElementById('creative-preview-modal');
-            const modalImage = document.getElementById('creative-preview-image');
             const modalClose = document.querySelector('.creative-modal-close');
 
-            // Open modal when clicking on creative thumbnail
-            document.querySelectorAll('.creative-thumbnail').forEach(thumbnail => {
-                thumbnail.addEventListener('click', function() {
-                    const previewUrl = this.getAttribute('data-preview');
-                    if (previewUrl && modal && modalImage) {
-                        modalImage.src = previewUrl;
-                        modal.classList.add('show');
-                    }
-                });
-            });
+            function closeCreativeModal() {
+                if (modal) {
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                }
+            }
 
             // Close modal when clicking the close button
             if (modalClose) {
-                modalClose.addEventListener('click', function() {
-                    modal.classList.remove('show');
-                });
+                modalClose.addEventListener('click', closeCreativeModal);
             }
 
             // Close modal when clicking outside the image
             if (modal) {
                 modal.addEventListener('click', function(e) {
                     if (e.target === modal) {
-                        modal.classList.remove('show');
+                        closeCreativeModal();
                     }
                 });
             }
 
             // Close modal with Escape key
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
-                    modal.classList.remove('show');
+                if (e.key === 'Escape' && modal && (modal.style.display === 'flex' || modal.classList.contains('show'))) {
+                    closeCreativeModal();
+                }
+            });
+
+            // Delegate click for dynamically generated creative thumbnails
+            document.addEventListener('click', function(e) {
+                const thumbnail = e.target.closest('.creative-thumbnail');
+                if (thumbnail) {
+                    const previewUrl = thumbnail.getAttribute('data-preview') || thumbnail.src;
+                    if (previewUrl) {
+                        showCreativePreview(previewUrl);
+                    }
                 }
             });
         })();

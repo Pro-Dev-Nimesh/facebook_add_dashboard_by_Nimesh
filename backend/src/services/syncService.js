@@ -1,6 +1,13 @@
 const { db } = require('../models/database');
 const FacebookApiService = require('./facebookApi');
 
+// Format date as YYYY-MM-DD in local timezone (avoids UTC shift with toISOString)
+function formatLocalDate(date) {
+    return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0');
+}
+
 // Use Node.js built-in Intl API to resolve ANY country code to full name
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
@@ -61,27 +68,20 @@ class SyncService {
                 WHERE campaign_id = ? AND date = ?
             `);
 
-            const today = new Date().toISOString().split('T')[0];
             let syncedCount = 0;
 
             for (const campaign of campaigns) {
-                const insights = campaign.insights || {};
+                // insights is now an array of daily records (from time_increment: 1)
+                const dailyInsights = Array.isArray(campaign.insights) ? campaign.insights : (campaign.insights ? [campaign.insights] : []);
                 const status = campaign.status?.toLowerCase() === 'active' ? 'active' : 'paused';
                 const budget = parseFloat(campaign.daily_budget || campaign.lifetime_budget || 0) / 100;
-
-                // Extract revenue, sales, leads from Meta's actions/action_values
-                const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
-                const metaSales = this.fbApi.getPurchases(insights.actions);
-                const metaLeads = this.fbApi.getLeads(insights.actions);
 
                 // Check if campaign exists
                 let dbCampaign = findCampaign.get(campaign.id);
 
                 if (dbCampaign) {
-                    // Update existing campaign
                     updateCampaign.run(campaign.name, status, budget, dbCampaign.id);
                 } else {
-                    // Insert new campaign
                     const result = insertCampaign.run(
                         internalAccountId,
                         campaign.id,
@@ -92,35 +92,42 @@ class SyncService {
                     dbCampaign = { id: result.lastInsertRowid };
                 }
 
-                // Handle daily metrics
-                const existingMetric = findMetric.get(dbCampaign.id, today);
-                if (existingMetric) {
-                    updateMetric.run(
-                        parseFloat(insights.spend || 0),
-                        metaRevenue,
-                        metaSales,
-                        metaLeads,
-                        parseInt(insights.impressions || 0),
-                        parseInt(insights.reach || 0),
-                        parseInt(insights.clicks || 0),
-                        parseFloat(insights.frequency || 0),
-                        dbCampaign.id,
-                        today
-                    );
-                } else {
-                    insertMetric.run(
-                        internalAccountId,
-                        dbCampaign.id,
-                        today,
-                        parseFloat(insights.spend || 0),
-                        metaRevenue,
-                        metaSales,
-                        metaLeads,
-                        parseInt(insights.impressions || 0),
-                        parseInt(insights.reach || 0),
-                        parseInt(insights.clicks || 0),
-                        parseFloat(insights.frequency || 0)
-                    );
+                // Store metrics for each day
+                for (const insights of dailyInsights) {
+                    const date = insights.date_start || formatLocalDate(new Date());
+                    const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
+                    const metaSales = this.fbApi.getPurchases(insights.actions);
+                    const metaLeads = this.fbApi.getLeads(insights.actions);
+
+                    const existingMetric = findMetric.get(dbCampaign.id, date);
+                    if (existingMetric) {
+                        updateMetric.run(
+                            parseFloat(insights.spend || 0),
+                            metaRevenue,
+                            metaSales,
+                            metaLeads,
+                            parseInt(insights.impressions || 0),
+                            parseInt(insights.reach || 0),
+                            parseInt(insights.clicks || 0),
+                            parseFloat(insights.frequency || 0),
+                            dbCampaign.id,
+                            date
+                        );
+                    } else {
+                        insertMetric.run(
+                            internalAccountId,
+                            dbCampaign.id,
+                            date,
+                            parseFloat(insights.spend || 0),
+                            metaRevenue,
+                            metaSales,
+                            metaLeads,
+                            parseInt(insights.impressions || 0),
+                            parseInt(insights.reach || 0),
+                            parseInt(insights.clicks || 0),
+                            parseFloat(insights.frequency || 0)
+                        );
+                    }
                 }
                 syncedCount++;
             }
@@ -165,18 +172,13 @@ class SyncService {
                 WHERE adset_id = ? AND date = ?
             `);
 
-            const today = new Date().toISOString().split('T')[0];
             let syncedCount = 0;
 
             for (const adset of adsets) {
-                const insights = adset.insights || {};
+                // insights is now an array of daily records (from time_increment: 1)
+                const dailyInsights = Array.isArray(adset.insights) ? adset.insights : (adset.insights ? [adset.insights] : []);
                 const status = adset.status?.toLowerCase() === 'active' ? 'active' : 'paused';
                 const budget = parseFloat(adset.daily_budget || adset.lifetime_budget || 0) / 100;
-
-                // Extract revenue, sales, leads from Meta's actions/action_values
-                const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
-                const metaSales = this.fbApi.getPurchases(insights.actions);
-                const metaLeads = this.fbApi.getLeads(insights.actions);
 
                 // Get campaign internal ID
                 const dbCampaign = findCampaign.get(adset.campaign_id);
@@ -189,10 +191,8 @@ class SyncService {
                 let dbAdSet = findAdSet.get(adset.id);
 
                 if (dbAdSet) {
-                    // Update existing ad set
                     updateAdSet.run(adset.name, status, budget, dbAdSet.id);
                 } else {
-                    // Insert new ad set
                     const result = insertAdSet.run(
                         internalAccountId,
                         dbCampaign.id,
@@ -204,35 +204,42 @@ class SyncService {
                     dbAdSet = { id: result.lastInsertRowid };
                 }
 
-                // Handle daily metrics
-                const existingMetric = findMetric.get(dbAdSet.id, today);
-                if (existingMetric) {
-                    updateMetric.run(
-                        parseFloat(insights.spend || 0),
-                        metaRevenue,
-                        metaSales,
-                        metaLeads,
-                        parseInt(insights.impressions || 0),
-                        parseInt(insights.reach || 0),
-                        parseInt(insights.clicks || 0),
-                        parseFloat(insights.frequency || 0),
-                        dbAdSet.id,
-                        today
-                    );
-                } else {
-                    insertMetric.run(
-                        internalAccountId,
-                        dbAdSet.id,
-                        today,
-                        parseFloat(insights.spend || 0),
-                        metaRevenue,
-                        metaSales,
-                        metaLeads,
-                        parseInt(insights.impressions || 0),
-                        parseInt(insights.reach || 0),
-                        parseInt(insights.clicks || 0),
-                        parseFloat(insights.frequency || 0)
-                    );
+                // Store metrics for each day
+                for (const insights of dailyInsights) {
+                    const date = insights.date_start || formatLocalDate(new Date());
+                    const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
+                    const metaSales = this.fbApi.getPurchases(insights.actions);
+                    const metaLeads = this.fbApi.getLeads(insights.actions);
+
+                    const existingMetric = findMetric.get(dbAdSet.id, date);
+                    if (existingMetric) {
+                        updateMetric.run(
+                            parseFloat(insights.spend || 0),
+                            metaRevenue,
+                            metaSales,
+                            metaLeads,
+                            parseInt(insights.impressions || 0),
+                            parseInt(insights.reach || 0),
+                            parseInt(insights.clicks || 0),
+                            parseFloat(insights.frequency || 0),
+                            dbAdSet.id,
+                            date
+                        );
+                    } else {
+                        insertMetric.run(
+                            internalAccountId,
+                            dbAdSet.id,
+                            date,
+                            parseFloat(insights.spend || 0),
+                            metaRevenue,
+                            metaSales,
+                            metaLeads,
+                            parseInt(insights.impressions || 0),
+                            parseInt(insights.reach || 0),
+                            parseInt(insights.clicks || 0),
+                            parseFloat(insights.frequency || 0)
+                        );
+                    }
                 }
                 syncedCount++;
             }
@@ -278,17 +285,12 @@ class SyncService {
                 WHERE ad_id = ? AND date = ?
             `);
 
-            const today = new Date().toISOString().split('T')[0];
             let syncedCount = 0;
 
             for (const ad of ads) {
-                const insights = ad.insights || {};
+                // insights is now an array of daily records (from time_increment: 1)
+                const dailyInsights = Array.isArray(ad.insights) ? ad.insights : (ad.insights ? [ad.insights] : []);
                 const status = ad.status?.toLowerCase() === 'active' ? 'active' : 'paused';
-
-                // Extract revenue, sales, leads from Meta's actions/action_values
-                const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
-                const metaSales = this.fbApi.getPurchases(insights.actions);
-                const metaLeads = this.fbApi.getLeads(insights.actions);
 
                 // Get campaign and adset internal IDs
                 const dbCampaign = findCampaign.get(ad.campaign_id);
@@ -314,10 +316,8 @@ class SyncService {
                 let dbAd = findAd.get(ad.id);
 
                 if (dbAd) {
-                    // Update existing ad
                     updateAd.run(ad.name, status, creativeUrl, dbAd.id);
                 } else {
-                    // Insert new ad
                     const result = insertAd.run(
                         internalAccountId,
                         dbCampaign.id,
@@ -330,35 +330,42 @@ class SyncService {
                     dbAd = { id: result.lastInsertRowid };
                 }
 
-                // Handle daily metrics
-                const existingMetric = findMetric.get(dbAd.id, today);
-                if (existingMetric) {
-                    updateMetric.run(
-                        parseFloat(insights.spend || 0),
-                        metaRevenue,
-                        metaSales,
-                        metaLeads,
-                        parseInt(insights.impressions || 0),
-                        parseInt(insights.reach || 0),
-                        parseInt(insights.clicks || 0),
-                        parseFloat(insights.frequency || 0),
-                        dbAd.id,
-                        today
-                    );
-                } else {
-                    insertMetric.run(
-                        internalAccountId,
-                        dbAd.id,
-                        today,
-                        parseFloat(insights.spend || 0),
-                        metaRevenue,
-                        metaSales,
-                        metaLeads,
-                        parseInt(insights.impressions || 0),
-                        parseInt(insights.reach || 0),
-                        parseInt(insights.clicks || 0),
-                        parseFloat(insights.frequency || 0)
-                    );
+                // Store metrics for each day
+                for (const insights of dailyInsights) {
+                    const date = insights.date_start || formatLocalDate(new Date());
+                    const metaRevenue = this.fbApi.getPurchaseValue(insights.action_values);
+                    const metaSales = this.fbApi.getPurchases(insights.actions);
+                    const metaLeads = this.fbApi.getLeads(insights.actions);
+
+                    const existingMetric = findMetric.get(dbAd.id, date);
+                    if (existingMetric) {
+                        updateMetric.run(
+                            parseFloat(insights.spend || 0),
+                            metaRevenue,
+                            metaSales,
+                            metaLeads,
+                            parseInt(insights.impressions || 0),
+                            parseInt(insights.reach || 0),
+                            parseInt(insights.clicks || 0),
+                            parseFloat(insights.frequency || 0),
+                            dbAd.id,
+                            date
+                        );
+                    } else {
+                        insertMetric.run(
+                            internalAccountId,
+                            dbAd.id,
+                            date,
+                            parseFloat(insights.spend || 0),
+                            metaRevenue,
+                            metaSales,
+                            metaLeads,
+                            parseInt(insights.impressions || 0),
+                            parseInt(insights.reach || 0),
+                            parseInt(insights.clicks || 0),
+                            parseFloat(insights.frequency || 0)
+                        );
+                    }
                 }
                 syncedCount++;
             }
@@ -371,14 +378,14 @@ class SyncService {
         }
     }
 
-    // Sync country data for an account
+    // Sync country data for an account (daily breakdown)
     async syncCountries(fbAccountId) {
         const internalAccountId = this.getInternalAccountId(fbAccountId);
         console.log(`[SYNC] Syncing country data for account ${fbAccountId}`);
 
         try {
             const countryData = await this.fbApi.getCountryInsights(fbAccountId);
-            console.log(`[SYNC] Found ${countryData.length} country records`);
+            console.log(`[SYNC] Found ${countryData.length} country-day records`);
 
             // Prepare statements for INSERT/UPDATE pattern
             const findCountry = db.prepare('SELECT id FROM country_performance WHERE account_id = ? AND country_code = ? AND date = ?');
@@ -390,14 +397,15 @@ class SyncService {
                 UPDATE country_performance SET spend = ? WHERE id = ?
             `);
 
-            const today = new Date().toISOString().split('T')[0];
             let syncedCount = 0;
 
             for (const country of countryData) {
                 const countryCode = country.country?.toLowerCase() || 'unknown';
                 const countryName = getCountryName(country.country);
+                // Use date_start from daily breakdown (Facebook returns YYYY-MM-DD)
+                const date = country.date_start || formatLocalDate(new Date());
 
-                const existingCountry = findCountry.get(internalAccountId, countryCode, today);
+                const existingCountry = findCountry.get(internalAccountId, countryCode, date);
                 if (existingCountry) {
                     updateCountry.run(parseFloat(country.spend || 0), existingCountry.id);
                 } else {
@@ -405,19 +413,212 @@ class SyncService {
                         internalAccountId,
                         countryName,
                         countryCode,
-                        today,
+                        date,
                         parseFloat(country.spend || 0),
-                        0, // Revenue from local data
-                        0  // Sales from local data
+                        0, // Revenue from local data (revenue_transactions)
+                        0  // Sales from local data (revenue_transactions)
                     );
                 }
                 syncedCount++;
             }
 
-            console.log(`[SYNC] Synced ${syncedCount} country records`);
+            console.log(`[SYNC] Synced ${syncedCount} country-day records`);
             return { success: true, count: syncedCount };
         } catch (error) {
             console.error('[SYNC] Country sync error:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Sync ad-level country metrics (which countries each ad's sales came from)
+    async syncAdCountryMetrics(fbAccountId) {
+        const internalAccountId = this.getInternalAccountId(fbAccountId);
+        console.log(`[SYNC] Syncing ad country metrics for account ${fbAccountId}`);
+
+        try {
+            // Build a map of facebook_ad_id -> internal ad id
+            const adMap = {};
+            const reverseAdMap = {};
+            const allAds = db.prepare('SELECT id, facebook_ad_id FROM ads WHERE account_id = ?').all(internalAccountId);
+            allAds.forEach(a => {
+                if (a.facebook_ad_id) {
+                    adMap[a.facebook_ad_id] = a.id;
+                    reverseAdMap[a.id] = a.facebook_ad_id;
+                }
+            });
+
+            const upsert = db.prepare(`
+                INSERT INTO ad_country_daily_metrics (account_id, ad_id, country_code, country_name, date, spend, revenue, sales)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(ad_id, country_code, date) DO UPDATE SET
+                    spend = excluded.spend,
+                    revenue = excluded.revenue,
+                    sales = excluded.sales
+            `);
+
+            let syncedCount = 0;
+
+            // Method 1: Bulk query (account-level with level=ad, breakdowns=country)
+            const adCountryData = await this.fbApi.getAdCountryInsights(fbAccountId);
+            console.log(`[SYNC] Bulk query returned ${adCountryData.length} ad-country-day records`);
+
+            for (const row of adCountryData) {
+                const fbAdId = row.ad_id;
+                const internalAdId = adMap[fbAdId];
+                if (!internalAdId) continue;
+
+                const countryCode = (row.country || 'unknown').toLowerCase();
+                const countryName = getCountryName(row.country);
+                const date = row.date_start || formatLocalDate(new Date());
+                const spend = parseFloat(row.spend || 0);
+                const sales = this.fbApi.getPurchases(row.actions);
+                const revenue = this.fbApi.getPurchaseValue(row.action_values);
+
+                if (spend > 0 || sales > 0) {
+                    upsert.run(internalAccountId, internalAdId, countryCode, countryName, date, spend, revenue, sales);
+                    syncedCount++;
+                }
+            }
+
+            // Method 2: If bulk returned 0, fallback to per-ad queries for ads with sales
+            if (adCountryData.length === 0) {
+                console.log(`[SYNC] Bulk query empty, falling back to per-ad country queries`);
+                const adsWithSales = db.prepare(`
+                    SELECT DISTINCT ad_id FROM ad_daily_metrics
+                    WHERE account_id = ? AND sales > 0
+                `).all(internalAccountId);
+
+                console.log(`[SYNC] Found ${adsWithSales.length} ads with sales to query individually`);
+
+                for (const adRow of adsWithSales) {
+                    const fbAdId = reverseAdMap[adRow.ad_id];
+                    if (!fbAdId) continue;
+
+                    try {
+                        const perAdData = await this.fbApi.getSingleAdCountryInsights(fbAdId);
+
+                        for (const row of perAdData) {
+                            const countryCode = (row.country || 'unknown').toLowerCase();
+                            const countryName = getCountryName(row.country);
+                            const date = row.date_start || formatLocalDate(new Date());
+                            const spend = parseFloat(row.spend || 0);
+                            const sales = this.fbApi.getPurchases(row.actions);
+                            const revenue = this.fbApi.getPurchaseValue(row.action_values);
+
+                            if (spend > 0 || sales > 0) {
+                                upsert.run(internalAccountId, adRow.ad_id, countryCode, countryName, date, spend, revenue, sales);
+                                syncedCount++;
+                            }
+                        }
+
+                        // Small delay between per-ad API calls
+                        await this.delay(500);
+                    } catch (e) {
+                        console.error(`[SYNC] Per-ad country query failed for ${fbAdId}:`, e.message);
+                    }
+                }
+            }
+
+            console.log(`[SYNC] Synced ${syncedCount} ad-country-day records`);
+            return { success: true, count: syncedCount };
+        } catch (error) {
+            console.error('[SYNC] Ad country sync error:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Refresh creative URLs for all ads in an account
+    async refreshCreativeUrls(fbAccountId) {
+        const internalAccountId = this.getInternalAccountId(fbAccountId);
+        console.log(`[SYNC] Refreshing creative URLs for account ${fbAccountId}`);
+
+        try {
+            // Get ads that need creative URLs (missing or small thumbnails)
+            const ads = db.prepare(
+                "SELECT id, facebook_ad_id FROM ads WHERE account_id = ? AND (creative_url IS NULL OR creative_url = '' OR creative_url LIKE '%p64x64%')"
+            ).all(internalAccountId);
+            console.log(`[SYNC] Found ${ads.length} ads needing creative URL update`);
+
+            if (ads.length === 0) return { success: true, count: 0 };
+
+            // Fetch ads from Facebook with creative info AND effective image URL (from Ad node)
+            // Use effective_status to include paused/archived ads too
+            let allFbAds = [];
+            try {
+                const fbAds = await this.fbApi.request(`/${fbAccountId}/ads`, {
+                    fields: 'id,creative{id,image_url,thumbnail_url,object_story_spec}',
+                    'effective_status': '["ACTIVE","PAUSED","ARCHIVED","CAMPAIGN_PAUSED","ADSET_PAUSED"]',
+                    limit: 500
+                });
+                allFbAds = fbAds.data || [];
+
+                // Handle pagination
+                let nextPage = fbAds.paging?.next;
+                while (nextPage) {
+                    try {
+                        const response = await require('axios').get(nextPage);
+                        if (response.data?.data?.length > 0) {
+                            allFbAds = allFbAds.concat(response.data.data);
+                            nextPage = response.data.paging?.next;
+                        } else break;
+                    } catch (e) { break; }
+                }
+            } catch (e) {
+                console.error('[SYNC] Failed to fetch ads from FB:', e.message);
+            }
+
+            console.log(`[SYNC] Facebook returned ${allFbAds.length} ads`);
+
+            // Build map: fb_ad_id -> best image URL from creative sub-fields
+            const fbAdsImageMap = {};
+            allFbAds.forEach(a => {
+                const c = a.creative;
+                if (c) {
+                    const url = c.image_url
+                        || c.object_story_spec?.link_data?.image_url
+                        || c.object_story_spec?.photo_data?.url
+                        || c.object_story_spec?.video_data?.image_url
+                        || c.thumbnail_url
+                        || null;
+                    if (url) fbAdsImageMap[a.id] = url;
+                }
+            });
+
+            let updatedCount = 0;
+            const updateStmt = db.prepare('UPDATE ads SET creative_url = ? WHERE id = ?');
+
+            // Build creative ID map from bulk fetch
+            const creativeIdMap = {};
+            allFbAds.forEach(a => {
+                if (a.creative?.id) creativeIdMap[a.id] = a.creative.id;
+            });
+
+            for (const ad of ads) {
+                // First try full-size image from the creative sub-field (non-thumbnail)
+                const bulkUrl = fbAdsImageMap[ad.facebook_ad_id];
+                if (bulkUrl && !bulkUrl.includes('p64x64')) {
+                    updateStmt.run(bulkUrl, ad.id);
+                    updatedCount++;
+                    continue;
+                }
+
+                // Fetch individual creative with thumbnail_width/height params for larger thumbnails
+                const creativeId = creativeIdMap[ad.facebook_ad_id];
+                if (creativeId) {
+                    try {
+                        const url = await this.fbApi.getAdCreativeUrl(creativeId);
+                        if (url) {
+                            updateStmt.run(url, ad.id);
+                            updatedCount++;
+                        }
+                    } catch (e) { /* skip */ }
+                }
+            }
+
+            console.log(`[SYNC] Updated ${updatedCount} creative URLs`);
+            return { success: true, count: updatedCount };
+        } catch (error) {
+            console.error('[SYNC] Creative URL refresh error:', error.message);
             return { success: false, error: error.message };
         }
     }
@@ -429,7 +630,8 @@ class SyncService {
             campaigns: null,
             adsets: null,
             ads: null,
-            countries: null
+            countries: null,
+            adCountries: null
         };
 
         // Sync campaigns
@@ -450,6 +652,11 @@ class SyncService {
 
         // Sync countries
         results.countries = await this.syncCountries(fbAccountId);
+
+        await this.delay(2000);
+
+        // Sync ad-level country metrics (for per-ad sale country attribution)
+        results.adCountries = await this.syncAdCountryMetrics(fbAccountId);
 
         // Update sync status
         try {

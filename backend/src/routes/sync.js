@@ -1,6 +1,7 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
 const SyncService = require('../services/syncService');
+const { regenerateAllAlerts } = require('../services/alertGenerator');
 
 const router = express.Router();
 
@@ -15,6 +16,9 @@ router.post('/:fbAccountId', async (req, res) => {
 
         const syncService = new SyncService();
         const results = await syncService.fullSync(fbAccountId);
+
+        // Regenerate alerts after sync with fresh data
+        try { regenerateAllAlerts(); } catch (e) { console.error('Alert regen error:', e.message); }
 
         res.json({
             success: true,
@@ -84,6 +88,30 @@ router.post('/:fbAccountId/ads', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// POST /api/sync/:fbAccountId/creative-urls - Refresh creative URLs
+router.post('/:fbAccountId/creative-urls', async (req, res) => {
+    try {
+        const { fbAccountId } = req.params;
+        const syncService = new SyncService();
+        const result = await syncService.refreshCreativeUrls(fbAccountId);
+        res.json({ success: result.success, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/sync/:fbAccountId/ad-countries - Sync ad-level country metrics
+router.post('/:fbAccountId/ad-countries', async (req, res) => {
+    try {
+        const { fbAccountId } = req.params;
+        const syncService = new SyncService();
+        const result = await syncService.syncAdCountryMetrics(fbAccountId);
+        res.json({ success: result.success, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

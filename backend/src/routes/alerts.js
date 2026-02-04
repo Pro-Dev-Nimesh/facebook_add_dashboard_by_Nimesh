@@ -1,11 +1,37 @@
 const express = require('express');
 const { db } = require('../models/database');
 const { authenticateToken, requireAdmin, checkAccountAccess } = require('../middleware/auth');
+const { regenerateAlerts } = require('../services/alertGenerator');
 
 const router = express.Router();
 
 // Apply authentication to all routes
 router.use(authenticateToken);
+
+// POST /api/alerts/:accountId/regenerate - Regenerate alerts from current data
+router.post('/:accountId/regenerate', checkAccountAccess, (req, res) => {
+    try {
+        const accountId = parseInt(req.params.accountId);
+        const alerts = regenerateAlerts(accountId);
+        const opportunities = alerts.filter(a => a.priority === 'opportunity');
+
+        res.json({
+            success: true,
+            message: `Generated ${alerts.length} alerts (${opportunities.length} opportunities)`,
+            data: {
+                total: alerts.length,
+                opportunities: opportunities.length,
+                needsAction: alerts.length - opportunities.length
+            }
+        });
+    } catch (error) {
+        console.error('Regenerate alerts error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to regenerate alerts'
+        });
+    }
+});
 
 // GET /api/alerts/:accountId - Get alerts for account
 router.get('/:accountId', checkAccountAccess, (req, res) => {
@@ -15,15 +41,8 @@ router.get('/:accountId', checkAccountAccess, (req, res) => {
         const offset = (page - 1) * limit;
 
         let query = `
-            SELECT
-                a.*,
-                c.name as campaign_name,
-                ads.name as ad_name,
-                u.name as assigned_to_name
+            SELECT a.*
             FROM alerts a
-            LEFT JOIN campaigns c ON a.campaign_id = c.id
-            LEFT JOIN ads ON a.ad_id = ads.id
-            LEFT JOIN users u ON a.assigned_to = u.id
             WHERE a.account_id = ?
         `;
         const params = [accountId];
@@ -39,10 +58,11 @@ router.get('/:accountId', checkAccountAccess, (req, res) => {
         }
 
         // Get total count
-        const countQuery = `SELECT COUNT(*) as total FROM alerts WHERE account_id = ?` +
-            (status ? ` AND status = '${status}'` : '') +
-            (type ? ` AND type = '${type}'` : '');
-        const totalResult = db.prepare(countQuery).get(accountId);
+        let countQuery = `SELECT COUNT(*) as total FROM alerts WHERE account_id = ?`;
+        const countParams = [accountId];
+        if (status) { countQuery += ` AND status = ?`; countParams.push(status); }
+        if (type) { countQuery += ` AND type = ?`; countParams.push(type); }
+        const totalResult = db.prepare(countQuery).get(...countParams);
         const total = totalResult?.total || 0;
 
         // Add pagination
@@ -119,15 +139,8 @@ router.get('/detail/:alertId', (req, res) => {
         const { alertId } = req.params;
 
         const alert = db.prepare(`
-            SELECT
-                a.*,
-                c.name as campaign_name,
-                ads.name as ad_name,
-                u.name as assigned_to_name
+            SELECT a.*
             FROM alerts a
-            LEFT JOIN campaigns c ON a.campaign_id = c.id
-            LEFT JOIN ads ON a.ad_id = ads.id
-            LEFT JOIN users u ON a.assigned_to = u.id
             WHERE a.id = ?
         `).get(alertId);
 
@@ -169,7 +182,7 @@ router.get('/detail/:alertId', (req, res) => {
 router.put('/:alertId', (req, res) => {
     try {
         const { alertId } = req.params;
-        const { status, priority, assigned_to, notes } = req.body;
+        const { status, priority } = req.body;
 
         const updates = [];
         const params = [];
@@ -184,20 +197,8 @@ router.put('/:alertId', (req, res) => {
             params.push(priority);
         }
 
-        if (assigned_to !== undefined) {
-            updates.push('assigned_to = ?');
-            params.push(assigned_to);
-        }
-
-        if (notes !== undefined) {
-            updates.push('notes = ?');
-            params.push(notes);
-        }
-
-        if (status === 'resolved') {
+        if (status === 'resolved' || status === 'dismissed') {
             updates.push('resolved_at = CURRENT_TIMESTAMP');
-            updates.push('resolved_by = ?');
-            params.push(req.user.id);
         }
 
         if (updates.length === 0) {
@@ -207,7 +208,6 @@ router.put('/:alertId', (req, res) => {
             });
         }
 
-        updates.push('updated_at = CURRENT_TIMESTAMP');
         params.push(alertId);
 
         db.prepare(`

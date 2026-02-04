@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const FB_API_VERSION = 'v21.0';
+const FB_API_VERSION = 'v22.0';
 const FB_API_BASE = `https://graph.facebook.com/${FB_API_VERSION}`;
 
 class FacebookApiService {
@@ -66,7 +66,7 @@ class FacebookApiService {
         }
     }
 
-    // Get campaign insights
+    // Get campaign insights (daily breakdown)
     async getCampaignInsights(campaignId, startDate, endDate) {
         try {
             const timeRange = startDate && endDate
@@ -75,10 +75,11 @@ class FacebookApiService {
 
             const data = await this.request(`/${campaignId}/insights`, {
                 fields: 'spend,impressions,clicks,reach,cpc,cpm,ctr,actions,action_values,frequency,outbound_clicks',
-                time_range: timeRange
+                time_range: timeRange,
+                time_increment: 1
             });
 
-            return data.data?.[0] || null;
+            return data.data || [];
         } catch (error) {
             return null;
         }
@@ -113,7 +114,7 @@ class FacebookApiService {
         }
     }
 
-    // Get ad set insights
+    // Get ad set insights (daily breakdown)
     async getAdSetInsights(adsetId, startDate, endDate) {
         try {
             const timeRange = startDate && endDate
@@ -122,10 +123,11 @@ class FacebookApiService {
 
             const data = await this.request(`/${adsetId}/insights`, {
                 fields: 'spend,impressions,clicks,reach,cpc,cpm,ctr,actions,action_values,frequency,outbound_clicks',
-                time_range: timeRange
+                time_range: timeRange,
+                time_increment: 1
             });
 
-            return data.data?.[0] || null;
+            return data.data || [];
         } catch (error) {
             return null;
         }
@@ -160,7 +162,7 @@ class FacebookApiService {
         }
     }
 
-    // Get ad insights
+    // Get ad insights (daily breakdown)
     async getAdInsights(adId, startDate, endDate) {
         try {
             const timeRange = startDate && endDate
@@ -169,10 +171,11 @@ class FacebookApiService {
 
             const data = await this.request(`/${adId}/insights`, {
                 fields: 'spend,impressions,clicks,reach,cpc,cpm,ctr,actions,action_values,frequency,outbound_clicks',
-                time_range: timeRange
+                time_range: timeRange,
+                time_increment: 1
             });
 
-            return data.data?.[0] || null;
+            return data.data || [];
         } catch (error) {
             return null;
         }
@@ -197,7 +200,7 @@ class FacebookApiService {
         }
     }
 
-    // Get insights by country (with pagination to fetch ALL countries)
+    // Get insights by country (with pagination to fetch ALL countries, daily breakdown)
     async getCountryInsights(adAccountId, startDate, endDate) {
         try {
             const timeRange = startDate && endDate
@@ -208,6 +211,7 @@ class FacebookApiService {
                 fields: 'spend,impressions,clicks,reach,actions,action_values',
                 time_range: timeRange,
                 breakdowns: 'country',
+                time_increment: 1,
                 limit: 500
             });
 
@@ -238,18 +242,85 @@ class FacebookApiService {
         }
     }
 
-    // Get creative thumbnail/image URL for an ad
+    // Get ad-level insights broken down by country (for per-ad country attribution)
+    // Uses level=ad with breakdowns=country in a single paginated call
+    async getAdCountryInsights(adAccountId, startDate, endDate) {
+        try {
+            const timeRange = startDate && endDate
+                ? JSON.stringify({ since: startDate, until: endDate })
+                : JSON.stringify({ since: this.getDefaultStartDate(), until: this.getDefaultEndDate() });
+
+            const data = await this.request(`/${adAccountId}/insights`, {
+                fields: 'ad_id,ad_name,spend,actions,action_values',
+                time_range: timeRange,
+                breakdowns: 'country',
+                level: 'ad',
+                time_increment: 1,
+                limit: 500
+            });
+
+            let allResults = data.data || [];
+
+            // Handle pagination
+            let nextPage = data.paging?.next;
+            while (nextPage) {
+                try {
+                    const response = await axios.get(nextPage);
+                    const pageData = response.data;
+                    if (pageData.data && pageData.data.length > 0) {
+                        allResults = allResults.concat(pageData.data);
+                        nextPage = pageData.paging?.next;
+                    } else {
+                        break;
+                    }
+                } catch (pageError) {
+                    console.error('Ad country pagination error:', pageError.message);
+                    break;
+                }
+            }
+
+            return allResults;
+        } catch (error) {
+            console.error('Failed to get ad country insights:', error.message);
+            return [];
+        }
+    }
+
+    // Get single ad insights with country breakdown
+    async getSingleAdCountryInsights(adId, startDate, endDate) {
+        try {
+            const timeRange = startDate && endDate
+                ? JSON.stringify({ since: startDate, until: endDate })
+                : JSON.stringify({ since: this.getDefaultStartDate(), until: this.getDefaultEndDate() });
+
+            const data = await this.request(`/${adId}/insights`, {
+                fields: 'ad_id,spend,actions,action_values',
+                time_range: timeRange,
+                breakdowns: 'country',
+                time_increment: 1,
+                limit: 500
+            });
+
+            return data.data || [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    // Get creative full-size image URL for an ad
     async getAdCreativeUrl(creativeId) {
         try {
             const data = await this.request(`/${creativeId}`, {
-                fields: 'thumbnail_url,image_url,object_story_spec'
+                fields: 'image_url,thumbnail_url,object_story_spec',
+                thumbnail_width: 480,
+                thumbnail_height: 480
             });
-            // Prefer image_url, fallback to thumbnail_url, then try object_story_spec
+            // Prefer image_url (full-size), then object_story_spec URLs, then thumbnail
             return data.image_url
-                || data.thumbnail_url
                 || data.object_story_spec?.link_data?.image_url
                 || data.object_story_spec?.photo_data?.url
                 || data.object_story_spec?.video_data?.image_url
+                || data.thumbnail_url
                 || null;
         } catch (error) {
             console.error(`Failed to get creative URL for ${creativeId}:`, error.message);
@@ -297,15 +368,22 @@ class FacebookApiService {
         return click ? parseInt(click.value) : 0;
     }
 
+    // Helper: Format date as YYYY-MM-DD in local timezone
+    formatLocalDate(date) {
+        return date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0');
+    }
+
     // Helper: Default date range (last 30 days)
     getDefaultStartDate() {
         const date = new Date();
         date.setDate(date.getDate() - 30);
-        return date.toISOString().split('T')[0];
+        return this.formatLocalDate(date);
     }
 
     getDefaultEndDate() {
-        return new Date().toISOString().split('T')[0];
+        return this.formatLocalDate(new Date());
     }
 }
 

@@ -4,6 +4,13 @@ const { authenticateToken, checkAccountAccess } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Format date as YYYY-MM-DD in local timezone (avoids UTC shift with toISOString)
+function formatLocalDate(date) {
+    return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0');
+}
+
 // Apply authentication to all routes
 router.use(authenticateToken);
 
@@ -16,11 +23,11 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
         // Calculate date range
         const dateRange = getDateRange(timeRange);
 
-        // Get aggregated spend from campaign_daily_metrics (spend from Meta)
+        // Get aggregated spend from country_performance (more up-to-date than campaign_daily_metrics)
         const metrics = db.prepare(`
             SELECT
                 COALESCE(SUM(spend), 0) as total_spend
-            FROM campaign_daily_metrics
+            FROM country_performance
             WHERE account_id = ? AND date >= ? AND date <= ?
         `).get(accountId, dateRange.start, dateRange.end);
 
@@ -59,7 +66,7 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
         const prevMetrics = db.prepare(`
             SELECT
                 COALESCE(SUM(spend), 0) as total_spend
-            FROM campaign_daily_metrics
+            FROM country_performance
             WHERE account_id = ? AND date >= ? AND date <= ?
         `).get(accountId, prevDateRange.start, prevDateRange.end);
 
@@ -121,13 +128,13 @@ router.get('/metrics/:accountId', checkAccountAccess, (req, res) => {
 router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
     try {
         const { accountId } = req.params;
-        const today = new Date().toISOString().split('T')[0];
+        const today = formatLocalDate(new Date());
 
-        // Get today's spend from campaign_daily_metrics (Meta)
+        // Get today's spend from country_performance (more up-to-date than campaign_daily_metrics)
         const dailySpendMetrics = db.prepare(`
             SELECT
                 COALESCE(SUM(spend), 0) as spend
-            FROM campaign_daily_metrics
+            FROM country_performance
             WHERE account_id = ? AND date = ?
         `).get(accountId, today);
 
@@ -147,12 +154,12 @@ router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
         // Get this week's metrics (last 7 days)
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - 7);
-        const weekStartStr = weekStart.toISOString().split('T')[0];
+        const weekStartStr = formatLocalDate(weekStart);
 
         const weekSpendMetrics = db.prepare(`
             SELECT
                 COALESCE(SUM(spend), 0) as spend
-            FROM campaign_daily_metrics
+            FROM country_performance
             WHERE account_id = ? AND date >= ?
         `).get(accountId, weekStartStr);
 
@@ -171,12 +178,12 @@ router.get('/time-metrics/:accountId', checkAccountAccess, (req, res) => {
         // Get this month's metrics
         const monthStart = new Date();
         monthStart.setDate(1);
-        const monthStartStr = monthStart.toISOString().split('T')[0];
+        const monthStartStr = formatLocalDate(monthStart);
 
         const monthSpendMetrics = db.prepare(`
             SELECT
                 COALESCE(SUM(spend), 0) as spend
-            FROM campaign_daily_metrics
+            FROM country_performance
             WHERE account_id = ? AND date >= ?
         `).get(accountId, monthStartStr);
 
@@ -532,67 +539,204 @@ router.get('/countries/:accountId', checkAccountAccess, (req, res) => {
     }
 });
 
-// GET /api/dashboard/sales/:accountId (Sales by Ad Creative)
-// Shows all ads from Facebook with their spend and creative URLs
+// GET /api/dashboard/sales/:accountId (Individual sale records)
+// Each sale appears as a separate row. If an ad brings 3 sales on one day, 3 rows appear.
+// Shows per-ad period totals (spend, revenue, ROAS) alongside each individual sale amount.
 router.get('/sales/:accountId', checkAccountAccess, (req, res) => {
     try {
         const { accountId } = req.params;
-        const { search = '', timeRange = 'last30days' } = req.query;
+        const { search = '', timeRange, startDate: qStart, endDate: qEnd } = req.query;
 
-        const dateRange = getDateRange(timeRange);
+        const dateRange = (qStart && qEnd)
+            ? { start: qStart, end: qEnd }
+            : getDateRange(timeRange || 'last7days');
 
-        // Get all ads with their spend from Meta and creative URLs
+        // Step 1: Get daily records where sales > 0 in the date range
         let query = `
             SELECT
-                ad.id,
+                m.date,
+                m.spend as day_spend,
+                m.revenue as day_revenue,
+                m.sales as day_sales,
+                ad.id as ad_id,
                 ad.name as ad_name,
                 ad.creative_url,
-                ad.facebook_ad_id,
                 c.name as campaign_name,
-                a.name as adset_name,
-                COALESCE(SUM(m.spend), 0) as spend,
-                COALESCE(SUM(m.revenue), 0) as revenue,
-                COALESCE(SUM(m.sales), 0) as sales,
-                COALESCE(SUM(m.impressions), 0) as impressions,
-                COALESCE(SUM(m.clicks), 0) as clicks
-            FROM ads ad
+                a.name as adset_name
+            FROM ad_daily_metrics m
+            JOIN ads ad ON m.ad_id = ad.id
             JOIN campaigns c ON ad.campaign_id = c.id
             JOIN ad_sets a ON ad.adset_id = a.id
-            LEFT JOIN ad_daily_metrics m ON ad.id = m.ad_id
-                AND m.date >= ? AND m.date <= ?
-            WHERE ad.account_id = ?
+            WHERE m.account_id = ? AND m.date >= ? AND m.date <= ? AND m.sales > 0
         `;
-
-        const params = [dateRange.start, dateRange.end, accountId];
+        const params = [accountId, dateRange.start, dateRange.end];
 
         if (search) {
             query += ' AND (ad.name LIKE ? OR c.name LIKE ? OR a.name LIKE ?)';
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
 
-        query += ' GROUP BY ad.id ORDER BY spend DESC LIMIT 100';
+        query += ' ORDER BY m.date DESC, m.revenue DESC';
+        const saleRecords = db.prepare(query).all(...params);
 
-        const ads = db.prepare(query).all(...params);
+        // Step 2: Get per-ad totals for the entire selected period (for ROAS calculation)
+        const adTotals = db.prepare(`
+            SELECT
+                m.ad_id,
+                COALESCE(SUM(m.spend), 0) as total_spend,
+                COALESCE(SUM(m.revenue), 0) as total_revenue,
+                COALESCE(SUM(m.sales), 0) as total_sales
+            FROM ad_daily_metrics m
+            WHERE m.account_id = ? AND m.date >= ? AND m.date <= ?
+            GROUP BY m.ad_id
+        `).all(accountId, dateRange.start, dateRange.end);
 
-        // Format response - revenue and sales come from Meta (ad_daily_metrics)
-        const formattedSales = ads.map(ad => ({
-            id: ad.id,
-            adName: ad.ad_name,
-            campaignName: ad.campaign_name,
-            adSetName: ad.adset_name,
-            creativeUrl: ad.creative_url,
-            spend: `$${ad.spend.toFixed(2)}`,
-            sales: ad.sales || 0,
-            revenue: `$${ad.revenue.toFixed(2)}`,
-            roas: ad.spend > 0 ? (ad.revenue / ad.spend).toFixed(2) : '0.00',
-            impressions: ad.impressions,
-            clicks: ad.clicks
-        }));
+        const adTotalsMap = {};
+        adTotals.forEach(t => { adTotalsMap[t.ad_id] = t; });
+
+        // Step 2b: Get ad-country data for country attribution
+        // For each ad+date with sales, find which countries had sales
+        const adCountryData = db.prepare(`
+            SELECT ad_id, date, country_code, country_name, sales, revenue
+            FROM ad_country_daily_metrics
+            WHERE account_id = ? AND date >= ? AND date <= ? AND sales > 0
+            ORDER BY sales DESC, revenue DESC
+        `).all(accountId, dateRange.start, dateRange.end);
+
+        // Build a map: ad_id+date -> [{country_code, country_name, sales, revenue}, ...]
+        const adCountryMap = {};
+        adCountryData.forEach(row => {
+            const key = `${row.ad_id}_${row.date}`;
+            if (!adCountryMap[key]) adCountryMap[key] = [];
+            adCountryMap[key].push(row);
+        });
+
+        // Step 3: Expand into individual sale rows with country attribution
+        const expandedSales = [];
+        saleRecords.forEach(r => {
+            const perSaleAmount = r.day_sales > 0 ? (r.day_revenue / r.day_sales) : 0;
+            const adTotal = adTotalsMap[r.ad_id] || { total_spend: 0, total_revenue: 0, total_sales: 0 };
+            const roas = adTotal.total_spend > 0 ? (adTotal.total_revenue / adTotal.total_spend) : 0;
+
+            // Get country breakdown for this ad on this date
+            const countryKey = `${r.ad_id}_${r.date}`;
+            const countries = adCountryMap[countryKey] || [];
+
+            // Distribute sales across countries
+            // If country data exists, assign each expanded sale to a country
+            let salesLeft = r.day_sales;
+            let countryIdx = 0;
+
+            for (let i = 0; i < r.day_sales; i++) {
+                let country = null;
+                let countryCode = null;
+
+                if (countries.length > 0) {
+                    // Assign sales to countries based on their sales count
+                    while (countryIdx < countries.length && countries[countryIdx]._assigned >= countries[countryIdx].sales) {
+                        countryIdx++;
+                    }
+                    if (countryIdx < countries.length) {
+                        country = countries[countryIdx].country_name;
+                        countryCode = countries[countryIdx].country_code;
+                        countries[countryIdx]._assigned = (countries[countryIdx]._assigned || 0) + 1;
+                    }
+                }
+
+                expandedSales.push({
+                    date: r.date,
+                    campaignName: r.campaign_name,
+                    adSetName: r.adset_name,
+                    adName: r.ad_name,
+                    creativeUrl: r.creative_url,
+                    adTotalSpend: adTotal.total_spend,
+                    adTotalRevenue: adTotal.total_revenue,
+                    roas: parseFloat(roas.toFixed(2)),
+                    saleAmount: parseFloat(perSaleAmount.toFixed(2)),
+                    country: country,
+                    countryCode: countryCode,
+                    source: 'meta_pixel'
+                });
+            }
+        });
+
+        // Step 4: Include manual revenue_transactions
+        let rtQuery = `
+            SELECT
+                rt.created_at as date,
+                rt.amount as revenue,
+                rt.ad_id,
+                COALESCE(ad.name, 'Manual Entry') as ad_name,
+                ad.creative_url,
+                COALESCE(c.name, rt.product) as campaign_name,
+                COALESCE(a.name, 'N/A') as adset_name,
+                rt.country,
+                rt.country_code,
+                rt.source as entry_source
+            FROM revenue_transactions rt
+            LEFT JOIN ads ad ON rt.ad_id = ad.id
+            LEFT JOIN campaigns c ON rt.campaign_id = c.id
+            LEFT JOIN ad_sets a ON rt.adset_id = a.id
+            WHERE rt.account_id = ? AND DATE(rt.created_at) >= ? AND DATE(rt.created_at) <= ?
+        `;
+        const rtParams = [accountId, dateRange.start, dateRange.end];
+
+        if (search) {
+            rtQuery += ' AND (COALESCE(ad.name, rt.product) LIKE ? OR COALESCE(c.name, \'\') LIKE ?)';
+            rtParams.push(`%${search}%`, `%${search}%`);
+        }
+
+        rtQuery += ' ORDER BY rt.created_at DESC';
+        const rtRecords = db.prepare(rtQuery).all(...rtParams);
+
+        rtRecords.forEach(r => {
+            // For manual entries with an ad_id, get that ad's period totals
+            const adTotal = r.ad_id ? (adTotalsMap[r.ad_id] || { total_spend: 0, total_revenue: 0 }) : { total_spend: 0, total_revenue: 0 };
+            const roas = adTotal.total_spend > 0 ? (adTotal.total_revenue / adTotal.total_spend) : 0;
+
+            // Try to derive country_code from country name if missing
+            let cc = r.country_code || null;
+            if (!cc && r.country) {
+                const nameToCode = { 'china': 'cn', 'brazil': 'br', 'india': 'in', 'united states': 'us', 'united kingdom': 'gb', 'germany': 'de', 'france': 'fr', 'japan': 'jp', 'australia': 'au', 'canada': 'ca', 'mexico': 'mx', 'spain': 'es', 'italy': 'it', 'netherlands': 'nl', 'south korea': 'kr', 'russia': 'ru', 'singapore': 'sg', 'israel': 'il', 'taiwan': 'tw', 'thailand': 'th', 'indonesia': 'id', 'vietnam': 'vn', 'philippines': 'ph', 'malaysia': 'my', 'turkey': 'tr', 'poland': 'pl', 'sweden': 'se', 'norway': 'no', 'denmark': 'dk', 'finland': 'fi', 'switzerland': 'ch', 'austria': 'at', 'belgium': 'be', 'portugal': 'pt', 'ireland': 'ie', 'new zealand': 'nz', 'south africa': 'za', 'argentina': 'ar', 'colombia': 'co', 'chile': 'cl', 'peru': 'pe', 'egypt': 'eg', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'pakistan': 'pk', 'bangladesh': 'bd', 'nigeria': 'ng', 'kenya': 'ke', 'ukraine': 'ua', 'czech republic': 'cz', 'romania': 'ro', 'hungary': 'hu', 'greece': 'gr' };
+                cc = nameToCode[r.country.toLowerCase()] || null;
+            }
+
+            expandedSales.push({
+                date: r.date,
+                campaignName: r.campaign_name,
+                adSetName: r.adset_name,
+                adName: r.ad_name,
+                creativeUrl: r.creative_url,
+                adTotalSpend: adTotal.total_spend,
+                adTotalRevenue: adTotal.total_revenue,
+                roas: parseFloat(roas.toFixed(2)),
+                saleAmount: parseFloat(r.revenue || 0),
+                country: r.country || null,
+                countryCode: cc,
+                source: r.entry_source || 'manual'
+            });
+        });
+
+        // Sort all by date descending (latest first)
+        expandedSales.sort((a, b) => b.date.localeCompare(a.date));
+
+        // Summary stats
+        const totalSalesCount = expandedSales.length;
+        const totalSaleAmount = expandedSales.reduce((sum, s) => sum + (s.saleAmount || 0), 0);
+        const uniqueAds = [...new Set(expandedSales.map(s => s.adName))];
+        const totalAdSpend = adTotals.reduce((sum, t) => sum + t.total_spend, 0);
 
         res.json({
             success: true,
-            data: formattedSales,
-            total: formattedSales.length
+            data: expandedSales,
+            total: totalSalesCount,
+            summary: {
+                totalSales: totalSalesCount,
+                totalSaleAmount,
+                totalAdSpend,
+                overallRoas: totalAdSpend > 0 ? parseFloat((totalSaleAmount / totalAdSpend).toFixed(2)) : 0,
+                uniqueAdsCount: uniqueAds.length
+            }
         });
     } catch (error) {
         console.error('Get sales error:', error);
@@ -640,6 +784,10 @@ function getDateRange(timeRange) {
     switch (timeRange) {
         case 'today':
             break;
+        case 'yesterday':
+            start.setDate(start.getDate() - 1);
+            end.setDate(end.getDate() - 1);
+            break;
         case 'last7days':
             start.setDate(start.getDate() - 7);
             break;
@@ -662,15 +810,15 @@ function getDateRange(timeRange) {
     }
 
     return {
-        start: start.toISOString().split('T')[0],
-        end: end.toISOString().split('T')[0]
+        start: formatLocalDate(start),
+        end: formatLocalDate(end)
     };
 }
 
 function getPreviousDateRange(timeRange) {
     const current = getDateRange(timeRange);
-    const startDate = new Date(current.start);
-    const endDate = new Date(current.end);
+    const startDate = new Date(current.start + 'T00:00:00');
+    const endDate = new Date(current.end + 'T00:00:00');
     const diff = endDate - startDate;
 
     const prevEnd = new Date(startDate);
@@ -679,8 +827,8 @@ function getPreviousDateRange(timeRange) {
     prevStart.setTime(prevStart.getTime() - diff);
 
     return {
-        start: prevStart.toISOString().split('T')[0],
-        end: prevEnd.toISOString().split('T')[0]
+        start: formatLocalDate(prevStart),
+        end: formatLocalDate(prevEnd)
     };
 }
 

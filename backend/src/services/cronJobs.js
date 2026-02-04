@@ -209,106 +209,13 @@ const runInitialSync = async (accountId) => {
 };
 
 /**
- * Check and generate alerts based on thresholds
+ * Check and generate alerts based on thresholds using real campaign data
  */
 const checkAlertThresholds = async () => {
     console.log('[CRON] Checking alert thresholds');
-
     try {
-        const thresholds = db.prepare(`
-            SELECT at.*, aa.name as account_name
-            FROM alert_thresholds at
-            JOIN ad_accounts aa ON at.account_id = aa.id
-            WHERE at.is_active = 1
-        `).all();
-
-        for (const threshold of thresholds) {
-            // Get recent metric value (last 24 hours)
-            let metricValue = 0;
-
-            switch (threshold.metric) {
-                case 'spend':
-                    const spendResult = db.prepare(`
-                        SELECT SUM(spend) as value
-                        FROM campaign_daily_metrics
-                        WHERE account_id = ? AND date = date('now', '-1 day')
-                    `).get(threshold.account_id);
-                    metricValue = spendResult?.value || 0;
-                    break;
-
-                case 'cpc':
-                    const cpcResult = db.prepare(`
-                        SELECT AVG(cpc) as value
-                        FROM campaign_daily_metrics
-                        WHERE account_id = ? AND date = date('now', '-1 day')
-                    `).get(threshold.account_id);
-                    metricValue = cpcResult?.value || 0;
-                    break;
-
-                case 'ctr':
-                    const ctrResult = db.prepare(`
-                        SELECT AVG(ctr) as value
-                        FROM campaign_daily_metrics
-                        WHERE account_id = ? AND date = date('now', '-1 day')
-                    `).get(threshold.account_id);
-                    metricValue = ctrResult?.value || 0;
-                    break;
-
-                case 'roas':
-                    const roasResult = db.prepare(`
-                        SELECT AVG(roas) as value
-                        FROM campaign_daily_metrics
-                        WHERE account_id = ? AND date = date('now', '-1 day')
-                    `).get(threshold.account_id);
-                    metricValue = roasResult?.value || 0;
-                    break;
-
-                default:
-                    continue;
-            }
-
-            // Check threshold
-            let triggered = false;
-            switch (threshold.operator) {
-                case '>':
-                    triggered = metricValue > threshold.threshold_value;
-                    break;
-                case '<':
-                    triggered = metricValue < threshold.threshold_value;
-                    break;
-                case '>=':
-                    triggered = metricValue >= threshold.threshold_value;
-                    break;
-                case '<=':
-                    triggered = metricValue <= threshold.threshold_value;
-                    break;
-                case '=':
-                    triggered = metricValue === threshold.threshold_value;
-                    break;
-            }
-
-            if (triggered) {
-                // Check if alert already exists for today
-                const existingAlert = db.prepare(`
-                    SELECT id FROM alerts
-                    WHERE account_id = ? AND type = 'threshold'
-                    AND message LIKE ? AND date(created_at) = date('now')
-                `).get(threshold.account_id, `%${threshold.metric}%`);
-
-                if (!existingAlert) {
-                    // Create alert
-                    db.prepare(`
-                        INSERT INTO alerts (account_id, type, priority, message, status)
-                        VALUES (?, 'threshold', 'high', ?, 'active')
-                    `).run(
-                        threshold.account_id,
-                        `${threshold.metric.toUpperCase()} alert: ${metricValue.toFixed(2)} ${threshold.operator} ${threshold.threshold_value} for ${threshold.account_name}`
-                    );
-                    console.log(`[CRON] Alert created for ${threshold.metric} on account ${threshold.account_id}`);
-                }
-            }
-        }
-
+        const { regenerateAllAlerts } = require('./alertGenerator');
+        regenerateAllAlerts();
     } catch (error) {
         console.error('[CRON] Alert threshold check error:', error.message);
     }

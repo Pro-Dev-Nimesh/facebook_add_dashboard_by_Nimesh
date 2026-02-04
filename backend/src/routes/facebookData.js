@@ -394,42 +394,161 @@ router.get('/ads/:adAccountId', async (req, res) => {
     }
 });
 
-// GET /api/fb/countries/:adAccountId - Fetch country data from LOCAL DATABASE (synced data)
+// GET /api/fb/countries/:adAccountId - Fetch country data from LOCAL DATABASE (synced data) + revenue from Data Management
 router.get('/countries/:adAccountId', async (req, res) => {
     try {
         const { adAccountId } = req.params;
+        const { startDate, endDate } = req.query;
         const internalAccountId = getInternalAccountId(adAccountId);
 
         const countryNames = {
             'us': 'United States', 'gb': 'United Kingdom', 'in': 'India',
             'de': 'Germany', 'ca': 'Canada', 'au': 'Australia', 'br': 'Brazil',
             'fr': 'France', 'mx': 'Mexico', 'es': 'Spain', 'it': 'Italy',
-            'jp': 'Japan', 'nl': 'Netherlands', 'ph': 'Philippines', 'id': 'Indonesia'
+            'jp': 'Japan', 'nl': 'Netherlands', 'ph': 'Philippines', 'id': 'Indonesia',
+            'sg': 'Singapore', 'ch': 'Switzerland', 'th': 'Thailand', 'et': 'Ethiopia',
+            'ke': 'Kenya', 'cd': 'Congo - Kinshasa', 'mg': 'Madagascar', 'lk': 'Sri Lanka',
+            'za': 'South Africa', 'ng': 'Nigeria', 'ae': 'United Arab Emirates',
+            'sa': 'Saudi Arabia', 'pk': 'Pakistan', 'bd': 'Bangladesh', 'np': 'Nepal',
+            'my': 'Malaysia', 'vn': 'Vietnam', 'kr': 'South Korea', 'tw': 'Taiwan',
+            'hk': 'Hong Kong', 'nz': 'New Zealand', 'ar': 'Argentina', 'co': 'Colombia',
+            'cl': 'Chile', 'pe': 'Peru', 'se': 'Sweden', 'no': 'Norway', 'dk': 'Denmark',
+            'fi': 'Finland', 'pl': 'Poland', 'cz': 'Czech Republic', 'at': 'Austria',
+            'be': 'Belgium', 'pt': 'Portugal', 'ie': 'Ireland', 'il': 'Israel',
+            'tr': 'Turkey', 'eg': 'Egypt', 'ru': 'Russia', 'ua': 'Ukraine',
+            'cn': 'China', 'ro': 'Romania', 'hu': 'Hungary', 'bg': 'Bulgaria',
+            'hr': 'Croatia', 'sk': 'Slovakia', 'si': 'Slovenia', 'lt': 'Lithuania',
+            'lv': 'Latvia', 'ee': 'Estonia', 'cy': 'Cyprus', 'mt': 'Malta',
+            'lu': 'Luxembourg', 'is': 'Iceland', 'gh': 'Ghana', 'tz': 'Tanzania',
+            'ug': 'Uganda', 'rw': 'Rwanda', 'zm': 'Zambia', 'zw': 'Zimbabwe',
+            'mw': 'Malawi', 'mz': 'Mozambique', 'bw': 'Botswana', 'na': 'Namibia',
+            'sn': 'Senegal', 'ci': 'Ivory Coast', 'cm': 'Cameroon', 'ao': 'Angola',
+            'dz': 'Algeria', 'ma': 'Morocco', 'tn': 'Tunisia', 'ly': 'Libya',
+            'qa': 'Qatar', 'kw': 'Kuwait', 'bh': 'Bahrain', 'om': 'Oman',
+            'jo': 'Jordan', 'lb': 'Lebanon', 'iq': 'Iraq', 'ir': 'Iran',
+            'mm': 'Myanmar', 'kh': 'Cambodia', 'la': 'Laos', 'mn': 'Mongolia',
+            'uz': 'Uzbekistan', 'kz': 'Kazakhstan', 'ge': 'Georgia', 'am': 'Armenia',
+            'az': 'Azerbaijan', 'ec': 'Ecuador', 've': 'Venezuela', 'bo': 'Bolivia',
+            'py': 'Paraguay', 'uy': 'Uruguay', 'cr': 'Costa Rica', 'pa': 'Panama',
+            'gt': 'Guatemala', 'hn': 'Honduras', 'sv': 'El Salvador', 'ni': 'Nicaragua',
+            'do': 'Dominican Republic', 'cu': 'Cuba', 'jm': 'Jamaica', 'tt': 'Trinidad and Tobago',
+            'ht': 'Haiti', 'pr': 'Puerto Rico', 'fj': 'Fiji', 'pg': 'Papua New Guinea'
         };
 
-        // Query country data from local database
-        const countryData = db.prepare(`
+        // Query ad spend from country_performance (Facebook data) with date filtering
+        let spendQuery = `
             SELECT
                 country_name,
                 country_code,
-                COALESCE(SUM(spend), 0) as spend,
-                COALESCE(SUM(revenue), 0) as revenue,
-                COALESCE(SUM(sales), 0) as sales
+                COALESCE(SUM(spend), 0) as spend
             FROM country_performance
             WHERE account_id = ?
-            GROUP BY country_code
-            ORDER BY spend DESC
-        `).all(internalAccountId);
+        `;
+        const spendParams = [internalAccountId];
 
-        const formattedCountries = countryData.map(c => ({
-            country_code: c.country_code,
-            country: c.country_name || countryNames[c.country_code] || c.country_code?.toUpperCase(),
-            flag: c.country_code,
-            spend: c.spend || 0,
-            sales: c.sales || 0,
-            revenue: c.revenue || 0,
-            roas: c.spend > 0 && c.revenue > 0 ? (c.revenue / c.spend).toFixed(2) : '0.00'
-        }));
+        if (startDate) {
+            spendQuery += ` AND date >= ?`;
+            spendParams.push(startDate);
+        }
+        if (endDate) {
+            spendQuery += ` AND date <= ?`;
+            spendParams.push(endDate);
+        }
+        spendQuery += ` GROUP BY country_code ORDER BY spend DESC`;
+
+        const spendData = db.prepare(spendQuery).all(...spendParams);
+
+        // Build reverse lookup: country name -> country code
+        const nameToCode = {};
+        Object.entries(countryNames).forEach(([code, name]) => {
+            nameToCode[name.toLowerCase()] = code;
+        });
+
+        // Query revenue/sales from revenue_transactions (Data Management) with date filtering
+        // Include rows where country OR country_code is set
+        let revenueQuery = `
+            SELECT
+                country,
+                country_code,
+                COALESCE(SUM(amount), 0) as revenue,
+                COUNT(*) as sales
+            FROM revenue_transactions
+            WHERE account_id = ? AND (country IS NOT NULL AND country != '')
+        `;
+        const revenueParams = [internalAccountId];
+
+        if (startDate) {
+            revenueQuery += ` AND DATE(created_at) >= ?`;
+            revenueParams.push(startDate);
+        }
+        if (endDate) {
+            revenueQuery += ` AND DATE(created_at) <= ?`;
+            revenueParams.push(endDate);
+        }
+        revenueQuery += ` GROUP BY COALESCE(LOWER(country_code), LOWER(country))`;
+
+        const revenueData = db.prepare(revenueQuery).all(...revenueParams);
+
+        // Build a map of revenue by country_code
+        const revenueMap = {};
+        revenueData.forEach(r => {
+            // Resolve country_code: use existing code, or look up from country name
+            let code = (r.country_code || '').toLowerCase();
+            if (!code && r.country) {
+                code = nameToCode[r.country.toLowerCase()] || r.country.toLowerCase().replace(/\s+/g, '_');
+            }
+            if (code) {
+                if (revenueMap[code]) {
+                    revenueMap[code].revenue += r.revenue || 0;
+                    revenueMap[code].sales += r.sales || 0;
+                } else {
+                    revenueMap[code] = {
+                        revenue: r.revenue || 0,
+                        sales: r.sales || 0,
+                        country: r.country
+                    };
+                }
+            }
+        });
+
+        // Merge: start with spend data, overlay revenue
+        const mergedMap = {};
+
+        spendData.forEach(c => {
+            const code = (c.country_code || '').toLowerCase();
+            mergedMap[code] = {
+                country_code: code,
+                country_name: c.country_name,
+                spend: c.spend || 0,
+                revenue: revenueMap[code]?.revenue || 0,
+                sales: revenueMap[code]?.sales || 0
+            };
+        });
+
+        // Add countries from revenue_transactions that have no ad spend
+        Object.keys(revenueMap).forEach(code => {
+            if (!mergedMap[code]) {
+                mergedMap[code] = {
+                    country_code: code,
+                    country_name: revenueMap[code].country || countryNames[code] || code.toUpperCase(),
+                    spend: 0,
+                    revenue: revenueMap[code].revenue,
+                    sales: revenueMap[code].sales
+                };
+            }
+        });
+
+        const formattedCountries = Object.values(mergedMap)
+            .sort((a, b) => b.spend - a.spend)
+            .map(c => ({
+                country_code: c.country_code,
+                country: c.country_name || countryNames[c.country_code] || c.country_code?.toUpperCase(),
+                flag: c.country_code,
+                spend: c.spend,
+                sales: c.sales,
+                revenue: c.revenue,
+                roas: c.spend > 0 && c.revenue > 0 ? (c.revenue / c.spend).toFixed(2) : '0.00'
+            }));
 
         res.json({
             success: true,
@@ -575,48 +694,116 @@ router.get('/sales/:adAccountId', async (req, res) => {
                 actualEndDate = endDate || todayStr;
         }
 
-        // Get all ads with spend, revenue, sales from Meta (ad_daily_metrics) and creative URLs
-        const adsData = db.prepare(`
+        // Step 1: Get daily records where sales > 0
+        const saleRecords = db.prepare(`
             SELECT
-                ad.id,
+                m.date,
+                m.spend as day_spend,
+                m.revenue as day_revenue,
+                m.sales as day_sales,
+                ad.id as ad_id,
                 ad.name as ad_name,
                 ad.creative_url,
-                ad.facebook_ad_id,
                 c.name as campaign_name,
-                a.name as adset_name,
-                COALESCE(SUM(m.spend), 0) as spend,
-                COALESCE(SUM(m.revenue), 0) as revenue,
-                COALESCE(SUM(m.sales), 0) as sales,
-                COALESCE(SUM(m.impressions), 0) as impressions,
-                COALESCE(SUM(m.clicks), 0) as clicks
-            FROM ads ad
+                a.name as adset_name
+            FROM ad_daily_metrics m
+            JOIN ads ad ON m.ad_id = ad.id
             JOIN campaigns c ON ad.campaign_id = c.id
             JOIN ad_sets a ON ad.adset_id = a.id
-            LEFT JOIN ad_daily_metrics m ON ad.id = m.ad_id
-                AND m.date >= ? AND m.date <= ?
-            WHERE ad.account_id = ?
-            GROUP BY ad.id
-            ORDER BY spend DESC
-            LIMIT 100
-        `).all(actualStartDate, actualEndDate, internalAccountId);
+            WHERE m.account_id = ? AND m.date >= ? AND m.date <= ? AND m.sales > 0
+            ORDER BY m.date DESC, m.revenue DESC
+        `).all(internalAccountId, actualStartDate, actualEndDate);
 
-        const formattedSales = adsData.map(ad => ({
-            id: ad.id,
-            adName: ad.ad_name,
-            campaign: ad.campaign_name,
-            adSet: ad.adset_name,
-            creativeUrl: ad.creative_url,
-            spend: ad.spend.toFixed(2),
-            sales: ad.sales || 0,
-            revenue: ad.revenue.toFixed(2),
-            roas: ad.spend > 0 ? (ad.revenue / ad.spend).toFixed(2) : '0.00',
-            impressions: ad.impressions,
-            clicks: ad.clicks
-        }));
+        // Step 2: Get per-ad totals for the period (for ROAS)
+        const adTotals = db.prepare(`
+            SELECT
+                m.ad_id,
+                COALESCE(SUM(m.spend), 0) as total_spend,
+                COALESCE(SUM(m.revenue), 0) as total_revenue,
+                COALESCE(SUM(m.sales), 0) as total_sales
+            FROM ad_daily_metrics m
+            WHERE m.account_id = ? AND m.date >= ? AND m.date <= ?
+            GROUP BY m.ad_id
+        `).all(internalAccountId, actualStartDate, actualEndDate);
+
+        const adTotalsMap = {};
+        adTotals.forEach(t => { adTotalsMap[t.ad_id] = t; });
+
+        // Step 2b: Get ad-country data for country attribution
+        const adCountryData = db.prepare(`
+            SELECT ad_id, date, country_code, country_name, sales, revenue
+            FROM ad_country_daily_metrics
+            WHERE account_id = ? AND date >= ? AND date <= ? AND sales > 0
+            ORDER BY sales DESC, revenue DESC
+        `).all(internalAccountId, actualStartDate, actualEndDate);
+
+        const adCountryMap = {};
+        adCountryData.forEach(row => {
+            const key = `${row.ad_id}_${row.date}`;
+            if (!adCountryMap[key]) adCountryMap[key] = [];
+            adCountryMap[key].push({ ...row, _assigned: 0 });
+        });
+
+        // Step 3: Expand into individual sale rows with country attribution
+        const expandedSales = [];
+        saleRecords.forEach(r => {
+            const perSaleAmount = r.day_sales > 0 ? (r.day_revenue / r.day_sales) : 0;
+            const adTotal = adTotalsMap[r.ad_id] || { total_spend: 0, total_revenue: 0 };
+            const roas = adTotal.total_spend > 0 ? (adTotal.total_revenue / adTotal.total_spend) : 0;
+
+            const countryKey = `${r.ad_id}_${r.date}`;
+            const countries = adCountryMap[countryKey] || [];
+            let countryIdx = 0;
+
+            for (let i = 0; i < r.day_sales; i++) {
+                let country = null;
+                let countryCode = null;
+
+                if (countries.length > 0) {
+                    while (countryIdx < countries.length && countries[countryIdx]._assigned >= countries[countryIdx].sales) {
+                        countryIdx++;
+                    }
+                    if (countryIdx < countries.length) {
+                        country = countries[countryIdx].country_name;
+                        countryCode = countries[countryIdx].country_code;
+                        countries[countryIdx]._assigned++;
+                    }
+                }
+
+                expandedSales.push({
+                    date: r.date,
+                    campaignName: r.campaign_name,
+                    adSetName: r.adset_name,
+                    adName: r.ad_name,
+                    creativeUrl: r.creative_url,
+                    adTotalSpend: adTotal.total_spend,
+                    adTotalRevenue: adTotal.total_revenue,
+                    roas: parseFloat(roas.toFixed(2)),
+                    saleAmount: parseFloat(perSaleAmount.toFixed(2)),
+                    country: country,
+                    countryCode: countryCode,
+                    source: 'meta_pixel'
+                });
+            }
+        });
+
+        expandedSales.sort((a, b) => b.date.localeCompare(a.date));
+
+        const totalSalesCount = expandedSales.length;
+        const totalSaleAmount = expandedSales.reduce((sum, s) => sum + (s.saleAmount || 0), 0);
+        const totalAdSpend = adTotals.reduce((sum, t) => sum + t.total_spend, 0);
 
         res.json({
             success: true,
-            data: formattedSales
+            data: expandedSales,
+            total: totalSalesCount,
+            summary: {
+                totalSales: totalSalesCount,
+                totalSaleAmount,
+                totalAdSpend,
+                overallRoas: totalAdSpend > 0 ? parseFloat((totalSaleAmount / totalAdSpend).toFixed(2)) : 0,
+                uniqueAdsCount: [...new Set(expandedSales.map(s => s.adName))].length
+            }
         });
     } catch (error) {
         console.error('Fetch sales error:', error);

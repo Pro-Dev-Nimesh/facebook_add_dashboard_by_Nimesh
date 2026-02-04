@@ -159,6 +159,25 @@ function initializeDatabase() {
         )
     `);
 
+    // Ad Country Daily Metrics table (per-ad, per-country, per-day from Facebook insights)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS ad_country_daily_metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            ad_id INTEGER NOT NULL,
+            country_code TEXT NOT NULL,
+            country_name TEXT,
+            date DATE NOT NULL,
+            spend REAL DEFAULT 0,
+            revenue REAL DEFAULT 0,
+            sales INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(ad_id, country_code, date),
+            FOREIGN KEY (account_id) REFERENCES ad_accounts(id) ON DELETE CASCADE,
+            FOREIGN KEY (ad_id) REFERENCES ads(id) ON DELETE CASCADE
+        )
+    `);
+
     // Country Performance table
     db.exec(`
         CREATE TABLE IF NOT EXISTS country_performance (

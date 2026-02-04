@@ -83,6 +83,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve frontend static files (index.html is in project root, one level up from backend/)
+const projectRoot = path.join(__dirname, '..', '..');
+app.use(express.static(projectRoot));
+
 // Request logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -125,12 +129,16 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404 handler
+// 404 handler - serve index.html for non-API routes, JSON error for API routes
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Endpoint not found'
-    });
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+            success: false,
+            error: 'Endpoint not found'
+        });
+    }
+    // Serve frontend for all other routes
+    res.sendFile(path.join(projectRoot, 'index.html'));
 });
 
 // Initialize database and start server
@@ -145,11 +153,21 @@ async function startServer() {
         initializeCronJobs();
         console.log('Cron jobs initialized');
 
+        // Generate alerts from real data on startup
+        try {
+            const { regenerateAllAlerts } = require('./services/alertGenerator');
+            regenerateAllAlerts();
+            console.log('Alerts generated from real data');
+        } catch (err) {
+            console.error('Alert generation error:', err.message);
+        }
+
         // Start server
         app.listen(PORT, () => {
             console.log(`\n========================================`);
-            console.log(`  Facebook Ads Dashboard Backend`);
-            console.log(`  Server running on http://localhost:${PORT}`);
+            console.log(`  Facebook Ads Dashboard`);
+            console.log(`  Dashboard: http://localhost:${PORT}`);
+            console.log(`  API:       http://localhost:${PORT}/api`);
             console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log(`========================================\n`);
         });
