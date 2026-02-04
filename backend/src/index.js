@@ -83,6 +83,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Initialize Passport for Google OAuth
+const passport = require('passport');
+app.use(passport.initialize());
+
 // Serve frontend static files (index.html is in project root, one level up from backend/)
 const projectRoot = path.join(__dirname, '..', '..');
 app.use(express.static(projectRoot));

@@ -1,9 +1,59 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { db } = require('../models/database');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Configure Google OAuth Strategy
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback'
+    }, (accessToken, refreshToken, profile, done) => {
+        try {
+            const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+            const name = profile.displayName || email;
+
+            if (!email) {
+                return done(null, false, { message: 'No email found in Google profile' });
+            }
+
+            // Find or create user
+            let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
+            if (!user) {
+                // Auto-create user with viewer role
+                const hashedPassword = bcrypt.hashSync(require('crypto').randomBytes(32).toString('hex'), 10);
+                const result = db.prepare(`
+                    INSERT INTO users (name, email, password, role)
+                    VALUES (?, ?, ?, 'viewer')
+                `).run(name, email, hashedPassword);
+                user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
+            }
+
+            // Update last login
+            db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
+
+            return done(null, user);
+        } catch (error) {
+            return done(error);
+        }
+    }));
+
+    passport.serializeUser((user, done) => done(null, user.id));
+    passport.deserializeUser((id, done) => {
+        const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(id);
+        done(null, user);
+    });
+
+    console.log('Google OAuth configured');
+} else {
+    console.log('Google OAuth not configured (missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET)');
+}
 
 // POST /api/auth/login
 router.post('/login', (req, res) => {
@@ -221,6 +271,45 @@ router.post('/change-password', authenticateToken, (req, res) => {
             error: 'Failed to change password'
         });
     }
+});
+
+// GET /api/auth/google - Start Google OAuth flow
+router.get('/google', (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+        return res.status(503).json({
+            success: false,
+            error: 'Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env'
+        });
+    }
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
+
+// GET /api/auth/google/callback - Google OAuth callback
+router.get('/google/callback', (req, res, next) => {
+    passport.authenticate('google', { session: false }, (err, user) => {
+        if (err || !user) {
+            // Redirect to login page with error
+            return res.redirect('/?error=google_auth_failed');
+        }
+
+        // Generate JWT token
+        const token = generateToken(user.id);
+
+        // Get user's accounts
+        const accounts = db.prepare(`
+            SELECT id, name, type, status, last_synced
+            FROM ad_accounts
+            WHERE user_id = ?
+        `).all(user.id);
+
+        // Redirect to frontend with token (frontend will handle storage)
+        const userData = encodeURIComponent(JSON.stringify({
+            user: { id: user.id, name: user.name, email: user.email, role: user.role },
+            token,
+            accounts
+        }));
+        res.redirect(`/?auth=${userData}`);
+    })(req, res, next);
 });
 
 module.exports = router;

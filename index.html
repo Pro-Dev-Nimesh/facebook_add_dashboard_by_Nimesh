@@ -8635,7 +8635,9 @@
         }
 
         function handleGoogleSSO() {
-            alert('Google SSO requires a backend server with OAuth configuration. This feature is not available on static hosting.');
+            // Redirect to backend Google OAuth endpoint
+            const baseUrl = api.baseUrl.replace('/api', '');
+            window.location.href = baseUrl + '/api/auth/google';
         }
 
         function showDashboard(user) {
@@ -9462,6 +9464,43 @@
 
         // Auth check on page load
         (async function initAuth() {
+            // Handle Google OAuth callback - check for ?auth= parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const authData = urlParams.get('auth');
+            const authError = urlParams.get('error');
+
+            if (authError) {
+                // Clean URL and show error
+                window.history.replaceState({}, '', window.location.pathname);
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.querySelector('.sidebar').style.display = 'none';
+                document.querySelector('.main-content').style.display = 'none';
+                const errorEl = document.getElementById('login-error');
+                errorEl.textContent = 'Google sign-in failed. Please try again.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (authData) {
+                try {
+                    const data = JSON.parse(decodeURIComponent(authData));
+                    // Store token and user from Google OAuth
+                    api.setToken(data.token);
+                    api.setUser(data.user);
+                    authToken = data.token;
+                    currentUser = data.user;
+                    apiAccounts = data.accounts || [];
+                    // Clean URL
+                    window.history.replaceState({}, '', window.location.pathname);
+                    showDashboard(data.user);
+                    await loadDashboardFromAPI();
+                    return;
+                } catch (e) {
+                    console.error('Failed to parse auth data:', e);
+                    window.history.replaceState({}, '', window.location.pathname);
+                }
+            }
+
             // Check for existing token and user
             if (authToken && currentUser) {
                 try {
