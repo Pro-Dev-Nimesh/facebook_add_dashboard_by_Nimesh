@@ -4000,7 +4000,12 @@
                         </div>
                         <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email <span style="color: #dc2626;">*</span></label>
-                            <input type="email" id="user-email" required placeholder="Enter email address (used for Google SSO sign-in)" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            <input type="email" id="user-email" required placeholder="Enter email address" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Password</label>
+                            <input type="password" id="user-password" placeholder="Min 6 characters (leave empty for Google SSO only)" minlength="6" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">If set, the user can log in with email + password. If left empty, they can only sign in via Google.</div>
                         </div>
                         <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Role <span style="color: #dc2626;">*</span></label>
@@ -4059,6 +4064,11 @@
                         <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email</label>
                             <input type="email" id="edit-user-email" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; background: #f5f5f5; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">New Password</label>
+                            <input type="password" id="edit-user-password" placeholder="Leave empty to keep current password" minlength="6" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Only fill this if you want to reset the user's password.</div>
                         </div>
                         <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Role <span style="color: #dc2626;">*</span></label>
@@ -7755,6 +7765,7 @@
 
             const name = document.getElementById('user-full-name').value.trim();
             const email = document.getElementById('user-email').value.trim();
+            const password = document.getElementById('user-password').value;
             const role = document.querySelector('input[name="user-role"]:checked')?.value || 'viewer';
             const account_ids = Array.from(document.querySelectorAll('input[name="ad-account-checkboxes-accounts"]:checked')).map(cb => parseInt(cb.value));
 
@@ -7764,11 +7775,19 @@
                 return;
             }
 
+            if (password && password.length < 6) {
+                errorEl.textContent = 'Password must be at least 6 characters.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
 
             try {
-                const result = await api.createUser({ name, email, role, account_ids });
+                const payload = { name, email, role, account_ids };
+                if (password) payload.password = password;
+                const result = await api.createUser(payload);
                 if (!result.success) throw new Error(result.error);
                 closeAddUserModal();
                 await loadUsers();
@@ -7824,6 +7843,7 @@
 
             const userId = document.getElementById('edit-user-id').value;
             const name = document.getElementById('edit-user-full-name').value.trim();
+            const password = document.getElementById('edit-user-password').value;
             const role = document.querySelector('input[name="edit-user-role"]:checked')?.value || 'viewer';
             const account_ids = Array.from(document.querySelectorAll('input[name="edit-ad-account-checkboxes-accounts"]:checked')).map(cb => parseInt(cb.value));
 
@@ -7833,11 +7853,19 @@
                 return;
             }
 
+            if (password && password.length < 6) {
+                errorEl.textContent = 'Password must be at least 6 characters.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             try {
-                const result = await api.updateUser(userId, { name, role, account_ids });
+                const payload = { name, role, account_ids };
+                if (password) payload.password = password;
+                const result = await api.updateUser(userId, payload);
                 if (!result.success) throw new Error(result.error);
                 closeEditUserModal();
                 await loadUsers();

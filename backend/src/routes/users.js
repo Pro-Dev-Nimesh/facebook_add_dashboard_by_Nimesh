@@ -128,10 +128,10 @@ router.get('/:userId', requireAdmin, (req, res) => {
     }
 });
 
-// POST /api/users - Create new user (admin only, SSO-only flow)
+// POST /api/users - Create new user (admin only)
 router.post('/', requireAdmin, (req, res) => {
     try {
-        const { name, email, role, account_ids } = req.body;
+        const { name, email, password, role, account_ids } = req.body;
 
         if (!name || !email) {
             return res.status(400).json({
@@ -150,9 +150,21 @@ router.post('/', requireAdmin, (req, res) => {
             });
         }
 
-        // Generate random password (user will sign in via Google SSO)
-        const randomPassword = require('crypto').randomBytes(32).toString('hex');
-        const hashedPassword = bcrypt.hashSync(randomPassword, 10);
+        // Use provided password or generate random one (for Google SSO-only users)
+        let hashedPassword;
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Password must be at least 6 characters'
+                });
+            }
+            hashedPassword = bcrypt.hashSync(password, 10);
+        } else {
+            // No password = user can only sign in via Google SSO
+            const randomPassword = require('crypto').randomBytes(32).toString('hex');
+            hashedPassword = bcrypt.hashSync(randomPassword, 10);
+        }
 
         const validRoles = ['admin', 'editor', 'viewer'];
         const userRole = validRoles.includes(role) ? role : 'viewer';
@@ -203,11 +215,11 @@ router.post('/', requireAdmin, (req, res) => {
     }
 });
 
-// PUT /api/users/:userId - Update user (admin only, SSO-only flow)
+// PUT /api/users/:userId - Update user (admin only)
 router.put('/:userId', requireAdmin, (req, res) => {
     try {
         const { userId } = req.params;
-        const { name, email, role, account_ids } = req.body;
+        const { name, email, role, password, account_ids } = req.body;
 
         // Check if user exists
         const existingUser = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
@@ -249,6 +261,18 @@ router.put('/:userId', requireAdmin, (req, res) => {
                 updates.push('role = ?');
                 params.push(role);
             }
+        }
+
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Password must be at least 6 characters'
+                });
+            }
+            const hashedPassword = bcrypt.hashSync(password, 10);
+            updates.push('password = ?');
+            params.push(hashedPassword);
         }
 
         if (updates.length > 0) {
