@@ -264,20 +264,80 @@ function initializeDatabase() {
         )
     `);
 
-    // Webhooks table
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS webhooks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            url TEXT NOT NULL,
-            events TEXT,
-            status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
-            last_triggered DATETIME,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (account_id) REFERENCES ad_accounts(id) ON DELETE CASCADE
-        )
-    `);
+    // Webhooks table - check if old schema exists and migrate
+    const webhookTableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='webhooks'").get();
+    if (webhookTableExists) {
+        const cols = db.pragma('table_info(webhooks)').map(c => c.name);
+        if (cols.includes('url') && !cols.includes('webhook_url')) {
+            // Old schema detected - rebuild table
+            db.exec(`ALTER TABLE webhooks RENAME TO webhooks_old`);
+            db.exec(`
+                CREATE TABLE webhooks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    account_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    webhook_url TEXT NOT NULL,
+                    secret_key TEXT,
+                    type TEXT DEFAULT 'revenue' CHECK(type IN ('revenue', 'leads', 'alerts')),
+                    target_url TEXT,
+                    status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+                    last_triggered DATETIME,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (account_id) REFERENCES ad_accounts(id) ON DELETE CASCADE
+                )
+            `);
+            db.exec(`
+                INSERT INTO webhooks (id, account_id, name, webhook_url, status, last_triggered, created_at)
+                SELECT id, account_id, name, url, status, last_triggered, created_at FROM webhooks_old
+            `);
+            db.exec(`DROP TABLE webhooks_old`);
+            console.log('Webhooks table migrated to new schema');
+        } else if (cols.includes('url') && cols.includes('webhook_url')) {
+            // Mixed schema (ALTER added columns but old url NOT NULL still present) - rebuild
+            db.exec(`ALTER TABLE webhooks RENAME TO webhooks_old`);
+            db.exec(`
+                CREATE TABLE webhooks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    account_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    webhook_url TEXT NOT NULL DEFAULT '',
+                    secret_key TEXT,
+                    type TEXT DEFAULT 'revenue' CHECK(type IN ('revenue', 'leads', 'alerts')),
+                    target_url TEXT,
+                    status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+                    last_triggered DATETIME,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (account_id) REFERENCES ad_accounts(id) ON DELETE CASCADE
+                )
+            `);
+            db.exec(`
+                INSERT INTO webhooks (id, account_id, name, webhook_url, secret_key, type, target_url, status, last_triggered, created_at, updated_at)
+                SELECT id, account_id, name, COALESCE(webhook_url, url, ''), secret_key, COALESCE(type, 'revenue'), target_url, status, last_triggered, created_at, updated_at
+                FROM webhooks_old
+            `);
+            db.exec(`DROP TABLE webhooks_old`);
+            console.log('Webhooks table rebuilt with clean schema');
+        }
+    } else {
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS webhooks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                webhook_url TEXT NOT NULL,
+                secret_key TEXT,
+                type TEXT DEFAULT 'revenue' CHECK(type IN ('revenue', 'leads', 'alerts')),
+                target_url TEXT,
+                status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+                last_triggered DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (account_id) REFERENCES ad_accounts(id) ON DELETE CASCADE
+            )
+        `);
+    }
 
     // Alert Thresholds table
     db.exec(`

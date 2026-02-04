@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { db } = require('../models/database');
 const { authenticateToken, requireAdmin, checkAccountAccess } = require('../middleware/auth');
+const { regenerateAlerts } = require('../services/alertGenerator');
 
 const router = express.Router();
 
@@ -231,48 +232,71 @@ router.post('/incoming/:webhookId', (req, res) => {
         // Process webhook based on type
         const data = req.body;
 
+        let inserted = false;
+
         switch (webhook.type) {
             case 'revenue':
-                // Process revenue data
-                if (data.amount && data.transaction_id) {
+                // Process revenue/sales data
+                if (data.amount) {
+                    const txnId = data.transaction_id || `wh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     db.prepare(`
                         INSERT OR IGNORE INTO revenue_transactions
-                        (account_id, campaign_id, transaction_id, amount, currency, transaction_date, source)
-                        VALUES (?, ?, ?, ?, ?, ?, 'webhook')
+                        (account_id, transaction_id, customer_email, product, country, country_code, amount, source, campaign_id, adset_id, ad_id, notes, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'webhook', ?, ?, ?, ?, ?)
                     `).run(
                         webhook.account_id,
+                        txnId,
+                        data.customer_email || data.email || null,
+                        data.product || null,
+                        data.country || null,
+                        data.country_code || null,
+                        parseFloat(data.amount),
                         data.campaign_id || null,
-                        data.transaction_id,
-                        data.amount,
-                        data.currency || 'USD',
-                        data.date || new Date().toISOString().split('T')[0]
+                        data.adset_id || null,
+                        data.ad_id || null,
+                        data.notes || null,
+                        data.date || data.created_at || new Date().toISOString()
                     );
+                    inserted = true;
+                    console.log(`[Webhook] Revenue recorded: $${data.amount} for account ${webhook.account_id}`);
                 }
                 break;
 
             case 'leads':
-                // Process lead data
-                if (data.email || data.phone) {
+                // Process lead data - leads table uses date + count format
+                if (data.count || data.email || data.name) {
+                    const leadDate = data.date || new Date().toISOString().split('T')[0];
+                    const leadCount = parseInt(data.count) || 1;
                     db.prepare(`
                         INSERT INTO leads
-                        (account_id, campaign_id, ad_id, facebook_lead_id, name, email, phone, form_data, status)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new')
+                        (account_id, date, count, source, campaign_name, notes)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     `).run(
                         webhook.account_id,
-                        data.campaign_id || null,
-                        data.ad_id || null,
-                        data.lead_id || null,
-                        data.name || null,
-                        data.email || null,
-                        data.phone || null,
-                        JSON.stringify(data.form_data || {})
+                        leadDate,
+                        leadCount,
+                        data.source || 'webhook',
+                        data.campaign_name || data.campaign || null,
+                        data.notes || (data.email ? `Lead: ${data.email}` : null)
                     );
+                    inserted = true;
+                    console.log(`[Webhook] ${leadCount} lead(s) recorded for account ${webhook.account_id} on ${leadDate}`);
                 }
                 break;
 
             default:
                 // Generic webhook - just log it
                 console.log(`Webhook ${webhook.id} received:`, data);
+        }
+
+        // Regenerate alerts after new data comes in
+        if (inserted) {
+            try {
+                regenerateAlerts(webhook.account_id);
+                console.log(`[Webhook] Alerts regenerated for account ${webhook.account_id}`);
+            } catch (alertErr) {
+                console.error('[Webhook] Alert regeneration error:', alertErr.message);
+            }
         }
 
         // Update last triggered
@@ -318,18 +342,22 @@ router.post('/manage/:webhookId/test', requireAdmin, (req, res) => {
         // Return test payload based on webhook type
         const testPayloads = {
             revenue: {
-                transaction_id: 'test_' + Date.now(),
                 amount: 99.99,
-                currency: 'USD',
+                transaction_id: 'test_' + Date.now(),
+                customer_email: 'customer@example.com',
+                product: 'Pabbly Connect',
+                country: 'India',
+                country_code: 'IN',
                 date: new Date().toISOString().split('T')[0],
-                campaign_id: null
+                notes: 'Test sale via webhook'
             },
             leads: {
-                lead_id: 'test_' + Date.now(),
-                name: 'Test User',
-                email: 'test@example.com',
-                phone: '+1234567890',
-                form_data: { source: 'test' }
+                date: new Date().toISOString().split('T')[0],
+                count: 1,
+                source: 'webhook',
+                campaign_name: 'Test Campaign',
+                email: 'lead@example.com',
+                notes: 'Test lead via webhook'
             },
             alerts: {
                 type: 'test',
