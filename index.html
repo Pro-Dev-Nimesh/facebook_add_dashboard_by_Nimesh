@@ -3944,7 +3944,7 @@
                     <button class="btn-primary" onclick="openAddUserModal()"><i class="fas fa-plus"></i> Add User</button>
                 </div>
                 <div style="padding: 24px;">
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Manage team members and their access permissions.</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Manage team members and their access permissions. Users sign in via Google SSO.</p>
 
                     <!-- Users Table -->
                     <table class="data-table">
@@ -3952,77 +3952,17 @@
                             <tr>
                                 <th>User</th>
                                 <th>Email</th>
-                                <th>Access Type</th>
+                                <th>Role</th>
                                 <th>Ad Accounts</th>
-                                <th>Page Access</th>
-                                <th>Last Active</th>
+                                <th>Last Login</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="users-tbody">
                             <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">JD</div>
-                                        <div>
-                                            <div style="font-weight: 600;">John Doe</div>
-                                            <div style="font-size: 12px; color: var(--text-secondary);">Owner</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>john@pabbly.com</td>
-                                <td><span class="status-badge active">Full Access</span></td>
-                                <td>All Accounts</td>
-                                <td><span style="font-size: 12px; color: var(--text-secondary);">All Pages</span></td>
-                                <td>Just now</td>
-                                <td><span style="color: var(--text-secondary); font-size: 12px;">Owner</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">SM</div>
-                                        <div>
-                                            <div style="font-weight: 600;">Sarah Miller</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>sarah@pabbly.com</td>
-                                <td><span class="status-badge active">Full Access</span></td>
-                                <td>Pabbly Connect, Pabbly Chatflow</td>
-                                <td><span style="font-size: 12px; color: var(--text-secondary);">All Pages</span></td>
-                                <td>2 hours ago</td>
-                                <td>
-                                    <div class="action-menu">
-                                        <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
-                                        <div class="action-menu-dropdown">
-                                            <button class="action-menu-item" onclick="editUser(this)"><i class="fas fa-edit"></i> Edit</button>
-                                            <button class="action-menu-item delete" onclick="removeUser(this)"><i class="fas fa-trash"></i> Remove</button>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #f59e0b; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">MK</div>
-                                        <div>
-                                            <div style="font-weight: 600;">Mike Kumar</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>mike@pabbly.com</td>
-                                <td><span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span></td>
-                                <td>Pabbly Connect</td>
-                                <td><span style="font-size: 12px; color: var(--text-secondary);">Overview Metrics, Campaigns, Alerts</span></td>
-                                <td>1 day ago</td>
-                                <td>
-                                    <div class="action-menu">
-                                        <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
-                                        <div class="action-menu-dropdown">
-                                            <button class="action-menu-item" onclick="editUser(this)"><i class="fas fa-edit"></i> Edit</button>
-                                            <button class="action-menu-item delete" onclick="removeUser(this)"><i class="fas fa-trash"></i> Remove</button>
-                                        </div>
-                                    </div>
+                                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                                    Loading users...
                                 </td>
                             </tr>
                         </tbody>
@@ -4030,13 +3970,17 @@
 
                     <!-- Access Type Info -->
                     <div style="margin-top: 20px; display: flex; gap: 16px;">
+                        <div style="flex: 1; padding: 16px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px;">
+                            <div style="font-weight: 600; font-size: 13px; color: #92400e; margin-bottom: 4px;"><i class="fas fa-shield-alt"></i> Admin</div>
+                            <div style="font-size: 12px; color: #92400e;">Full access to all features including user management and settings.</div>
+                        </div>
                         <div style="flex: 1; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
-                            <div style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 4px;"><i class="fas fa-unlock"></i> Full Access</div>
-                            <div style="font-size: 12px; color: #166534;">Can view and edit selected pages for assigned ad accounts. Page access is configurable per user.</div>
+                            <div style="font-weight: 600; font-size: 13px; color: #166534; margin-bottom: 4px;"><i class="fas fa-unlock"></i> Editor</div>
+                            <div style="font-size: 12px; color: #166534;">Can view and edit data for assigned ad accounts.</div>
                         </div>
                         <div style="flex: 1; padding: 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
-                            <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;"><i class="fas fa-eye"></i> Read Access</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Can only view selected pages (read-only). Page access is configurable per user.</div>
+                            <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;"><i class="fas fa-eye"></i> Viewer</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Read-only access to assigned ad accounts.</div>
                         </div>
                     </div>
                 </div>
@@ -4050,91 +3994,50 @@
                         <button onclick="closeAddUserModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
                     </div>
                     <form id="add-user-form" onsubmit="submitAddUser(event)" style="padding: 24px;">
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">First Name <span style="color: #dc2626;">*</span></label>
-                                <input type="text" id="user-first-name" required placeholder="Enter first name" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Last Name <span style="color: #dc2626;">*</span></label>
-                                <input type="text" id="user-last-name" required placeholder="Enter last name" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
-                            </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Full Name <span style="color: #dc2626;">*</span></label>
+                            <input type="text" id="user-full-name" required placeholder="Enter full name" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email <span style="color: #dc2626;">*</span></label>
-                            <input type="email" id="user-email" required placeholder="Enter email address" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                            <input type="email" id="user-email" required placeholder="Enter email address (used for Google SSO sign-in)" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Access Type <span style="color: #dc2626;">*</span></label>
-                            <div style="display: flex; gap: 12px;">
-                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-full-label">
-                                    <input type="radio" name="access-type" value="full" required onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Role <span style="color: #dc2626;">*</span></label>
+                            <div style="display: flex; gap: 8px;">
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-admin-label">
+                                    <input type="radio" name="user-role" value="admin" required onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
                                     <div>
-                                        <div style="font-weight: 600; font-size: 13px;">Full Access</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard, Alerts, Data Management, Settings</div>
+                                        <div style="font-weight: 600; font-size: 13px;">Admin</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Full access</div>
                                     </div>
                                 </label>
-                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-read-label">
-                                    <input type="radio" name="access-type" value="read" required onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-editor-label">
+                                    <input type="radio" name="user-role" value="editor" required onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
                                     <div>
-                                        <div style="font-weight: 600; font-size: 13px;">Read Access</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard and Alerts only</div>
+                                        <div style="font-weight: 600; font-size: 13px;">Editor</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">View & edit</div>
                                     </div>
                                 </label>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts <span style="color: #dc2626;">*</span></label>
-                            <div id="ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="ad-accounts" value="Pabbly Connect" style="accent-color: var(--primary-color);"> Pabbly Connect
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="ad-accounts" value="Pabbly Chatflow" style="accent-color: var(--primary-color);"> Pabbly Chatflow
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="ad-accounts" value="Pabbly Subscription" style="accent-color: var(--primary-color);"> Pabbly Subscription
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="access-viewer-label">
+                                    <input type="radio" name="user-role" value="viewer" checked onchange="updateAccessStyle()" style="accent-color: var(--primary-color);">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">Viewer</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Read only</div>
+                                    </div>
                                 </label>
                             </div>
                         </div>
                         <div style="margin-bottom: 24px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Page Access <span style="color: #dc2626;">*</span></label>
-                            <div id="page-access-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-                                    <input type="checkbox" id="page-select-all" onchange="toggleAllPages(this)" style="accent-color: var(--primary-color);"> Select All
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Overview Metrics" style="accent-color: var(--primary-color);"> Overview Metrics
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Campaigns" style="accent-color: var(--primary-color);"> Campaigns
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Ad Sets" style="accent-color: var(--primary-color);"> Ad Sets
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Ads" style="accent-color: var(--primary-color);"> Ads
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Country Performance" style="accent-color: var(--primary-color);"> Country Performance
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Sales by Ad Creative" style="accent-color: var(--primary-color);"> Sales by Ad Creative
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Alerts" style="accent-color: var(--primary-color);"> Alerts
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Data Management" style="accent-color: var(--primary-color);"> Data Management
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="page-access" value="Settings" style="accent-color: var(--primary-color);"> Settings
-                                </label>
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts</label>
+                            <div id="ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <span style="color: var(--text-secondary); font-size: 13px;">Loading accounts...</span>
                             </div>
                         </div>
+                        <div id="add-user-error" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; font-size: 13px;"></div>
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
                             <button type="button" onclick="closeAddUserModal()" style="padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; background: white; font-size: 13px; cursor: pointer;">Cancel</button>
-                            <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 13px;"><i class="fas fa-plus"></i> Add User</button>
+                            <button type="submit" id="add-user-btn" class="btn-primary" style="padding: 10px 20px; font-size: 13px;"><i class="fas fa-plus"></i> Add User</button>
                         </div>
                     </form>
                 </div>
@@ -4148,91 +4051,51 @@
                         <button onclick="closeEditUserModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
                     </div>
                     <form id="edit-user-form" onsubmit="submitEditUser(event)" style="padding: 24px;">
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">First Name <span style="color: #dc2626;">*</span></label>
-                                <input type="text" id="edit-user-first-name" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Last Name <span style="color: #dc2626;">*</span></label>
-                                <input type="text" id="edit-user-last-name" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
-                            </div>
+                        <input type="hidden" id="edit-user-id">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Full Name <span style="color: #dc2626;">*</span></label>
+                            <input type="text" id="edit-user-full-name" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 16px;">
                             <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Email</label>
                             <input type="email" id="edit-user-email" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; background: #f5f5f5; box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Access Type <span style="color: #dc2626;">*</span></label>
-                            <div style="display: flex; gap: 12px;">
-                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-full-label">
-                                    <input type="radio" name="edit-access-type" value="full" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Role <span style="color: #dc2626;">*</span></label>
+                            <div style="display: flex; gap: 8px;">
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-admin-label">
+                                    <input type="radio" name="edit-user-role" value="admin" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
                                     <div>
-                                        <div style="font-weight: 600; font-size: 13px;">Full Access</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard, Alerts, Data Management, Settings</div>
+                                        <div style="font-weight: 600; font-size: 13px;">Admin</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Full access</div>
                                     </div>
                                 </label>
-                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-read-label">
-                                    <input type="radio" name="edit-access-type" value="read" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-editor-label">
+                                    <input type="radio" name="edit-user-role" value="editor" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
                                     <div>
-                                        <div style="font-weight: 600; font-size: 13px;">Read Access</div>
-                                        <div style="font-size: 11px; color: var(--text-secondary);">Dashboard and Alerts only</div>
+                                        <div style="font-weight: 600; font-size: 13px;">Editor</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">View & edit</div>
                                     </div>
                                 </label>
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts <span style="color: #dc2626;">*</span></label>
-                            <div id="edit-ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-ad-accounts" value="Pabbly Connect" style="accent-color: var(--primary-color);"> Pabbly Connect
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-ad-accounts" value="Pabbly Chatflow" style="accent-color: var(--primary-color);"> Pabbly Chatflow
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-ad-accounts" value="Pabbly Subscription" style="accent-color: var(--primary-color);"> Pabbly Subscription
+                                <label style="flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;" id="edit-access-viewer-label">
+                                    <input type="radio" name="edit-user-role" value="viewer" required onchange="updateEditAccessStyle()" style="accent-color: var(--primary-color);">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">Viewer</div>
+                                        <div style="font-size: 11px; color: var(--text-secondary);">Read only</div>
+                                    </div>
                                 </label>
                             </div>
                         </div>
                         <div style="margin-bottom: 24px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Page Access <span style="color: #dc2626;">*</span></label>
-                            <div id="edit-page-access-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-                                    <input type="checkbox" id="edit-page-select-all" onchange="toggleAllEditPages(this)" style="accent-color: var(--primary-color);"> Select All
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Overview Metrics" style="accent-color: var(--primary-color);"> Overview Metrics
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Campaigns" style="accent-color: var(--primary-color);"> Campaigns
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Ad Sets" style="accent-color: var(--primary-color);"> Ad Sets
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Ads" style="accent-color: var(--primary-color);"> Ads
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Country Performance" style="accent-color: var(--primary-color);"> Country Performance
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Sales by Ad Creative" style="accent-color: var(--primary-color);"> Sales by Ad Creative
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Alerts" style="accent-color: var(--primary-color);"> Alerts
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Data Management" style="accent-color: var(--primary-color);"> Data Management
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
-                                    <input type="checkbox" name="edit-page-access" value="Settings" style="accent-color: var(--primary-color);"> Settings
-                                </label>
+                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Ad Accounts</label>
+                            <div id="edit-ad-account-checkboxes" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <span style="color: var(--text-secondary); font-size: 13px;">Loading accounts...</span>
                             </div>
                         </div>
+                        <div id="edit-user-error" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #dc2626; font-size: 13px;"></div>
                         <div style="display: flex; gap: 12px; justify-content: flex-end;">
                             <button type="button" onclick="closeEditUserModal()" style="padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; background: white; font-size: 13px; cursor: pointer;">Cancel</button>
-                            <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 13px;"><i class="fas fa-save"></i> Save Changes</button>
+                            <button type="submit" id="edit-user-btn" class="btn-primary" style="padding: 10px 20px; font-size: 13px;"><i class="fas fa-save"></i> Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -5124,6 +4987,41 @@
                 if (endDate) params.append('endDate', endDate);
                 if (params.toString()) url += `?${params.toString()}`;
                 return this.request(url);
+            },
+
+            // User Management endpoints
+            async getUsers(search) {
+                let url = '/users?limit=100';
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                return this.request(url);
+            },
+
+            async getUser(userId) {
+                return this.request(`/users/${userId}`);
+            },
+
+            async createUser(data) {
+                return this.request('/users', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            },
+
+            async updateUser(userId, data) {
+                return this.request(`/users/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+            },
+
+            async deleteUser(userId) {
+                return this.request(`/users/${userId}`, {
+                    method: 'DELETE'
+                });
+            },
+
+            async getUserAccounts() {
+                return this.request('/users/accounts/list');
             }
         };
 
@@ -7191,6 +7089,11 @@
                 }
             }
 
+            // Load data for specific sections
+            if (sectionId === 'user-management-section') {
+                loadUsers();
+            }
+
             // Scroll to top of content area
             const dashboardContent = document.querySelector('.dashboard-content');
             if (dashboardContent) {
@@ -7692,11 +7595,151 @@
         }
 
         // ==================== USER MANAGEMENT FUNCTIONS ====================
-        let currentEditUserRow = null;
+        let userManagementAccounts = []; // cached ad accounts for user forms
+        let usersLoaded = false;
 
-        function openAddUserModal() {
+        function getInitials(name) {
+            const parts = (name || '').trim().split(' ');
+            if (parts.length >= 2) return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            return (parts[0] || '?').charAt(0).toUpperCase();
+        }
+
+        function getAvatarColor(name) {
+            const colors = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#0ea5e9'];
+            let hash = 0;
+            for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function getRoleBadge(role) {
+            switch (role) {
+                case 'admin': return '<span class="status-badge" style="background: #fef3c7; color: #92400e;">Admin</span>';
+                case 'editor': return '<span class="status-badge active">Editor</span>';
+                default: return '<span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Viewer</span>';
+            }
+        }
+
+        function formatLastLogin(dateStr) {
+            if (!dateStr) return 'Never';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' min ago';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' hours ago';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + ' days ago';
+            return date.toLocaleDateString();
+        }
+
+        async function loadUsers() {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);"><i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>Loading users...</td></tr>';
+
+            try {
+                const result = await api.getUsers();
+                if (!result.success) throw new Error(result.error);
+
+                const users = result.data.users || [];
+                usersLoaded = true;
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">No users found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                users.forEach(user => {
+                    const initials = getInitials(user.name);
+                    const color = getAvatarColor(user.name);
+                    const accountNames = (user.permissions || []).map(p => p.account_name).join(', ') || '<span style="color: var(--text-secondary);">None</span>';
+                    const isCurrentUser = currentUser && user.id === currentUser.id;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0;">${initials}</div>
+                                <div>
+                                    <div style="font-weight: 600;">${user.name || 'Unnamed'}</div>
+                                    ${isCurrentUser ? '<div style="font-size: 11px; color: var(--primary-color);">You</div>' : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td>${user.email}</td>
+                        <td>${getRoleBadge(user.role)}</td>
+                        <td>${accountNames}</td>
+                        <td>${formatLastLogin(user.last_login)}</td>
+                        <td>
+                            ${isCurrentUser
+                                ? '<span style="color: var(--text-secondary); font-size: 12px;">Current</span>'
+                                : `<div class="action-menu">
+                                    <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
+                                    <div class="action-menu-dropdown">
+                                        <button class="action-menu-item" onclick="editUser(${user.id})"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="action-menu-item delete" onclick="removeUser(${user.id}, '${(user.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i> Remove</button>
+                                    </div>
+                                </div>`
+                            }
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Load users error:', error);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: #dc2626;"><i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>Failed to load users: ${error.message}</td></tr>`;
+            }
+        }
+
+        async function loadAccountCheckboxes(containerId, selectedAccountIds = []) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Use cached accounts if available
+            if (userManagementAccounts.length === 0) {
+                try {
+                    const result = await api.getUserAccounts();
+                    if (result.success) userManagementAccounts = result.data || [];
+                } catch (e) {
+                    console.error('Failed to load accounts:', e);
+                }
+            }
+
+            if (userManagementAccounts.length === 0) {
+                container.innerHTML = '<span style="color: var(--text-secondary); font-size: 13px;">No ad accounts available.</span>';
+                return;
+            }
+
+            container.innerHTML = '';
+            userManagementAccounts.forEach(acc => {
+                const label = document.createElement('label');
+                label.style.cssText = 'display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;';
+                label.innerHTML = `<input type="checkbox" name="${containerId}-accounts" value="${acc.id}" ${selectedAccountIds.includes(acc.id) ? 'checked' : ''} style="accent-color: var(--primary-color);"> ${acc.name || 'Account #' + acc.id}`;
+                container.appendChild(label);
+            });
+        }
+
+        function updateAccessStyle() {
+            ['admin', 'editor', 'viewer'].forEach(role => {
+                const radio = document.querySelector(`input[name="user-role"][value="${role}"]`);
+                const label = document.getElementById(`access-${role}-label`);
+                if (radio && label) label.style.borderColor = radio.checked ? 'var(--primary-color)' : 'var(--border-color)';
+            });
+        }
+
+        function updateEditAccessStyle() {
+            ['admin', 'editor', 'viewer'].forEach(role => {
+                const radio = document.querySelector(`input[name="edit-user-role"][value="${role}"]`);
+                const label = document.getElementById(`edit-access-${role}-label`);
+                if (radio && label) label.style.borderColor = radio.checked ? 'var(--primary-color)' : 'var(--border-color)';
+            });
+        }
+
+        async function openAddUserModal() {
             document.getElementById('add-user-form').reset();
+            document.getElementById('add-user-error').style.display = 'none';
+            document.querySelector('input[name="user-role"][value="viewer"]').checked = true;
             updateAccessStyle();
+            await loadAccountCheckboxes('ad-account-checkboxes');
             document.getElementById('add-user-modal').style.display = 'flex';
         }
 
@@ -7704,186 +7747,119 @@
             document.getElementById('add-user-modal').style.display = 'none';
         }
 
-        function toggleAllPages(selectAllCb) {
-            document.querySelectorAll('input[name="page-access"]').forEach(cb => { cb.checked = selectAllCb.checked; });
-        }
-        function toggleAllEditPages(selectAllCb) {
-            document.querySelectorAll('input[name="edit-page-access"]').forEach(cb => { cb.checked = selectAllCb.checked; });
-        }
-
-        function updateAccessStyle() {
-            const fullRadio = document.querySelector('input[name="access-type"][value="full"]');
-            const readRadio = document.querySelector('input[name="access-type"][value="read"]');
-            document.getElementById('access-full-label').style.borderColor = fullRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
-            document.getElementById('access-read-label').style.borderColor = readRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
-        }
-
-        function updateEditAccessStyle() {
-            const fullRadio = document.querySelector('input[name="edit-access-type"][value="full"]');
-            const readRadio = document.querySelector('input[name="edit-access-type"][value="read"]');
-            document.getElementById('edit-access-full-label').style.borderColor = fullRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
-            document.getElementById('edit-access-read-label').style.borderColor = readRadio.checked ? 'var(--primary-color)' : 'var(--border-color)';
-        }
-
-        function getInitials(first, last) {
-            return (first.charAt(0) + last.charAt(0)).toUpperCase();
-        }
-
-        function getRandomColor() {
-            const colors = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-
-        function submitAddUser(e) {
+        async function submitAddUser(e) {
             e.preventDefault();
-            const firstName = document.getElementById('user-first-name').value.trim();
-            const lastName = document.getElementById('user-last-name').value.trim();
+            const errorEl = document.getElementById('add-user-error');
+            const btn = document.getElementById('add-user-btn');
+            errorEl.style.display = 'none';
+
+            const name = document.getElementById('user-full-name').value.trim();
             const email = document.getElementById('user-email').value.trim();
-            const accessType = document.querySelector('input[name="access-type"]:checked').value;
-            const accounts = Array.from(document.querySelectorAll('input[name="ad-accounts"]:checked')).map(cb => cb.value);
-            const pages = Array.from(document.querySelectorAll('input[name="page-access"]:checked')).map(cb => cb.value);
+            const role = document.querySelector('input[name="user-role"]:checked')?.value || 'viewer';
+            const account_ids = Array.from(document.querySelectorAll('input[name="ad-account-checkboxes-accounts"]:checked')).map(cb => parseInt(cb.value));
 
-            if (accounts.length === 0) {
-                alert('Please select at least one ad account.');
-                return;
-            }
-            if (pages.length === 0) {
-                alert('Please select at least one page.');
+            if (!name || !email) {
+                errorEl.textContent = 'Full name and email are required.';
+                errorEl.style.display = 'block';
                 return;
             }
 
-            const initials = getInitials(firstName, lastName);
-            const color = getRandomColor();
-            const fullName = firstName + ' ' + lastName;
-            const isFullAccess = accessType === 'full';
-            const badgeHtml = isFullAccess
-                ? '<span class="status-badge active">Full Access</span>'
-                : '<span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span>';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
 
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">${initials}</div>
-                        <div><div style="font-weight: 600;">${fullName}</div></div>
-                    </div>
-                </td>
-                <td>${email}</td>
-                <td>${badgeHtml}</td>
-                <td>${accounts.join(', ')}</td>
-                <td><span style="font-size: 12px; color: var(--text-secondary);">${pages.length === 9 ? 'All Pages' : pages.join(', ')}</span></td>
-                <td>Just now</td>
-                <td>
-                    <div class="action-menu">
-                        <button class="action-menu-btn" onclick="toggleActionMenu(this)"><i class="fas fa-ellipsis-v"></i></button>
-                        <div class="action-menu-dropdown">
-                            <button class="action-menu-item" onclick="editUser(this)"><i class="fas fa-edit"></i> Edit</button>
-                            <button class="action-menu-item delete" onclick="removeUser(this)"><i class="fas fa-trash"></i> Remove</button>
-                        </div>
-                    </div>
-                </td>
-            `;
-
-            document.getElementById('users-tbody').appendChild(newRow);
-            closeAddUserModal();
+            try {
+                const result = await api.createUser({ name, email, role, account_ids });
+                if (!result.success) throw new Error(result.error);
+                closeAddUserModal();
+                await loadUsers();
+            } catch (error) {
+                errorEl.textContent = error.message || 'Failed to add user.';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Add User';
+            }
         }
 
-        function editUser(button) {
-            const row = button.closest('tr');
-            currentEditUserRow = row;
-            button.closest('.action-menu').classList.remove('open');
+        async function editUser(userId) {
+            // Close any open action menu
+            document.querySelectorAll('.action-menu').forEach(m => m.classList.remove('open'));
 
-            const cells = row.querySelectorAll('td');
-            const nameEl = cells[0].querySelector('div[style*="font-weight: 600"]');
-            const fullName = nameEl ? nameEl.textContent.trim() : '';
-            const parts = fullName.split(' ');
-            const firstName = parts[0] || '';
-            const lastName = parts.slice(1).join(' ') || '';
-            const email = cells[1].textContent.trim();
-            const accessBadge = cells[2].querySelector('.status-badge').textContent.trim();
-            const accountsText = cells[3].textContent.trim();
+            const errorEl = document.getElementById('edit-user-error');
+            errorEl.style.display = 'none';
 
-            document.getElementById('edit-user-first-name').value = firstName;
-            document.getElementById('edit-user-last-name').value = lastName;
-            document.getElementById('edit-user-email').value = email;
+            try {
+                const result = await api.getUser(userId);
+                if (!result.success) throw new Error(result.error);
 
-            const isFullAccess = accessBadge === 'Full Access';
-            document.querySelector('input[name="edit-access-type"][value="full"]').checked = isFullAccess;
-            document.querySelector('input[name="edit-access-type"][value="read"]').checked = !isFullAccess;
-            updateEditAccessStyle();
+                const user = result.data;
+                document.getElementById('edit-user-id').value = user.id;
+                document.getElementById('edit-user-full-name').value = user.name || '';
+                document.getElementById('edit-user-email').value = user.email || '';
 
-            const accountsList = accountsText.split(',').map(a => a.trim());
-            document.querySelectorAll('input[name="edit-ad-accounts"]').forEach(cb => {
-                cb.checked = accountsList.includes(cb.value);
-            });
+                // Set role radio
+                const roleRadio = document.querySelector(`input[name="edit-user-role"][value="${user.role || 'viewer'}"]`);
+                if (roleRadio) roleRadio.checked = true;
+                updateEditAccessStyle();
 
-            // Parse page access from cell index 4
-            const pagesText = cells[4].textContent.trim();
-            const allPageValues = ['Overview Metrics','Campaigns','Ad Sets','Ads','Country Performance','Sales by Ad Creative','Alerts','Data Management','Settings'];
-            const pagesList = pagesText === 'All Pages' ? allPageValues : pagesText.split(',').map(p => p.trim());
-            document.querySelectorAll('input[name="edit-page-access"]').forEach(cb => {
-                cb.checked = pagesList.includes(cb.value);
-            });
-            const editSelectAll = document.getElementById('edit-page-select-all');
-            if (editSelectAll) editSelectAll.checked = pagesList.length === allPageValues.length;
+                // Load account checkboxes with user's current permissions
+                const selectedAccIds = (user.permissions || []).map(p => p.account_id);
+                await loadAccountCheckboxes('edit-ad-account-checkboxes', selectedAccIds);
 
-            document.getElementById('edit-user-modal').style.display = 'flex';
+                document.getElementById('edit-user-modal').style.display = 'flex';
+            } catch (error) {
+                alert('Failed to load user: ' + error.message);
+            }
         }
 
         function closeEditUserModal() {
             document.getElementById('edit-user-modal').style.display = 'none';
-            currentEditUserRow = null;
         }
 
-        function submitEditUser(e) {
+        async function submitEditUser(e) {
             e.preventDefault();
-            if (!currentEditUserRow) return;
+            const errorEl = document.getElementById('edit-user-error');
+            const btn = document.getElementById('edit-user-btn');
+            errorEl.style.display = 'none';
 
-            const firstName = document.getElementById('edit-user-first-name').value.trim();
-            const lastName = document.getElementById('edit-user-last-name').value.trim();
-            const accessType = document.querySelector('input[name="edit-access-type"]:checked').value;
-            const accounts = Array.from(document.querySelectorAll('input[name="edit-ad-accounts"]:checked')).map(cb => cb.value);
-            const pages = Array.from(document.querySelectorAll('input[name="edit-page-access"]:checked')).map(cb => cb.value);
+            const userId = document.getElementById('edit-user-id').value;
+            const name = document.getElementById('edit-user-full-name').value.trim();
+            const role = document.querySelector('input[name="edit-user-role"]:checked')?.value || 'viewer';
+            const account_ids = Array.from(document.querySelectorAll('input[name="edit-ad-account-checkboxes-accounts"]:checked')).map(cb => parseInt(cb.value));
 
-            if (accounts.length === 0) {
-                alert('Please select at least one ad account.');
+            if (!name) {
+                errorEl.textContent = 'Full name is required.';
+                errorEl.style.display = 'block';
                 return;
             }
-            if (pages.length === 0) {
-                alert('Please select at least one page.');
-                return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const result = await api.updateUser(userId, { name, role, account_ids });
+                if (!result.success) throw new Error(result.error);
+                closeEditUserModal();
+                await loadUsers();
+            } catch (error) {
+                errorEl.textContent = error.message || 'Failed to update user.';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
             }
-
-            const cells = currentEditUserRow.querySelectorAll('td');
-            const fullName = firstName + ' ' + lastName;
-            const initials = getInitials(firstName, lastName);
-            const isFullAccess = accessType === 'full';
-
-            // Update name
-            const nameContainer = cells[0].querySelector('div[style*="font-weight: 600"]');
-            if (nameContainer) nameContainer.textContent = fullName;
-            const initialsEl = cells[0].querySelector('div[style*="border-radius: 50%"]');
-            if (initialsEl) initialsEl.textContent = initials;
-
-            // Update access badge
-            cells[2].innerHTML = isFullAccess
-                ? '<span class="status-badge active">Full Access</span>'
-                : '<span class="status-badge" style="background: #f0f2f5; color: var(--text-secondary);">Read Access</span>';
-
-            // Update accounts
-            cells[3].textContent = accounts.join(', ');
-
-            // Update page access
-            cells[4].innerHTML = '<span style="font-size: 12px; color: var(--text-secondary);">' + (pages.length === 9 ? 'All Pages' : pages.join(', ')) + '</span>';
-
-            closeEditUserModal();
         }
 
-        function removeUser(button) {
-            const row = button.closest('tr');
-            button.closest('.action-menu').classList.remove('open');
-            if (confirm('Are you sure you want to remove this user?')) {
-                row.remove();
+        async function removeUser(userId, userName) {
+            document.querySelectorAll('.action-menu').forEach(m => m.classList.remove('open'));
+            if (!confirm(`Are you sure you want to remove ${userName}? This action cannot be undone.`)) return;
+
+            try {
+                const result = await api.deleteUser(userId);
+                if (!result.success) throw new Error(result.error);
+                await loadUsers();
+            } catch (error) {
+                alert('Failed to remove user: ' + error.message);
             }
         }
 

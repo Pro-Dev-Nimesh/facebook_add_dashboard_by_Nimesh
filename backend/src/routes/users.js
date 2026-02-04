@@ -45,10 +45,22 @@ router.get('/', requireAdmin, (req, res) => {
 
         const users = db.prepare(query).all(...params);
 
+        // Fetch permissions for each user
+        const permStmt = db.prepare(`
+            SELECT up.account_id, up.access_level, aa.name as account_name
+            FROM user_permissions up
+            JOIN ad_accounts aa ON up.account_id = aa.id
+            WHERE up.user_id = ?
+        `);
+        const usersWithPermissions = users.map(user => ({
+            ...user,
+            permissions: permStmt.all(user.id)
+        }));
+
         res.json({
             success: true,
             data: {
-                users,
+                users: usersWithPermissions,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
@@ -116,15 +128,15 @@ router.get('/:userId', requireAdmin, (req, res) => {
     }
 });
 
-// POST /api/users - Create new user (admin only)
+// POST /api/users - Create new user (admin only, SSO-only flow)
 router.post('/', requireAdmin, (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, role, account_ids } = req.body;
 
-        if (!name || !email || !password) {
+        if (!name || !email) {
             return res.status(400).json({
                 success: false,
-                error: 'Name, email, and password are required'
+                error: 'Name and email are required'
             });
         }
 
@@ -138,10 +150,11 @@ router.post('/', requireAdmin, (req, res) => {
             });
         }
 
-        // Hash password
-        const hashedPassword = bcrypt.hashSync(password, 10);
+        // Generate random password (user will sign in via Google SSO)
+        const randomPassword = require('crypto').randomBytes(32).toString('hex');
+        const hashedPassword = bcrypt.hashSync(randomPassword, 10);
 
-        const validRoles = ['admin', 'viewer'];
+        const validRoles = ['admin', 'editor', 'viewer'];
         const userRole = validRoles.includes(role) ? role : 'viewer';
 
         const result = db.prepare(`
@@ -149,13 +162,36 @@ router.post('/', requireAdmin, (req, res) => {
             VALUES (?, ?, ?, ?)
         `).run(name, email, hashedPassword, userRole);
 
+        const userId = result.lastInsertRowid;
+
+        // Assign account permissions if provided
+        if (account_ids && Array.isArray(account_ids) && account_ids.length > 0) {
+            const insertPerm = db.prepare(`
+                INSERT OR IGNORE INTO user_permissions (user_id, account_id, access_level)
+                VALUES (?, ?, ?)
+            `);
+            const accessLevel = userRole === 'admin' ? 'full' : 'read';
+            for (const accountId of account_ids) {
+                insertPerm.run(userId, accountId, accessLevel);
+            }
+        }
+
+        // Return user with permissions
+        const permissions = db.prepare(`
+            SELECT up.*, aa.name as account_name
+            FROM user_permissions up
+            JOIN ad_accounts aa ON up.account_id = aa.id
+            WHERE up.user_id = ?
+        `).all(userId);
+
         res.status(201).json({
             success: true,
             data: {
-                id: result.lastInsertRowid,
+                id: userId,
                 name,
                 email,
-                role: userRole
+                role: userRole,
+                permissions
             }
         });
     } catch (error) {
@@ -167,11 +203,11 @@ router.post('/', requireAdmin, (req, res) => {
     }
 });
 
-// PUT /api/users/:userId - Update user (admin only)
+// PUT /api/users/:userId - Update user (admin only, SSO-only flow)
 router.put('/:userId', requireAdmin, (req, res) => {
     try {
         const { userId } = req.params;
-        const { name, email, role, password } = req.body;
+        const { name, email, role, account_ids } = req.body;
 
         // Check if user exists
         const existingUser = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
@@ -208,38 +244,59 @@ router.put('/:userId', requireAdmin, (req, res) => {
         }
 
         if (role) {
-            const validRoles = ['admin', 'viewer'];
+            const validRoles = ['admin', 'editor', 'viewer'];
             if (validRoles.includes(role)) {
                 updates.push('role = ?');
                 params.push(role);
             }
         }
 
-        if (password) {
-            const hashedPassword = bcrypt.hashSync(password, 10);
-            updates.push('password = ?');
-            params.push(hashedPassword);
+        if (updates.length > 0) {
+            updates.push('updated_at = CURRENT_TIMESTAMP');
+            params.push(userId);
+
+            db.prepare(`
+                UPDATE users
+                SET ${updates.join(', ')}
+                WHERE id = ?
+            `).run(...params);
         }
 
-        if (updates.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'No updates provided'
-            });
+        // Update account permissions if provided
+        if (account_ids && Array.isArray(account_ids)) {
+            // Remove existing permissions
+            db.prepare('DELETE FROM user_permissions WHERE user_id = ?').run(userId);
+
+            // Add new permissions
+            if (account_ids.length > 0) {
+                const userRole = role || db.prepare('SELECT role FROM users WHERE id = ?').get(userId)?.role || 'viewer';
+                const accessLevel = userRole === 'admin' ? 'full' : (userRole === 'editor' ? 'full' : 'read');
+                const insertPerm = db.prepare(`
+                    INSERT OR IGNORE INTO user_permissions (user_id, account_id, access_level)
+                    VALUES (?, ?, ?)
+                `);
+                for (const accountId of account_ids) {
+                    insertPerm.run(userId, accountId, accessLevel);
+                }
+            }
         }
 
-        updates.push('updated_at = CURRENT_TIMESTAMP');
-        params.push(userId);
+        // Return updated user with permissions
+        const user = db.prepare(`
+            SELECT id, name, email, role, last_login, created_at
+            FROM users WHERE id = ?
+        `).get(userId);
 
-        db.prepare(`
-            UPDATE users
-            SET ${updates.join(', ')}
-            WHERE id = ?
-        `).run(...params);
+        const permissions = db.prepare(`
+            SELECT up.*, aa.name as account_name
+            FROM user_permissions up
+            JOIN ad_accounts aa ON up.account_id = aa.id
+            WHERE up.user_id = ?
+        `).all(userId);
 
         res.json({
             success: true,
-            message: 'User updated'
+            data: { ...user, permissions }
         });
     } catch (error) {
         console.error('Update user error:', error);
@@ -288,6 +345,28 @@ router.delete('/:userId', requireAdmin, (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Failed to delete user'
+        });
+    }
+});
+
+// GET /api/users/accounts/list - Get all ad accounts (for user permission forms)
+router.get('/accounts/list', requireAdmin, (req, res) => {
+    try {
+        const accounts = db.prepare(`
+            SELECT id, name, type, status
+            FROM ad_accounts
+            ORDER BY name ASC
+        `).all();
+
+        res.json({
+            success: true,
+            data: accounts
+        });
+    } catch (error) {
+        console.error('Get accounts list error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get accounts'
         });
     }
 });
