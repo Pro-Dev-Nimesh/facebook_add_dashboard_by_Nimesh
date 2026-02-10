@@ -1,0 +1,231 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<title>Facebook Ads Dashboard PRD</title>
+<style>
+body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; margin: 1in; }
+h1 { font-size: 24pt; color: #1877f2; text-align: center; margin-bottom: 5px; }
+h2 { font-size: 16pt; color: #1877f2; border-bottom: 2px solid #1877f2; padding-bottom: 5px; margin-top: 25px; }
+h3 { font-size: 13pt; color: #333; margin-top: 15px; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #1877f2; color: white; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+.highlight { background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin: 15px 0; }
+.important { background-color: #f8d7da; padding: 10px; border-left: 4px solid #dc3545; margin: 15px 0; }
+ul { margin: 10px 0; }
+li { margin: 5px 0; }
+.subtitle { text-align: center; color: #666; font-size: 12pt; margin-bottom: 30px; }
+</style>
+</head>
+<body>
+
+<h1>Facebook Ads Dashboard</h1>
+<p class="subtitle">Product Requirements Document (PRD)<br>Version 2.0 | January 2026</p>
+
+<h2>1. What is this Application?</h2>
+<p>A dashboard to track Facebook Ads performance for Pabbly products. It shows:</p>
+<ul>
+<li>How much money is spent on ads</li>
+<li>How much revenue is generated</li>
+<li>Return on Ad Spend (ROAS)</li>
+<li>Number of leads captured</li>
+<li>Performance alerts and opportunities</li>
+</ul>
+
+<h2>2. Ad Accounts</h2>
+<p>The dashboard tracks 3 Pabbly ad accounts:</p>
+<table>
+<tr><th>Account Name</th><th>Facebook Account ID</th></tr>
+<tr><td>Pabbly Connect One Time</td><td>act_883912415611751</td></tr>
+<tr><td>Pabbly Chatflow</td><td>act_1304022760826324</td></tr>
+<tr><td>Pabbly Billing One Time</td><td>act_505099201137104</td></tr>
+</table>
+
+<h2>3. Where Does Data Come From?</h2>
+
+<div class="important">
+<strong>IMPORTANT - Read Carefully:</strong><br>
+Revenue and Leads do NOT come from Facebook. They come from our local database.
+</div>
+
+<table>
+<tr><th>Data</th><th>Source</th><th>How to Get</th></tr>
+<tr><td>Ad Spend</td><td>Facebook API</td><td>Synced automatically</td></tr>
+<tr><td>Impressions</td><td>Facebook API</td><td>Synced automatically</td></tr>
+<tr><td>Clicks</td><td>Facebook API</td><td>Synced automatically</td></tr>
+<tr><td>Reach</td><td>Facebook API</td><td>Synced automatically</td></tr>
+<tr><td>Frequency</td><td>Facebook API</td><td>Synced automatically</td></tr>
+<tr><td><strong>Revenue</strong></td><td><strong>Local Database</strong></td><td>Added manually or via webhook</td></tr>
+<tr><td><strong>Leads</strong></td><td><strong>Local Database</strong></td><td>Added manually or via webhook</td></tr>
+<tr><td>ROAS</td><td>Calculated</td><td>Revenue ÷ Spend</td></tr>
+</table>
+
+<h2>4. Dashboard Sections</h2>
+
+<h3>4.1 Overview</h3>
+<p>Shows 5 main numbers at the top:</p>
+<ul>
+<li><strong>Total Ad Spend</strong> - Money spent on Facebook ads</li>
+<li><strong>Total Revenue</strong> - Money earned from sales</li>
+<li><strong>ROAS</strong> - Return on ad spend (Revenue / Spend)</li>
+<li><strong>Total Leads</strong> - Number of leads captured</li>
+<li><strong>Pixel Status</strong> - Is Facebook Pixel working?</li>
+</ul>
+<p>Also shows Quick Snapshot for Today, This Week, and This Month.</p>
+
+<h3>4.2 Campaigns</h3>
+<p>Table showing all campaigns with:</p>
+<ul>
+<li>Status (Active/Paused)</li>
+<li>Campaign Name</li>
+<li>Budget, Spend, Sales, Revenue, ROAS</li>
+<li>Frequency, Clicks, Reach, Impressions</li>
+</ul>
+<p><strong>ROAS Color Coding:</strong></p>
+<ul>
+<li>Green (1.5+) = Good, making profit</li>
+<li>Orange (1.0-1.49) = Break-even</li>
+<li>Red (below 1.0) = Losing money</li>
+</ul>
+
+<h3>4.3 Ad Sets</h3>
+<p>Same as Campaigns, but shows ad sets. Can filter by campaign.</p>
+
+<h3>4.4 Ads</h3>
+<p>Same as Campaigns, but shows individual ads. Can filter by campaign and ad set.</p>
+
+<h3>4.5 Country Performance</h3>
+<p>Shows performance by country with spend, sales, revenue, and ROAS.</p>
+
+<h3>4.6 Sales by Ad Creative</h3>
+<p>Shows individual sales with the ad that generated them, including amount, country, and date.</p>
+
+<h2>5. Data Management</h2>
+
+<h3>5.1 Sales Data Entry</h3>
+<p>Users can add sales/revenue manually with:</p>
+<ul>
+<li>Date & Time</li>
+<li>Customer Email</li>
+<li>Transaction ID</li>
+<li>Product/Plan Name</li>
+<li>Country</li>
+<li>Amount</li>
+</ul>
+
+<h3>5.2 Leads Data Entry</h3>
+<p>Users can add leads manually with:</p>
+<ul>
+<li>Date</li>
+<li>Source (Facebook Ads, Google Ads, etc.)</li>
+<li>Lead Count</li>
+<li>Campaign Name</li>
+</ul>
+
+<h3>5.3 Webhook Integration</h3>
+<p>External systems can send revenue and leads data via webhooks automatically.</p>
+
+<h2>6. Alerts System</h2>
+
+<h3>6.1 Alert Types</h3>
+<table>
+<tr><th>Alert</th><th>When it Triggers</th></tr>
+<tr><td>Low ROAS</td><td>ROAS below target with significant spend</td></tr>
+<tr><td>Zero Sales</td><td>No revenue but money being spent</td></tr>
+<tr><td>High Frequency</td><td>Same people seeing ad too many times</td></tr>
+<tr><td>Overspend</td><td>Spending more than daily limit</td></tr>
+<tr><td>High ROAS (Opportunity)</td><td>Excellent performance, consider scaling</td></tr>
+</table>
+
+<h3>6.2 Alert Actions</h3>
+<ul>
+<li>Mark as Investigating</li>
+<li>Mark as In Progress</li>
+<li>Mark as Resolved</li>
+<li>Dismiss</li>
+<li>Add comments for tracking</li>
+</ul>
+
+<h2>7. Settings</h2>
+
+<h3>7.1 Facebook Connection</h3>
+<p>View connected ad accounts and sync status.</p>
+
+<h3>7.2 Webhooks & API</h3>
+<ul>
+<li>Create webhooks for receiving data from external systems</li>
+<li>Generate API keys for programmatic access</li>
+</ul>
+
+<h3>7.3 Alert Settings</h3>
+<p>Configure thresholds for alerts (minimum ROAS, spend limits, etc.)</p>
+
+<h3>7.4 User Management</h3>
+<table>
+<tr><th>Role</th><th>Can Do</th></tr>
+<tr><td>Admin</td><td>Everything</td></tr>
+<tr><td>Editor</td><td>View and edit data</td></tr>
+<tr><td>Viewer</td><td>View only</td></tr>
+</table>
+
+<h2>8. Data Sync</h2>
+
+<h3>8.1 How Syncing Works</h3>
+<table>
+<tr><th>Sync Type</th><th>When</th><th>What it Does</th></tr>
+<tr><td>Initial Sync</td><td>First time account connected</td><td>Fetches last 30 days of data</td></tr>
+<tr><td>Daily Sync</td><td>Every day at 2:00 AM</td><td>Fetches yesterday's data only</td></tr>
+<tr><td>Manual Refresh</td><td>When user clicks Refresh</td><td>Loads from local database (no API call)</td></tr>
+</table>
+
+<h3>8.2 Why This Approach?</h3>
+<ul>
+<li>Avoids hitting Facebook API rate limits</li>
+<li>Dashboard loads instantly (reads from local database)</li>
+<li>Historical data always available</li>
+</ul>
+
+<h2>9. User Login</h2>
+
+<h3>Default Admin Account</h3>
+<div class="highlight">
+<strong>Email:</strong> admin@pabbly.com<br>
+<strong>Password:</strong> Admin@123
+</div>
+
+<h3>Login Options</h3>
+<ul>
+<li>Email and Password</li>
+<li>Google Sign-In (optional)</li>
+</ul>
+
+<h2>10. Key Rules to Remember</h2>
+
+<div class="important">
+<ol>
+<li><strong>Revenue is NOT from Facebook</strong> - It comes from our database (Data Management section or webhooks)</li>
+<li><strong>Leads are NOT from Facebook</strong> - They come from our database</li>
+<li><strong>ROAS = Revenue ÷ Spend</strong> - Uses local revenue and Facebook spend</li>
+<li><strong>If no revenue data exists, show 0</strong> - Don't try to fetch from Facebook</li>
+<li><strong>Manual Refresh reads from database</strong> - It does NOT call Facebook API</li>
+</ol>
+</div>
+
+<h2>11. Summary</h2>
+
+<p>The Facebook Ads Dashboard is a tool to:</p>
+<ol>
+<li>View Facebook ad performance (spend, clicks, reach) synced from Facebook</li>
+<li>Track revenue and leads from our own data sources</li>
+<li>Calculate ROAS by combining both data sources</li>
+<li>Get alerts when performance is bad or good</li>
+<li>Manage multiple Pabbly ad accounts from one place</li>
+</ol>
+
+<p style="text-align: center; margin-top: 40px; color: #666;">
+— End of Document —
+</p>
+
+</body>
+</html>
