@@ -1,0 +1,139 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<title>Facebook Ads Dashboard - Short PRD</title>
+<style>
+@page { size: A4; margin: 0.6in; }
+body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; line-height: 1.4; margin: 0.5in; }
+h1 { font-size: 18pt; color: #1877f2; text-align: center; margin: 0 0 5px 0; border-bottom: 2px solid #1877f2; padding-bottom: 5px; }
+h2 { font-size: 11pt; color: #1877f2; margin: 12px 0 5px 0; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
+table { border-collapse: collapse; width: 100%; margin: 5px 0; font-size: 9pt; }
+th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+th { background-color: #1877f2; color: white; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+ul, ol { margin: 3px 0; padding-left: 18px; }
+li { margin: 2px 0; }
+.highlight { background-color: #fff3cd; padding: 6px; border-left: 3px solid #ffc107; margin: 8px 0; font-size: 9pt; }
+.important { background-color: #ffe6e6; padding: 6px; border-left: 3px solid #dc3545; margin: 8px 0; font-size: 9pt; }
+.feature { background-color: #e6f3ff; padding: 6px; border-left: 3px solid #1877f2; margin: 8px 0; font-size: 9pt; }
+.subtitle { text-align: center; color: #666; font-size: 9pt; margin-bottom: 10px; }
+.two-col { display: table; width: 100%; }
+.col { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Facebook Ads Dashboard PRD</h1>
+<p class="subtitle">One-Page Product Requirements Document | Version 2.1 | January 2026</p>
+
+<h2>1. What is This Application?</h2>
+<p>A unified dashboard to <strong>track, analyze, and optimize</strong> Facebook Ads performance for Pabbly products. Unlike Facebook Ads Manager, this dashboard:</p>
+<ul>
+<li>Combines Facebook ad metrics with <strong>actual sales revenue</strong> from our payment system</li>
+<li>Sends conversion data back to Facebook via <strong>Conversion API (CAPI)</strong> for better ad optimization</li>
+<li>Provides <strong>smart alerts</strong> to increase/decrease budgets (Facebook doesn't offer this)</li>
+<li>Shows <strong>country-wise performance</strong> with real revenue data</li>
+</ul>
+
+<h2>2. Ad Accounts</h2>
+<table>
+<tr><th>Account</th><th>Facebook ID</th></tr>
+<tr><td>Pabbly Connect One Time</td><td>act_883912415611751</td></tr>
+<tr><td>Pabbly Chatflow</td><td>act_1304022760826324</td></tr>
+<tr><td>Pabbly Billing One Time</td><td>act_505099201137104</td></tr>
+</table>
+
+<h2>3. Core Concept: Data Sources</h2>
+<div class="important">
+<strong>Critical Rule:</strong> Revenue & Leads come from OUR database, NOT from Facebook. Facebook only provides ad metrics.
+</div>
+<table>
+<tr><th>Data</th><th>Source</th><th>How</th></tr>
+<tr><td>Spend, Clicks, Impressions, Reach</td><td>Facebook API</td><td>Daily sync at 2 AM</td></tr>
+<tr><td><strong>Revenue & Sales</strong></td><td><strong>Local Database</strong></td><td>Manual entry, Webhook, or API</td></tr>
+<tr><td><strong>Leads</strong></td><td><strong>Local Database</strong></td><td>Manual entry, Webhook, or API</td></tr>
+<tr><td>ROAS</td><td>Calculated</td><td>Revenue (local) ÷ Spend (Facebook)</td></tr>
+</table>
+
+<h2>4. Key Feature: Conversion API (CAPI) Integration</h2>
+<div class="feature">
+<strong>NEW:</strong> When a sale happens, we send the conversion data to Facebook via Conversion API. This helps Facebook optimize ad delivery for more conversions.
+</div>
+<p><strong>How it works:</strong></p>
+<ol>
+<li>Customer makes a purchase (received via webhook from payment gateway)</li>
+<li>Sale is recorded in our dashboard with customer email, amount, country</li>
+<li>Dashboard automatically sends this conversion event to Facebook CAPI</li>
+<li>Facebook uses this data to optimize ads and show them to similar buyers</li>
+<li>Dashboard reflects the sale in revenue metrics and ROAS calculations</li>
+</ol>
+<p><strong>CAPI Data Sent:</strong> Event name (Purchase), Event time, Customer email (hashed), Amount, Currency, Country, Transaction ID</p>
+
+<h2>5. Dashboard Sections</h2>
+<table>
+<tr><th>Section</th><th>What it Shows</th></tr>
+<tr><td><strong>Overview</strong></td><td>5 KPI cards (Spend, Revenue, ROAS, Leads, Pixel Status) + Quick snapshot (Today/Week/Month)</td></tr>
+<tr><td><strong>Campaigns</strong></td><td>All campaigns with Status, Budget, Spend, Sales, Revenue, ROAS, Frequency, Clicks, Reach, Impressions</td></tr>
+<tr><td><strong>Ad Sets</strong></td><td>Same metrics as Campaigns, grouped by parent campaign</td></tr>
+<tr><td><strong>Ads</strong></td><td>Individual ads with creative preview + all metrics</td></tr>
+<tr><td><strong>Country Performance</strong></td><td>Country-wise breakdown: Spend (Facebook) + Revenue (our data) + ROAS</td></tr>
+<tr><td><strong>Sales by Ad Creative</strong></td><td>Each sale linked to the ad that generated it (Ad Name, Amount, Country, Date)</td></tr>
+</table>
+
+<h2>6. Smart Alerts (Key Differentiator)</h2>
+<div class="highlight">
+<strong>Why This Matters:</strong> Facebook doesn't tell you when to increase or decrease budget. Our alerts do.
+</div>
+<table>
+<tr><th>Alert Type</th><th>Trigger</th><th>Recommended Action</th></tr>
+<tr><td>Low ROAS</td><td>ROAS below 1.0 with spend > $100</td><td>Pause or optimize campaign</td></tr>
+<tr><td>Zero Sales</td><td>No revenue but money being spent</td><td>Check landing page, offer</td></tr>
+<tr><td>High Frequency</td><td>Same people seeing ad 3+ times</td><td>Refresh creative, expand audience</td></tr>
+<tr><td>Overspend</td><td>Daily spend exceeds limit</td><td>Review budget settings</td></tr>
+<tr><td><strong>High ROAS (Scale Up)</strong></td><td>ROAS above 2.0</td><td><strong>Increase budget!</strong></td></tr>
+<tr><td><strong>Country Overspend</strong></td><td>Country spending but no sales</td><td><strong>Exclude or reduce in that country</strong></td></tr>
+</table>
+
+<h2>7. Country-Wise Tracking</h2>
+<p>Shows which countries are <strong>profitable</strong> and which are <strong>wasting money</strong>:</p>
+<ul>
+<li><strong>Ad Spend per Country</strong> - From Facebook (synced daily)</li>
+<li><strong>Revenue per Country</strong> - From our sales data (country_code field)</li>
+<li><strong>ROAS per Country</strong> - Calculated to show profitability</li>
+<li><strong>Alert if country spending but not converting</strong></li>
+</ul>
+
+<h2>8. Data Management</h2>
+<table>
+<tr><th>Feature</th><th>Purpose</th></tr>
+<tr><td>Sales Data Entry</td><td>Add revenue manually (Date, Email, Transaction ID, Amount, Country)</td></tr>
+<tr><td>Leads Data Entry</td><td>Add lead counts (Date, Source, Count, Campaign)</td></tr>
+<tr><td>Webhooks</td><td>Receive sales/leads automatically from payment gateways</td></tr>
+</table>
+
+<h2>9. Settings</h2>
+<ul>
+<li><strong>Facebook Connection:</strong> View connected accounts, sync status</li>
+<li><strong>CAPI Settings:</strong> Configure Conversion API pixel ID and access token</li>
+<li><strong>Alert Thresholds:</strong> Set ROAS limits, spend limits, frequency limits</li>
+<li><strong>Webhooks:</strong> Create endpoints for receiving external data</li>
+<li><strong>User Management:</strong> Admin, Editor, Viewer roles</li>
+</ul>
+
+<h2>10. User Login</h2>
+<p><strong>Default Admin:</strong> admin@pabbly.com / Admin@123</p>
+
+<h2>11. Summary: What Makes This Dashboard Different</h2>
+<table>
+<tr><th>Facebook Ads Manager</th><th>Our Dashboard</th></tr>
+<tr><td>Shows Facebook-tracked conversions only</td><td>Shows ACTUAL revenue from payment system</td></tr>
+<tr><td>No budget increase/decrease recommendations</td><td><strong>Smart alerts tell you when to scale or pause</strong></td></tr>
+<tr><td>Limited country insights</td><td><strong>Country-wise ROAS with real sales data</strong></td></tr>
+<tr><td>Manual conversion tracking</td><td><strong>Automatic CAPI integration sends conversions to Facebook</strong></td></tr>
+<tr><td>Separate from sales data</td><td>Unified view: Ads + Revenue + Leads in one place</td></tr>
+</table>
+
+<p style="text-align: center; margin-top: 15px; font-size: 9pt; color: #666;">— End of PRD —</p>
+
+</body>
+</html>
