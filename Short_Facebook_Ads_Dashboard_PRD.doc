@@ -1,139 +1,215 @@
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta charset="UTF-8">
-<title>Facebook Ads Dashboard - Short PRD</title>
+<title>Short Facebook Ads Dashboard PRD</title>
 <style>
 @page { size: A4; margin: 0.6in; }
-body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; line-height: 1.4; margin: 0.5in; }
-h1 { font-size: 18pt; color: #1877f2; text-align: center; margin: 0 0 5px 0; border-bottom: 2px solid #1877f2; padding-bottom: 5px; }
-h2 { font-size: 11pt; color: #1877f2; margin: 12px 0 5px 0; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
-table { border-collapse: collapse; width: 100%; margin: 5px 0; font-size: 9pt; }
-th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
-th { background-color: #1877f2; color: white; }
-tr:nth-child(even) { background-color: #f9f9f9; }
-ul, ol { margin: 3px 0; padding-left: 18px; }
+body { font-family: Calibri, Arial, sans-serif; font-size: 9.5pt; line-height: 1.35; margin: 0.5in; color: #222; }
+h1 { font-size: 18pt; color: #1877f2; text-align: center; margin: 0 0 2px 0; }
+.subtitle { text-align: center; color: #888; font-size: 9pt; margin-bottom: 12px; border-bottom: 2px solid #1877f2; padding-bottom: 8px; }
+h2 { font-size: 11pt; color: white; background-color: #1877f2; padding: 5px 10px; margin: 14px 0 6px 0; }
+h3 { font-size: 10pt; color: #1877f2; margin: 10px 0 4px 0; }
+table { border-collapse: collapse; width: 100%; margin: 4px 0 10px 0; font-size: 9pt; }
+th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+th { background-color: #e7f0ff; color: #1a1a1a; font-weight: bold; }
+tr:nth-child(even) { background-color: #fafafa; }
+ul, ol { margin: 3px 0; padding-left: 16px; }
 li { margin: 2px 0; }
-.highlight { background-color: #fff3cd; padding: 6px; border-left: 3px solid #ffc107; margin: 8px 0; font-size: 9pt; }
-.important { background-color: #ffe6e6; padding: 6px; border-left: 3px solid #dc3545; margin: 8px 0; font-size: 9pt; }
-.feature { background-color: #e6f3ff; padding: 6px; border-left: 3px solid #1877f2; margin: 8px 0; font-size: 9pt; }
-.subtitle { text-align: center; color: #666; font-size: 9pt; margin-bottom: 10px; }
+.box { padding: 6px 8px; margin: 6px 0; font-size: 9pt; }
+.red { background: #fff0f0; border-left: 3px solid #dc3545; }
+.blue { background: #f0f5ff; border-left: 3px solid #1877f2; }
+.green { background: #f0fff4; border-left: 3px solid #28a745; }
+.yellow { background: #fffef0; border-left: 3px solid #ffc107; }
 .two-col { display: table; width: 100%; }
-.col { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
+.col { display: table-cell; width: 50%; vertical-align: top; padding-right: 8px; }
+.col:last-child { padding-right: 0; padding-left: 8px; }
 </style>
 </head>
 <body>
 
-<h1>Facebook Ads Dashboard PRD</h1>
-<p class="subtitle">One-Page Product Requirements Document | Version 2.1 | January 2026</p>
+<h1>Facebook Ads Dashboard - PRD</h1>
+<p class="subtitle">Short Product Requirements Document | v2.1 | January 2026</p>
 
-<h2>1. What is This Application?</h2>
-<p>A unified dashboard to <strong>track, analyze, and optimize</strong> Facebook Ads performance for Pabbly products. Unlike Facebook Ads Manager, this dashboard:</p>
+<h2>1. Application Overview</h2>
+<p>A unified analytics dashboard to <strong>track, analyze, and optimize</strong> Facebook Ads for Pabbly products. The key difference from Facebook Ads Manager is:</p>
 <ul>
-<li>Combines Facebook ad metrics with <strong>actual sales revenue</strong> from our payment system</li>
-<li>Sends conversion data back to Facebook via <strong>Conversion API (CAPI)</strong> for better ad optimization</li>
-<li>Provides <strong>smart alerts</strong> to increase/decrease budgets (Facebook doesn't offer this)</li>
-<li>Shows <strong>country-wise performance</strong> with real revenue data</li>
+<li>Tracks <strong>actual sales revenue</strong> from our payment system (not Facebook pixel estimates)</li>
+<li>Sends conversion data back to Facebook via <strong>Conversion API (CAPI)</strong></li>
+<li>Provides <strong>smart alerts</strong> telling when to increase/decrease budget (Facebook does not do this)</li>
+<li>Shows <strong>country-wise ROAS</strong> with real revenue data</li>
+<li>Combines Facebook ad data + our revenue/leads in one place</li>
 </ul>
 
-<h2>2. Ad Accounts</h2>
+<h2>2. Ad Accounts (3 Accounts)</h2>
 <table>
-<tr><th>Account</th><th>Facebook ID</th></tr>
-<tr><td>Pabbly Connect One Time</td><td>act_883912415611751</td></tr>
-<tr><td>Pabbly Chatflow</td><td>act_1304022760826324</td></tr>
-<tr><td>Pabbly Billing One Time</td><td>act_505099201137104</td></tr>
+<tr><th>Account Name</th><th>Facebook ID</th><th>Type</th></tr>
+<tr><td>Pabbly Connect One Time</td><td>act_883912415611751</td><td>Connect</td></tr>
+<tr><td>Pabbly Chatflow</td><td>act_1304022760826324</td><td>Chatflow</td></tr>
+<tr><td>Pabbly Billing One Time</td><td>act_505099201137104</td><td>PSB</td></tr>
 </table>
+<p>Users switch accounts via a <strong>header dropdown</strong>. Each account shows its name, status, and active campaign count. All data is separate per account.</p>
 
-<h2>3. Core Concept: Data Sources</h2>
-<div class="important">
-<strong>Critical Rule:</strong> Revenue & Leads come from OUR database, NOT from Facebook. Facebook only provides ad metrics.
-</div>
+<h2>3. Data Sources (Critical)</h2>
+<div class="red box"><strong>Rule:</strong> Revenue, Sales, and Leads come from OUR local database. NOT from Facebook.</div>
 <table>
 <tr><th>Data</th><th>Source</th><th>How</th></tr>
-<tr><td>Spend, Clicks, Impressions, Reach</td><td>Facebook API</td><td>Daily sync at 2 AM</td></tr>
-<tr><td><strong>Revenue & Sales</strong></td><td><strong>Local Database</strong></td><td>Manual entry, Webhook, or API</td></tr>
-<tr><td><strong>Leads</strong></td><td><strong>Local Database</strong></td><td>Manual entry, Webhook, or API</td></tr>
-<tr><td>ROAS</td><td>Calculated</td><td>Revenue (local) ÷ Spend (Facebook)</td></tr>
+<tr><td>Spend, Impressions, Clicks, Reach, Frequency</td><td>Facebook API</td><td>Synced daily to local database</td></tr>
+<tr><td><strong>Revenue &amp; Sales</strong></td><td><strong>Local DB</strong></td><td>Manual entry / Webhook / API</td></tr>
+<tr><td><strong>Leads</strong></td><td><strong>Local DB</strong></td><td>Manual entry / Webhook / API</td></tr>
+<tr><td>ROAS</td><td>Calculated</td><td>Revenue (local) &divide; Spend (Facebook)</td></tr>
+<tr><td>Cost Per Lead</td><td>Calculated</td><td>Spend (Facebook) &divide; Leads (local)</td></tr>
+<tr><td>CTR, CPC</td><td>Calculated</td><td>From Facebook metrics</td></tr>
 </table>
 
-<h2>4. Key Feature: Conversion API (CAPI) Integration</h2>
-<div class="feature">
-<strong>NEW:</strong> When a sale happens, we send the conversion data to Facebook via Conversion API. This helps Facebook optimize ad delivery for more conversions.
-</div>
-<p><strong>How it works:</strong></p>
-<ol>
-<li>Customer makes a purchase (received via webhook from payment gateway)</li>
-<li>Sale is recorded in our dashboard with customer email, amount, country</li>
-<li>Dashboard automatically sends this conversion event to Facebook CAPI</li>
-<li>Facebook uses this data to optimize ads and show them to similar buyers</li>
-<li>Dashboard reflects the sale in revenue metrics and ROAS calculations</li>
-</ol>
-<p><strong>CAPI Data Sent:</strong> Event name (Purchase), Event time, Customer email (hashed), Amount, Currency, Country, Transaction ID</p>
+<h2>4. Conversion API (CAPI) Integration</h2>
+<div class="blue box"><strong>New Feature:</strong> When a sale happens, we send the conversion event to Facebook via Conversion API so Facebook can optimize ads for more conversions.</div>
+<p><strong>Flow:</strong> Customer purchases &rarr; Sale recorded in dashboard (via webhook/manual) &rarr; Dashboard sends Purchase event to Facebook CAPI (hashed email, amount, currency, country, transaction ID) &rarr; Facebook optimizes ad delivery &rarr; Dashboard reflects sale in ROAS.</p>
 
 <h2>5. Dashboard Sections</h2>
+
+<h3>5.1 Overview (Landing Page)</h3>
+<p><strong>5 KPI Cards:</strong></p>
 <table>
-<tr><th>Section</th><th>What it Shows</th></tr>
-<tr><td><strong>Overview</strong></td><td>5 KPI cards (Spend, Revenue, ROAS, Leads, Pixel Status) + Quick snapshot (Today/Week/Month)</td></tr>
-<tr><td><strong>Campaigns</strong></td><td>All campaigns with Status, Budget, Spend, Sales, Revenue, ROAS, Frequency, Clicks, Reach, Impressions</td></tr>
-<tr><td><strong>Ad Sets</strong></td><td>Same metrics as Campaigns, grouped by parent campaign</td></tr>
-<tr><td><strong>Ads</strong></td><td>Individual ads with creative preview + all metrics</td></tr>
-<tr><td><strong>Country Performance</strong></td><td>Country-wise breakdown: Spend (Facebook) + Revenue (our data) + ROAS</td></tr>
-<tr><td><strong>Sales by Ad Creative</strong></td><td>Each sale linked to the ad that generated it (Ad Name, Amount, Country, Date)</td></tr>
+<tr><th>Card</th><th>Value</th><th>Sub-Info</th></tr>
+<tr><td>Total Ad Spend</td><td>Sum of all spend (Facebook)</td><td>% change vs last period</td></tr>
+<tr><td>Total Revenue</td><td>Sum of revenue (Local DB)</td><td>Total Sales count</td></tr>
+<tr><td>ROAS</td><td>Revenue &divide; Spend</td><td>% change, Target: above 1.5</td></tr>
+<tr><td>Total Leads</td><td>Sum of leads (Local DB)</td><td>Avg Cost Per Lead</td></tr>
+<tr><td>Pixel Status</td><td>Active / Inactive</td><td>Green/Red pulsing dot</td></tr>
 </table>
+<p><strong>Quick Performance Snapshot:</strong> Three columns showing Spend, Revenue, ROAS, Leads, CPL for <strong>Today</strong>, <strong>This Week</strong>, and <strong>This Month</strong>.</p>
+<p><strong>Date Range Selector:</strong> Today, Yesterday, Last 7 Days, Last 30 Days, Last 90 Days, This Month, Last Month. Plus a Refresh button with "Last synced" time.</p>
+
+<h3>5.2 Campaigns</h3>
+<p><strong>Filters:</strong> Status (Active/Paused/All), Search by name.</p>
+<p><strong>Table Columns:</strong> Status, Campaign Name, Budget, Spent, Sales, Revenue, ROAS, Frequency, Outbound Clicks, Reach, Impressions. All metric columns are sortable. Clicking a campaign drills down to its Ad Sets.</p>
+
+<h3>5.3 Ad Sets</h3>
+<p><strong>Filters:</strong> Status (Active/Paused/All), Campaign dropdown, Search by name.</p>
+<p><strong>Table Columns:</strong> Same as Campaigns. Shows parent campaign name. Breadcrumb navigation (Campaigns > Campaign Name). Clicking an ad set drills down to its Ads.</p>
+
+<h3>5.4 Ads</h3>
+<p><strong>Filters:</strong> Status (Active/Paused/All), Campaign dropdown, Ad Set dropdown (cascading), Search by name.</p>
+<p><strong>Table Columns:</strong> Same as Ad Sets. Shows creative thumbnail (clickable for full preview modal). Breadcrumb navigation (Campaigns > Campaign > Ad Set).</p>
+
+<h3>5.5 Country Performance</h3>
+<p><strong>Purpose:</strong> Identify which countries are profitable and which are wasting money.</p>
+<p><strong>Filters:</strong> Time range dropdown, Country search.</p>
+<table>
+<tr><th>Column</th><th>Source</th></tr>
+<tr><td>Country (with flag emoji)</td><td>Facebook API country breakdown</td></tr>
+<tr><td>Ad Spend</td><td>Facebook API (spend per country)</td></tr>
+<tr><td>Sales</td><td>Local DB (count from revenue_transactions WHERE country_code matches)</td></tr>
+<tr><td>Revenue</td><td>Local DB (sum of amount from revenue_transactions WHERE country_code matches)</td></tr>
+<tr><td>ROAS</td><td>Calculated (Revenue &divide; Spend per country, color-coded)</td></tr>
+</table>
+
+<h3>5.6 Sales by Ad Creative</h3>
+<p><strong>Purpose:</strong> See every individual sale linked to the specific ad that generated it.</p>
+<p><strong>Filters:</strong> Time range (Today/Yesterday/Last 7 Days/Last 30 Days/Last 90 Days/This Month/Last Month), Search.</p>
+<p><strong>Columns:</strong> Date &amp; Time, Campaign, Ad Set, Ad Name, Ad Spend (period), Total Revenue (period), ROAS, Sale Amount, Country.</p>
 
 <h2>6. Smart Alerts (Key Differentiator)</h2>
-<div class="highlight">
-<strong>Why This Matters:</strong> Facebook doesn't tell you when to increase or decrease budget. Our alerts do.
+<div class="yellow box"><strong>Why this matters:</strong> Facebook Ads Manager does NOT tell you when to increase or decrease budgets. Our dashboard does, using real revenue data and configurable thresholds.</div>
+
+<p><strong>Two Tabs:</strong> "Needs Action" (Critical + Warning) and "Opportunities" (Scale up).</p>
+<table>
+<tr><th>Alert</th><th>Priority</th><th>Trigger</th><th>Action</th></tr>
+<tr><td>Low ROAS</td><td>Critical</td><td>ROAS &lt; target AND spend &gt; threshold</td><td>Reduce budget or pause</td></tr>
+<tr><td>Zero Sales</td><td>Critical</td><td>No revenue, significant spend</td><td>Check landing page/offer</td></tr>
+<tr><td>High Frequency</td><td>Warning</td><td>Frequency &gt; 3.0</td><td>Refresh creative, expand audience</td></tr>
+<tr><td>Overspend</td><td>Warning</td><td>Daily spend &gt; limit</td><td>Review budget settings</td></tr>
+<tr><td>Country Overspend</td><td>Warning</td><td>Country spending with no sales</td><td>Exclude or reduce in that country</td></tr>
+<tr><td>High ROAS</td><td>Opportunity</td><td>ROAS &gt; 2.0</td><td><strong>Increase budget!</strong></td></tr>
+</table>
+
+<p><strong>Each Alert Has:</strong> Priority badge, Campaign/Ad name, Spend &amp; ROAS values, Status dropdown (Investigating &rarr; In Progress &rarr; Resolved/Dismissed), Expandable details with threshold info, Comment system for team discussion, Action buttons (Mark Resolved, Snooze).</p>
+
+<p><strong>Configurable Thresholds:</strong> Spend threshold per level (Campaign/Ad Set/Ad/Country), ROAS targets, Frequency limits, Time window. Also notification settings: Google Chat alerts, In-app alerts, Daily summary email.</p>
+
+<h2>7. Data Management</h2>
+
+<div class="two-col">
+<div class="col">
+<h3>Sales Data Entry</h3>
+<p><strong>Add/Edit Revenue:</strong> Date, Time, Transaction ID, Plan Name, Country (150+ countries with autocomplete), Amount, Source (Manual/Razorpay/PayPal/Stripe).</p>
+<p><strong>Table:</strong> Date, Email, Transaction ID, Plan, Country, Amount. Edit/Delete actions. Filters: Time period, Country, Search by Transaction ID.</p>
 </div>
-<table>
-<tr><th>Alert Type</th><th>Trigger</th><th>Recommended Action</th></tr>
-<tr><td>Low ROAS</td><td>ROAS below 1.0 with spend > $100</td><td>Pause or optimize campaign</td></tr>
-<tr><td>Zero Sales</td><td>No revenue but money being spent</td><td>Check landing page, offer</td></tr>
-<tr><td>High Frequency</td><td>Same people seeing ad 3+ times</td><td>Refresh creative, expand audience</td></tr>
-<tr><td>Overspend</td><td>Daily spend exceeds limit</td><td>Review budget settings</td></tr>
-<tr><td><strong>High ROAS (Scale Up)</strong></td><td>ROAS above 2.0</td><td><strong>Increase budget!</strong></td></tr>
-<tr><td><strong>Country Overspend</strong></td><td>Country spending but no sales</td><td><strong>Exclude or reduce in that country</strong></td></tr>
-</table>
+<div class="col">
+<h3>Leads Data Entry</h3>
+<p><strong>Add/Edit Lead:</strong> Date, Lead Count, Source (Facebook Ads/Google Ads/Organic/Referral/Direct).</p>
+<p><strong>Table:</strong> Date, Lead Count. Edit/Delete actions. Filters: Time period, Source, Search.</p>
+</div>
+</div>
 
-<h2>7. Country-Wise Tracking</h2>
-<p>Shows which countries are <strong>profitable</strong> and which are <strong>wasting money</strong>:</p>
+<h2>8. Settings</h2>
+
+<h3>8.1 Facebook Connection</h3>
+<p>Connected account card (Business ID, connection date, Refresh Token/Disconnect buttons). Linked ad accounts table (name, ID, status, last sync, configure). <strong>Sync frequency settings:</strong> Data sync (15min/30min/1hr), Creative sync (3hr/6hr/12hr).</p>
+
+<h3>8.2 Webhooks &amp; API</h3>
+<p><strong>Webhooks:</strong> Create webhooks with Name and URL. Each receives all events (sales, leads, alerts). Test and manage. Events include: New Sales, New Leads, Overspend, Low ROAS, High Frequency, Daily Reports, Pixel Status, Campaign Status changes.</p>
+<p><strong>API:</strong> API key (masked with show/copy/regenerate). Base URL. Two POST endpoints: <code>/{account}/leads</code> and <code>/{account}/sales</code>. Code examples and sample responses.</p>
+
+<h3>8.3 Alert &amp; Budget Settings</h3>
+<p>Threshold table: Level (Campaign/Ad Set/Ad/Country/Frequency), Spend threshold, ROAS target, Time window, Alert rule description. Notification toggles: Google Chat, In-app alerts, Daily summary email.</p>
+
+<h3>8.4 User Management</h3>
+<table>
+<tr><th>Role</th><th>Access</th></tr>
+<tr><td>Admin</td><td>Full access to all features, user management, and settings</td></tr>
+<tr><td>Editor</td><td>View and edit data for assigned ad accounts</td></tr>
+<tr><td>Viewer</td><td>Read-only access for assigned ad accounts</td></tr>
+</table>
+<p>Add/edit users with: Name, Email, Password, Role (radio), Ad Account access (checkboxes). User table shows: Name, Email, Role, Assigned Accounts, Last Login, Actions.</p>
+
+<h2>9. Common UI Features (All Tables)</h2>
 <ul>
-<li><strong>Ad Spend per Country</strong> - From Facebook (synced daily)</li>
-<li><strong>Revenue per Country</strong> - From our sales data (country_code field)</li>
-<li><strong>ROAS per Country</strong> - Calculated to show profitability</li>
-<li><strong>Alert if country spending but not converting</strong></li>
+<li><strong>Pagination:</strong> Rows per page (10/20/50/100), Page navigation, Jump-to-page</li>
+<li><strong>Sorting:</strong> Click column header to sort ascending/descending with sort icons</li>
+<li><strong>Status Badges:</strong> Green = Active, Orange = Paused</li>
+<li><strong>ROAS Color:</strong> Green (&ge;1.5), Orange (1.0-1.49), Red (&lt;1.0), Dark Red row (&lt;0.5)</li>
+<li><strong>Breadcrumb Navigation:</strong> Drill-down from Campaigns &rarr; Ad Sets &rarr; Ads with back navigation</li>
+<li><strong>Delete Confirmation:</strong> Modal with "This action cannot be undone" warning</li>
+<li><strong>Notifications:</strong> Bell icon with badge count, mark-all-as-read</li>
 </ul>
 
-<h2>8. Data Management</h2>
-<table>
-<tr><th>Feature</th><th>Purpose</th></tr>
-<tr><td>Sales Data Entry</td><td>Add revenue manually (Date, Email, Transaction ID, Amount, Country)</td></tr>
-<tr><td>Leads Data Entry</td><td>Add lead counts (Date, Source, Count, Campaign)</td></tr>
-<tr><td>Webhooks</td><td>Receive sales/leads automatically from payment gateways</td></tr>
-</table>
-
-<h2>9. Settings</h2>
+<h2>10. Data Sync &amp; Login</h2>
+<div class="two-col">
+<div class="col">
+<h3>Sync Strategy</h3>
 <ul>
-<li><strong>Facebook Connection:</strong> View connected accounts, sync status</li>
-<li><strong>CAPI Settings:</strong> Configure Conversion API pixel ID and access token</li>
-<li><strong>Alert Thresholds:</strong> Set ROAS limits, spend limits, frequency limits</li>
-<li><strong>Webhooks:</strong> Create endpoints for receiving external data</li>
-<li><strong>User Management:</strong> Admin, Editor, Viewer roles</li>
+<li><strong>Initial:</strong> One-time fetch of 30 days history</li>
+<li><strong>Daily:</strong> Automated sync at 2 AM (yesterday's data)</li>
+<li><strong>Refresh button:</strong> Reads local DB only (no API call)</li>
+<li><strong>Configurable:</strong> 15min / 30min / 1hr frequency</li>
 </ul>
+</div>
+<div class="col">
+<h3>Authentication</h3>
+<ul>
+<li>Email + Password login</li>
+<li>Google SSO sign-in</li>
+<li><strong>Default Admin:</strong> admin@pabbly.com / Admin@123</li>
+<li>Session valid for 7 days</li>
+<li>User avatar menu with Sign Out</li>
+</ul>
+</div>
+</div>
 
-<h2>10. User Login</h2>
-<p><strong>Default Admin:</strong> admin@pabbly.com / Admin@123</p>
-
-<h2>11. Summary: What Makes This Dashboard Different</h2>
+<h2>11. Why This Dashboard vs Facebook Ads Manager</h2>
 <table>
 <tr><th>Facebook Ads Manager</th><th>Our Dashboard</th></tr>
-<tr><td>Shows Facebook-tracked conversions only</td><td>Shows ACTUAL revenue from payment system</td></tr>
-<tr><td>No budget increase/decrease recommendations</td><td><strong>Smart alerts tell you when to scale or pause</strong></td></tr>
-<tr><td>Limited country insights</td><td><strong>Country-wise ROAS with real sales data</strong></td></tr>
-<tr><td>Manual conversion tracking</td><td><strong>Automatic CAPI integration sends conversions to Facebook</strong></td></tr>
-<tr><td>Separate from sales data</td><td>Unified view: Ads + Revenue + Leads in one place</td></tr>
+<tr><td>Revenue based on pixel tracking (often inaccurate)</td><td>Revenue from actual payment data (100% accurate)</td></tr>
+<tr><td>No budget increase/decrease recommendations</td><td>Smart alerts: when to scale, when to pause</td></tr>
+<tr><td>Limited country-level insights</td><td>Country-wise ROAS with real sales data</td></tr>
+<tr><td>No conversion API management</td><td>Built-in CAPI: sends purchase events to Facebook</td></tr>
+<tr><td>Separate from internal data</td><td>Unified: Ads + Revenue + Leads in one place</td></tr>
+<tr><td>No team collaboration on alerts</td><td>Alert comments, status tracking, and assignment</td></tr>
+<tr><td>No webhook integration</td><td>Webhooks for automated data from payment gateways</td></tr>
 </table>
 
-<p style="text-align: center; margin-top: 15px; font-size: 9pt; color: #666;">— End of PRD —</p>
+<p style="text-align: center; margin-top: 12px; font-size: 8pt; color: #999;">— End of PRD —</p>
 
 </body>
 </html>
